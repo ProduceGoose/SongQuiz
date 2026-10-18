@@ -1,4 +1,4 @@
-// Public API of the SongQuiz Aqua components, as documentation. The implementation is in src/.
+// Public API of the SongQuiz Aqua components, as documentation. The implementation is in the repository's src/components/.
 import type * as React from 'react';
 
 export type IconName =

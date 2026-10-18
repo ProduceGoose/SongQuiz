@@ -22,7 +22,7 @@ window.SQDemo = (function () {
   }
 
   var SONGS = [
-    { title: 'Take On Me', artist: 'a-ha' },
+    { title: 'Adasdaadadsds', artist: 'a-ha' },
     { title: 'Dancing Queen', artist: 'ABBA' },
     { title: 'Africa', artist: 'Toto' },
     { title: 'Hey Ya!', artist: 'OutKast' },

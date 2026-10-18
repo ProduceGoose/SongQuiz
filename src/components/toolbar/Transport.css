@@ -1,0 +1,5 @@
+/* Transport: replay, play/pause and skip discs */
+.sq-transport { display: inline-flex; align-items: center; gap: 5px; }
+.sq-transport-btn { display: inline-flex; align-items: center; justify-content: center; width: var(--transport-md); height: var(--transport-md); padding: 0; border-radius: 50%; }
+.sq-transport-lg { width: var(--transport-lg); height: var(--transport-lg); }
+.sq-transport-lg .sq-icon { margin-left: 1px; }

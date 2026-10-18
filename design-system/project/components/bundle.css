@@ -1,4 +1,5 @@
-/* SongQuiz Aqua — component styles. Reads the custom properties from tokens.css. */
+/* Rules shared by every component. Imported first, so component styles can override them.
+   Reads the custom properties compiled from design-system/project/tokens.json. */
 
 [class^="sq-"], [class*=" sq-"] { box-sizing: border-box; }
 .sq-icon { display: inline-block; flex: none; vertical-align: middle; }
@@ -38,8 +39,7 @@
   position: relative;
   z-index: 1;
 }
-
-/* ---- Window ---------------------------------------------------------- */
+/* Window: title bar with dots, sidebar and content area */
 .sq-window {
   display: flex; flex-direction: column; overflow: hidden;
   background: var(--chrome); color: var(--ink);
@@ -60,21 +60,18 @@ i.sq-dot { cursor: default; }
 .sq-window-sidebar { width: var(--sidebar-w); flex: none; display: flex; flex-direction: column; min-height: 0; background: var(--source-bg); border-right: 1px solid var(--chrome-edge); }
 .sq-window-sidebar > .sq-source { flex: 1; min-height: 0; }
 .sq-window-content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: auto; background: var(--grid-bg); color: var(--grid-ink); }
-
-/* ---- Toolbar --------------------------------------------------------- */
+/* Toolbar: start, centre (the LCD) and end slots */
 .sq-toolbar { display: flex; align-items: center; gap: 16px; min-height: var(--toolbar-h); }
 .sq-toolbar-start, .sq-toolbar-end { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 12px; }
 .sq-toolbar-end { justify-content: flex-end; }
 .sq-toolbar-center { flex: 0 1 460px; min-width: 220px; display: flex; justify-content: center; }
 .sq-toolbar-center > * { width: 100%; }
-
-/* ---- Transport ------------------------------------------------------- */
+/* Transport: replay, play/pause and skip discs */
 .sq-transport { display: inline-flex; align-items: center; gap: 5px; }
 .sq-transport-btn { display: inline-flex; align-items: center; justify-content: center; width: var(--transport-md); height: var(--transport-md); padding: 0; border-radius: 50%; }
 .sq-transport-lg { width: var(--transport-lg); height: var(--transport-lg); }
 .sq-transport-lg .sq-icon { margin-left: 1px; }
-
-/* ---- Volume ---------------------------------------------------------- */
+/* VolumeSlider */
 .sq-volume { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
 .sq-volume-range { -webkit-appearance: none; appearance: none; width: 80px; height: 14px; margin: 0; background: transparent; cursor: pointer; }
 .sq-volume-range::-webkit-slider-runnable-track {
@@ -98,8 +95,7 @@ i.sq-dot { cursor: default; }
 .sq-volume-range:focus-visible { outline: none; }
 .sq-volume-range:focus-visible::-webkit-slider-thumb { box-shadow: var(--shadow-focus); }
 .sq-volume-range:focus-visible::-moz-range-thumb { box-shadow: var(--shadow-focus); }
-
-/* ---- LCD ------------------------------------------------------------- */
+/* LcdDisplay: the recessed panel in the middle of the toolbar */
 .sq-lcd {
   display: flex; align-items: center; gap: 8px; min-width: 0; height: var(--lcd-h); padding: 3px 10px;
   background: var(--lcd-bg); color: var(--lcd-ink);
@@ -115,8 +111,7 @@ i.sq-dot { cursor: default; }
 .sq-lcd-elapsed { text-align: right; }
 .sq-lcd-track { flex: 1; height: 7px; border: 1px solid var(--lcd-ink); border-radius: var(--radius-xs); overflow: hidden; }
 .sq-lcd-fill { height: 100%; background: var(--lcd-fill); }
-
-/* ---- Segmented control ----------------------------------------------- */
+/* SegmentedControl */
 .sq-segmented { display: inline-flex; border-radius: var(--radius-sm); }
 .sq-seg {
   display: inline-flex; align-items: center; justify-content: center; gap: 4px;
@@ -128,8 +123,7 @@ i.sq-dot { cursor: default; }
 .sq-seg:last-child { border-radius: 0 3px 3px 0; }
 .sq-seg-icon { padding: 0 8px; }
 .sq-seg.is-on { background: linear-gradient(var(--pressed-top), var(--pressed-bottom)); color: var(--on-pressed); text-shadow: 0 -1px 0 rgba(0, 0, 0, .5); box-shadow: var(--shadow-pressed); }
-
-/* ---- Search / answer field ------------------------------------------- */
+/* SearchField: toolbar search and the large answer field */
 .sq-search {
   display: inline-flex; align-items: center; gap: 4px; width: 160px; height: var(--control-h); padding: 0 4px 0 8px;
   border: 1px solid var(--bezel); border-radius: var(--radius-pill);
@@ -142,8 +136,7 @@ i.sq-dot { cursor: default; }
 .sq-search-lg input { font-size: 15px; line-height: 20px; }
 .sq-search-clear { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; padding: 0; border: 0; border-radius: 50%; background: var(--ink-muted); color: var(--surface); }
 .sq-search-lg .sq-search-clear { width: 18px; height: 18px; }
-
-/* ---- Button ---------------------------------------------------------- */
+/* Button */
 .sq-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   height: var(--control-h); padding: 0 16px; border-radius: var(--radius-pill);
@@ -155,8 +148,17 @@ i.sq-dot { cursor: default; }
   background: linear-gradient(var(--aqua-hi), var(--aqua) 50%, var(--aqua));
 }
 .sq-btn-primary:active:not(:disabled) { background: linear-gradient(var(--aqua), var(--aqua-edge)); }
-
-/* ---- Source list ----------------------------------------------------- */
+/* Badge */
+.sq-badge {
+  display: inline-flex; align-items: center; gap: 3px; height: 16px; padding: 0 7px; border-radius: var(--radius-pill);
+  font-size: 10px; line-height: 16px; font-weight: 700; white-space: nowrap; text-shadow: none; vertical-align: middle;
+}
+.sq-badge-neutral { background: var(--count-bg); color: var(--on-count); }
+.sq-badge-aqua { background: var(--aqua); color: var(--on-aqua); }
+.sq-badge-correct { background: var(--correct); color: var(--on-correct); }
+.sq-badge-wrong { background: var(--wrong); color: var(--on-wrong); }
+.sq-badge-gold { background: var(--gold); color: var(--on-gold); }
+/* SourceList: the blue-gray sidebar */
 .sq-source { padding: 6px 0 10px; overflow: auto; background: var(--source-bg); color: var(--source-ink); font-size: 12px; line-height: 16px; }
 .sq-source-section + .sq-source-section { margin-top: 8px; }
 .sq-source-heading {
@@ -180,13 +182,37 @@ div.sq-source-heading { cursor: default; }
   background: var(--count-bg); color: var(--on-count); font-size: 10px; line-height: 14px; font-weight: 700; text-align: center; text-shadow: none;
 }
 .sq-source-item.is-on .sq-count { background: var(--on-select); color: var(--select-bottom); }
-
-/* ---- Album grid & tiles ---------------------------------------------- */
+/* Placeholder sleeve: silver jacket with a record; hidden = dark jacket with a "?" */
+.sq-sleeve {
+  display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; overflow: hidden;
+  background: linear-gradient(135deg, var(--chrome-top), var(--chrome-bottom));
+  font-family: var(--font-display); font-weight: 700; line-height: 1; font-size: calc(var(--sq-art, var(--art-md)) * .5);
+}
+.sq-sleeve::after {
+  content: ""; width: 64%; height: 64%; border-radius: 50%; box-shadow: var(--shadow-art);
+  background: radial-gradient(circle, var(--grid-bg) 0 4%, var(--aqua) 5% 20%, var(--grid-bg) 21% 100%);
+}
+.sq-sleeve-hidden { background: linear-gradient(135deg, var(--pressed-bottom), var(--pressed-top)); color: var(--on-pressed); }
+.sq-sleeve-hidden::after { display: none; }
+/* NowPlaying: the art panel under the sidebar */
+.sq-nowplaying { flex: none; background: var(--source-bg); border-top: 1px solid var(--chrome-edge); }
+.sq-nowplaying-head {
+  display: flex; align-items: center; justify-content: center; gap: 4px; height: 18px;
+  background: linear-gradient(var(--control-top), var(--control-bottom)); border-bottom: 1px solid var(--bezel);
+  color: var(--ink); font-size: 11px; line-height: 14px; font-weight: 700; text-shadow: 0 1px 0 var(--engrave);
+}
+.sq-nowplaying-art { --sq-art: var(--sidebar-w); display: block; width: 100%; aspect-ratio: 1; background: var(--grid-bg); }
+.sq-nowplaying-art > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.sq-nowplaying-caption { padding: 6px 10px 8px; text-align: center; }
+.sq-nowplaying-title { font-size: 12px; line-height: 15px; font-weight: 700; color: var(--source-ink); }
+.sq-nowplaying-subtitle { font-size: 11px; line-height: 14px; color: var(--source-heading); }
+/* AlbumGrid */
 .sq-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--sq-art, var(--art-md)) + 16px), 1fr));
   gap: 18px 8px; padding: 16px; background: var(--grid-bg); justify-items: center; align-items: start;
 }
 .sq-grid-cell { display: flex; justify-content: center; min-width: 0; }
+/* AlbumTile */
 .sq-tile {
   display: flex; flex-direction: column; align-items: center; width: calc(var(--sq-art, var(--art-md)) + 16px);
   padding: 0; border: 0; background: none; color: var(--grid-ink); font-size: 11px; line-height: 14px; text-align: center;
@@ -208,34 +234,7 @@ div.sq-tile { cursor: default; }
 .sq-tile.is-dimmed { opacity: .4; }
 .sq-tile:focus-visible { outline: none; }
 .sq-tile:focus-visible .sq-tile-art { box-shadow: var(--shadow-art), var(--shadow-focus); }
-
-/* Placeholder sleeve: silver jacket with a record; hidden = dark jacket with a "?" */
-.sq-sleeve {
-  display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; overflow: hidden;
-  background: linear-gradient(135deg, var(--chrome-top), var(--chrome-bottom));
-  font-family: var(--font-display); font-weight: 700; line-height: 1; font-size: calc(var(--sq-art, var(--art-md)) * .5);
-}
-.sq-sleeve::after {
-  content: ""; width: 64%; height: 64%; border-radius: 50%; box-shadow: var(--shadow-art);
-  background: radial-gradient(circle, var(--grid-bg) 0 4%, var(--aqua) 5% 20%, var(--grid-bg) 21% 100%);
-}
-.sq-sleeve-hidden { background: linear-gradient(135deg, var(--pressed-bottom), var(--pressed-top)); color: var(--on-pressed); }
-.sq-sleeve-hidden::after { display: none; }
-
-/* ---- Now Playing ----------------------------------------------------- */
-.sq-nowplaying { flex: none; background: var(--source-bg); border-top: 1px solid var(--chrome-edge); }
-.sq-nowplaying-head {
-  display: flex; align-items: center; justify-content: center; gap: 4px; height: 18px;
-  background: linear-gradient(var(--control-top), var(--control-bottom)); border-bottom: 1px solid var(--bezel);
-  color: var(--ink); font-size: 11px; line-height: 14px; font-weight: 700; text-shadow: 0 1px 0 var(--engrave);
-}
-.sq-nowplaying-art { --sq-art: var(--sidebar-w); display: block; width: 100%; aspect-ratio: 1; background: var(--grid-bg); }
-.sq-nowplaying-art > img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.sq-nowplaying-caption { padding: 6px 10px 8px; text-align: center; }
-.sq-nowplaying-title { font-size: 12px; line-height: 15px; font-weight: 700; color: var(--source-ink); }
-.sq-nowplaying-subtitle { font-size: 11px; line-height: 14px; color: var(--source-heading); }
-
-/* ---- List view (Leaderboard) ----------------------------------------- */
+/* List view: the striped table used by Leaderboard and Table */
 .sq-list { width: 100%; border-collapse: collapse; background: var(--surface); color: var(--ink); font-size: 12px; line-height: 16px; }
 .sq-list th {
   height: 18px; padding: 0 8px; text-align: left; white-space: nowrap;
@@ -254,19 +253,7 @@ div.sq-tile { cursor: default; }
 .sq-list-note, .sq-delta { font-size: 11px; font-weight: 400; color: var(--ink-muted); }
 .sq-delta { margin-right: 6px; }
 .sq-list tr.is-on .sq-list-note, .sq-list tr.is-on .sq-delta { color: var(--on-select); }
-
-/* ---- Badge ----------------------------------------------------------- */
-.sq-badge {
-  display: inline-flex; align-items: center; gap: 3px; height: 16px; padding: 0 7px; border-radius: var(--radius-pill);
-  font-size: 10px; line-height: 16px; font-weight: 700; white-space: nowrap; text-shadow: none; vertical-align: middle;
-}
-.sq-badge-neutral { background: var(--count-bg); color: var(--on-count); }
-.sq-badge-aqua { background: var(--aqua); color: var(--on-aqua); }
-.sq-badge-correct { background: var(--correct); color: var(--on-correct); }
-.sq-badge-wrong { background: var(--wrong); color: var(--on-wrong); }
-.sq-badge-gold { background: var(--gold); color: var(--on-gold); }
-
-/* ---- Status bar ------------------------------------------------------ */
+/* StatusBar and its BarButtons */
 .sq-statusbar {
   display: flex; align-items: center; gap: 8px; height: var(--statusbar-h); padding: 0 8px;
   background: linear-gradient(var(--chrome-top), var(--chrome-bottom)); border-top: 1px solid var(--chrome-edge);
@@ -277,3 +264,4 @@ div.sq-tile { cursor: default; }
 .sq-statusbar-text { flex: 0 1 auto; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sq-barbtn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 18px; padding: 0; border-radius: var(--radius-sm); }
 .sq-barbtn.is-on { color: var(--toggle-on); }
+/*$vite$:1*/

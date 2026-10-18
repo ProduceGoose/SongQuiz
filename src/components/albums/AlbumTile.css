@@ -1,0 +1,22 @@
+/* AlbumTile */
+.sq-tile {
+  display: flex; flex-direction: column; align-items: center; width: calc(var(--sq-art, var(--art-md)) + 16px);
+  padding: 0; border: 0; background: none; color: var(--grid-ink); font-size: 11px; line-height: 14px; text-align: center;
+}
+div.sq-tile { cursor: default; }
+.sq-tile-art {
+  position: relative; display: block; width: var(--sq-art, var(--art-md)); height: var(--sq-art, var(--art-md));
+  border-radius: var(--radius-xs); background: var(--grid-bg); box-shadow: var(--shadow-art);
+}
+.sq-tile-art > img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.sq-tile-art > .sq-sleeve { border-radius: inherit; }
+.sq-tile-badge { position: absolute; top: 4px; right: 4px; }
+.sq-tile-title { display: flex; align-items: center; justify-content: center; gap: 3px; max-width: 100%; margin-top: 7px; font-weight: 700; color: var(--grid-ink); }
+.sq-tile-subtitle { display: block; color: var(--grid-muted); }
+.sq-tile.is-selected .sq-tile-art { box-shadow: var(--shadow-art), 0 0 0 2px var(--grid-ink), 0 0 0 5px var(--aqua); }
+.sq-tile.is-correct .sq-tile-art { box-shadow: var(--shadow-art), 0 0 0 3px var(--correct); }
+.sq-tile.is-wrong .sq-tile-art { box-shadow: var(--shadow-art), 0 0 0 2px var(--grid-ink), 0 0 0 5px var(--wrong); }
+.sq-tile.is-wrong .sq-tile-art > img, .sq-tile.is-wrong .sq-tile-art > .sq-sleeve { opacity: .6; }
+.sq-tile.is-dimmed { opacity: .4; }
+.sq-tile:focus-visible { outline: none; }
+.sq-tile:focus-visible .sq-tile-art { box-shadow: var(--shadow-art), var(--shadow-focus); }

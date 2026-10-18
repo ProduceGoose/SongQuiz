@@ -1,0 +1,23 @@
+/* Playlists: cover thumbnails in the list view, and the playlist detail page. */
+.app-cell-art { display: inline-flex; align-items: center; gap: 8px; }
+.app-cell-art img { width: 16px; height: 16px; border-radius: 1px; }
+
+.app-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--grid-muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.app-back .sq-icon { transform: scaleX(-1); }
+.app-back:hover { color: var(--grid-ink); }
+.app-back:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.app-detail { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 24px; }
+.app-detail-art { flex: none; width: 160px; height: 160px; max-width: 100%; border-radius: var(--radius-xs); box-shadow: var(--shadow-art); }
+.app-detail-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1 1 280px; }

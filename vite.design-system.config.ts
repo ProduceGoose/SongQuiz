@@ -1,5 +1,6 @@
-// Builds design-system/project/components/bundle.js from the TypeScript sources in
-// design-system/project/components/src/. Run `npm run build:design-system` after changing a component.
+// Builds design-system/project/components/bundle.js and bundle.css from the components in
+// src/components/ (entry: src/components/design-system.ts). Run `npm run build:design-system`
+// after changing a component.
 //
 // The design system page loads React 18 as a global and then this bundle as one classic script,
 // which must assign `window.SongQuiz`. So: an IIFE, React external (read from window.React),
@@ -29,10 +30,11 @@ export default defineConfig({
     minify: false,
     sourcemap: false,
     lib: {
-      entry: path('./design-system/project/components/src/index.ts'),
+      entry: path('./src/components/design-system.ts'),
       formats: ['iife'],
       name: 'SongQuiz',
-      fileName: () => 'bundle.js'
+      fileName: () => 'bundle.js',
+      cssFileName: 'bundle'
     },
     rollupOptions: {
       external: ['react', 'react-dom'],

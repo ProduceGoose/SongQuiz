@@ -1,0 +1,6 @@
+/* AlbumGrid */
+.sq-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--sq-art, var(--art-md)) + 16px), 1fr));
+  gap: 18px 8px; padding: 16px; background: var(--grid-bg); justify-items: center; align-items: start;
+}
+.sq-grid-cell { display: flex; justify-content: center; min-width: 0; }

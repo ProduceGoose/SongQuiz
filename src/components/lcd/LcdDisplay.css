@@ -1,0 +1,16 @@
+/* LcdDisplay: the recessed panel in the middle of the toolbar */
+.sq-lcd {
+  display: flex; align-items: center; gap: 8px; min-width: 0; height: var(--lcd-h); padding: 3px 10px;
+  background: var(--lcd-bg); color: var(--lcd-ink);
+  border: 1px solid var(--lcd-bezel); border-radius: var(--radius-md); box-shadow: var(--shadow-lcd);
+}
+.sq-lcd-side { flex: none; min-width: 16px; display: flex; align-items: center; justify-content: center; color: var(--lcd-muted); }
+.sq-lcd-body { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.sq-lcd-title, .sq-lcd-subtitle { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sq-lcd-title { font-size: 12px; line-height: 15px; font-weight: 700; }
+.sq-lcd-subtitle { font-size: 11px; line-height: 14px; color: var(--lcd-muted); }
+.sq-lcd-progress { width: 100%; display: flex; align-items: center; gap: 6px; margin-top: 1px; }
+.sq-lcd-time { flex: none; min-width: 30px; font-size: 10px; line-height: 12px; font-variant-numeric: tabular-nums; text-align: left; }
+.sq-lcd-elapsed { text-align: right; }
+.sq-lcd-track { flex: 1; height: 7px; border: 1px solid var(--lcd-ink); border-radius: var(--radius-xs); overflow: hidden; }
+.sq-lcd-fill { height: 100%; background: var(--lcd-fill); }

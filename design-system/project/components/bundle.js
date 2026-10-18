@@ -24,7 +24,7 @@ var SongQuiz = (function(exports, react) {
 	}) : target, mod));
 	//#endregion
 	react = __toESM(react, 1);
-	//#region design-system/project/components/src/utils.ts
+	//#region src/components/utils.ts
 	/** Joins the truthy class names with spaces. */
 	function cx(...names) {
 		return names.filter(Boolean).join(" ");
@@ -59,7 +59,7 @@ var SongQuiz = (function(exports, react) {
 	}
 	var jsxs = jsx;
 	//#endregion
-	//#region design-system/project/components/src/Icon.tsx
+	//#region src/components/controls/Icon.tsx
 	var ICONS = {
 		play: [["f", "M5 3.25v9.5L12.75 8z"]],
 		pause: [["f", "M4.25 3h2.75v10H4.25zM9 3h2.75v10H9z"]],
@@ -209,7 +209,7 @@ var SongQuiz = (function(exports, react) {
 		});
 	}
 	//#endregion
-	//#region design-system/project/components/src/Window.tsx
+	//#region src/components/window/Window.tsx
 	function Window({ title, toolbar, sidebar, statusBar, children, onClose, closeLabel = "Leave room", className, style }) {
 		return /* @__PURE__ */ jsxs("div", {
 			className: cx("sq-window", className),
@@ -260,6 +260,8 @@ var SongQuiz = (function(exports, react) {
 			]
 		});
 	}
+	//#endregion
+	//#region src/components/toolbar/Toolbar.tsx
 	function Toolbar({ start, center, end, className }) {
 		return /* @__PURE__ */ jsxs("div", {
 			className: cx("sq-toolbar", className),
@@ -280,7 +282,7 @@ var SongQuiz = (function(exports, react) {
 		});
 	}
 	//#endregion
-	//#region design-system/project/components/src/Playback.tsx
+	//#region src/components/toolbar/Transport.tsx
 	var TRANSPORT_LABELS = {
 		play: "Play",
 		pause: "Pause",
@@ -325,6 +327,8 @@ var SongQuiz = (function(exports, react) {
 			]
 		});
 	}
+	//#endregion
+	//#region src/components/toolbar/VolumeSlider.tsx
 	function VolumeSlider({ value, defaultValue = 70, onChange, min = 0, max = 100, label = "Volume", disabled, className }) {
 		const [current, setCurrent] = useMaybeControlled(value, defaultValue, onChange);
 		const pct = (current - min) / (max - min) * 100;
@@ -353,6 +357,8 @@ var SongQuiz = (function(exports, react) {
 			]
 		});
 	}
+	//#endregion
+	//#region src/components/lcd/LcdDisplay.tsx
 	function LcdDisplay({ title, subtitle, progress, elapsed, remaining, start, end, progressLabel = "Snippet progress", className }) {
 		const p = progress == null ? null : Math.max(0, Math.min(1, progress));
 		const el = typeof elapsed === "number" ? formatTime(elapsed) : elapsed;
@@ -410,7 +416,7 @@ var SongQuiz = (function(exports, react) {
 		});
 	}
 	//#endregion
-	//#region design-system/project/components/src/Controls.tsx
+	//#region src/components/controls/SegmentedControl.tsx
 	function SegmentedControl({ options, value, defaultValue, onChange, label, className }) {
 		const opts = options.map((o) => typeof o === "string" ? {
 			value: o,
@@ -440,6 +446,8 @@ var SongQuiz = (function(exports, react) {
 			})
 		});
 	}
+	//#endregion
+	//#region src/components/controls/SearchField.tsx
 	function SearchField({ value, defaultValue = "", onChange, onSubmit, placeholder = "Search", size = "md", icon = "search", label, disabled, autoFocus, className }) {
 		const [current, setCurrent] = useMaybeControlled(value, defaultValue, onChange);
 		return /* @__PURE__ */ jsxs("form", {
@@ -478,6 +486,8 @@ var SongQuiz = (function(exports, react) {
 			]
 		});
 	}
+	//#endregion
+	//#region src/components/controls/Button.tsx
 	function Button({ children, variant = "default", size = "md", icon, onClick, disabled, type = "button", title, className }) {
 		return /* @__PURE__ */ jsxs("button", {
 			type,
@@ -492,7 +502,24 @@ var SongQuiz = (function(exports, react) {
 		});
 	}
 	//#endregion
-	//#region design-system/project/components/src/SourceList.tsx
+	//#region src/components/controls/Badge.tsx
+	var BADGE_ICON = {
+		correct: "check",
+		wrong: "cross",
+		gold: "trophy"
+	};
+	function Badge({ children, tone = "neutral", icon, className }) {
+		const glyph = icon === void 0 ? BADGE_ICON[tone] : icon;
+		return /* @__PURE__ */ jsxs("span", {
+			className: cx("sq-badge", "sq-badge-" + tone, className),
+			children: [glyph ? /* @__PURE__ */ jsx(Icon, {
+				name: glyph,
+				size: 9
+			}) : null, children]
+		});
+	}
+	//#endregion
+	//#region src/components/sidebar/SourceList.tsx
 	function SourceList({ sections, selected, onSelect, label = "Sidebar", className }) {
 		const [closed, setClosed] = (0, react.useState)({});
 		return /* @__PURE__ */ jsx("nav", {
@@ -552,22 +579,126 @@ var SongQuiz = (function(exports, react) {
 		});
 	}
 	//#endregion
-	//#region design-system/project/components/src/Status.tsx
-	var BADGE_ICON = {
-		correct: "check",
-		wrong: "cross",
-		gold: "trophy"
-	};
-	function Badge({ children, tone = "neutral", icon, className }) {
-		const glyph = icon === void 0 ? BADGE_ICON[tone] : icon;
-		return /* @__PURE__ */ jsxs("span", {
-			className: cx("sq-badge", "sq-badge-" + tone, className),
-			children: [glyph ? /* @__PURE__ */ jsx(Icon, {
-				name: glyph,
-				size: 9
-			}) : null, children]
+	//#region src/components/albums/Sleeve.tsx
+	/** Placeholder art: a silver sleeve with a record, or a dark sleeve with "?" while hidden. */
+	function Sleeve({ hidden }) {
+		return hidden ? /* @__PURE__ */ jsx("span", {
+			className: "sq-sleeve sq-sleeve-hidden",
+			"aria-hidden": true,
+			children: "?"
+		}) : /* @__PURE__ */ jsx("span", {
+			className: "sq-sleeve",
+			"aria-hidden": true
 		});
 	}
+	/** Inline style that sets the art size (px) for a grid, tile or sleeve. */
+	var artSize = (size) => size ? { "--sq-art": size + "px" } : void 0;
+	//#endregion
+	//#region src/components/sidebar/NowPlaying.tsx
+	function NowPlaying({ label = "Now Playing", art, title, subtitle, hidden, className }) {
+		return /* @__PURE__ */ jsxs("section", {
+			className: cx("sq-nowplaying", className),
+			"aria-label": label,
+			children: [
+				/* @__PURE__ */ jsxs("div", {
+					className: "sq-nowplaying-head",
+					children: [/* @__PURE__ */ jsx(Icon, {
+						name: "play",
+						size: 8
+					}), label]
+				}),
+				/* @__PURE__ */ jsx("div", {
+					className: "sq-nowplaying-art",
+					children: hidden || !art ? /* @__PURE__ */ jsx(Sleeve, { hidden }) : /* @__PURE__ */ jsx("img", {
+						src: art,
+						alt: title ? "Cover of " + title : ""
+					})
+				}),
+				title || subtitle ? /* @__PURE__ */ jsxs("div", {
+					className: "sq-nowplaying-caption",
+					children: [title ? /* @__PURE__ */ jsx("div", {
+						className: "sq-nowplaying-title sq-ellipsis",
+						children: title
+					}) : null, subtitle ? /* @__PURE__ */ jsx("div", {
+						className: "sq-nowplaying-subtitle sq-ellipsis",
+						children: subtitle
+					}) : null]
+				}) : null
+			]
+		});
+	}
+	//#endregion
+	//#region src/components/albums/AlbumGrid.tsx
+	function AlbumGrid({ children, label, size, className }) {
+		return /* @__PURE__ */ jsx("div", {
+			className: cx("sq-grid", className),
+			role: "list",
+			"aria-label": label,
+			style: artSize(size),
+			children: react.Children.map(children, (child) => child ? /* @__PURE__ */ jsx("div", {
+				role: "listitem",
+				className: "sq-grid-cell",
+				children: child
+			}) : null)
+		});
+	}
+	//#endregion
+	//#region src/components/albums/AlbumTile.tsx
+	var STATE_BADGE = {
+		correct: ["correct", "Correct"],
+		wrong: ["wrong", "Wrong"]
+	};
+	function AlbumTile({ art, title, subtitle, state = "idle", playing, onClick, disabled, size, badgeLabel, className }) {
+		const hidden = state === "hidden";
+		const badge = STATE_BADGE[state];
+		const content = /* @__PURE__ */ jsxs(Fragment, { children: [
+			/* @__PURE__ */ jsxs("span", {
+				className: "sq-tile-art",
+				children: [hidden || !art ? /* @__PURE__ */ jsx(Sleeve, { hidden }) : /* @__PURE__ */ jsx("img", {
+					src: art,
+					alt: "",
+					loading: "lazy"
+				}), badge ? /* @__PURE__ */ jsx("span", {
+					className: "sq-tile-badge",
+					children: /* @__PURE__ */ jsx(Badge, {
+						tone: badge[0],
+						children: badgeLabel ?? badge[1]
+					})
+				}) : null]
+			}),
+			/* @__PURE__ */ jsxs("span", {
+				className: "sq-tile-title",
+				children: [playing ? /* @__PURE__ */ jsx(Icon, {
+					name: "volume-high",
+					size: 10,
+					title: "Playing"
+				}) : null, /* @__PURE__ */ jsx("span", {
+					className: "sq-ellipsis",
+					children: title
+				})]
+			}),
+			subtitle != null ? /* @__PURE__ */ jsx("span", {
+				className: "sq-tile-subtitle sq-ellipsis",
+				children: subtitle
+			}) : null
+		] });
+		const classes = cx("sq-tile", "is-" + state, className);
+		return onClick ? /* @__PURE__ */ jsx("button", {
+			type: "button",
+			onClick,
+			disabled,
+			"aria-pressed": state === "selected",
+			className: classes,
+			style: artSize(size),
+			children: content
+		}) : /* @__PURE__ */ jsx("div", {
+			className: classes,
+			style: artSize(size),
+			children: content
+		});
+	}
+	//#endregion
+	//#region src/components/tables/Leaderboard.tsx
 	var PLAYER_STATUS = {
 		guessing: ["neutral", "Guessing"],
 		locked: ["aqua", "Locked in"],
@@ -656,6 +787,8 @@ var SongQuiz = (function(exports, react) {
 			]
 		});
 	}
+	//#endregion
+	//#region src/components/statusbar/StatusBar.tsx
 	function BarButton({ icon, label, active, onClick, disabled, className }) {
 		return /* @__PURE__ */ jsx("button", {
 			type: "button",
@@ -688,118 +821,6 @@ var SongQuiz = (function(exports, react) {
 					className: "sq-statusbar-end",
 					children: end
 				})
-			]
-		});
-	}
-	//#endregion
-	//#region design-system/project/components/src/Album.tsx
-	/** Placeholder art: a silver sleeve with a record, or a dark sleeve with "?" while hidden. */
-	function Sleeve({ hidden }) {
-		return hidden ? /* @__PURE__ */ jsx("span", {
-			className: "sq-sleeve sq-sleeve-hidden",
-			"aria-hidden": true,
-			children: "?"
-		}) : /* @__PURE__ */ jsx("span", {
-			className: "sq-sleeve",
-			"aria-hidden": true
-		});
-	}
-	var artSize = (size) => size ? { "--sq-art": size + "px" } : void 0;
-	function AlbumGrid({ children, label, size, className }) {
-		return /* @__PURE__ */ jsx("div", {
-			className: cx("sq-grid", className),
-			role: "list",
-			"aria-label": label,
-			style: artSize(size),
-			children: react.Children.map(children, (child) => child ? /* @__PURE__ */ jsx("div", {
-				role: "listitem",
-				className: "sq-grid-cell",
-				children: child
-			}) : null)
-		});
-	}
-	var STATE_BADGE = {
-		correct: ["correct", "Correct"],
-		wrong: ["wrong", "Wrong"]
-	};
-	function AlbumTile({ art, title, subtitle, state = "idle", playing, onClick, disabled, size, badgeLabel, className }) {
-		const hidden = state === "hidden";
-		const badge = STATE_BADGE[state];
-		const content = /* @__PURE__ */ jsxs(Fragment, { children: [
-			/* @__PURE__ */ jsxs("span", {
-				className: "sq-tile-art",
-				children: [hidden || !art ? /* @__PURE__ */ jsx(Sleeve, { hidden }) : /* @__PURE__ */ jsx("img", {
-					src: art,
-					alt: "",
-					loading: "lazy"
-				}), badge ? /* @__PURE__ */ jsx("span", {
-					className: "sq-tile-badge",
-					children: /* @__PURE__ */ jsx(Badge, {
-						tone: badge[0],
-						children: badgeLabel ?? badge[1]
-					})
-				}) : null]
-			}),
-			/* @__PURE__ */ jsxs("span", {
-				className: "sq-tile-title",
-				children: [playing ? /* @__PURE__ */ jsx(Icon, {
-					name: "volume-high",
-					size: 10,
-					title: "Playing"
-				}) : null, /* @__PURE__ */ jsx("span", {
-					className: "sq-ellipsis",
-					children: title
-				})]
-			}),
-			subtitle != null ? /* @__PURE__ */ jsx("span", {
-				className: "sq-tile-subtitle sq-ellipsis",
-				children: subtitle
-			}) : null
-		] });
-		const classes = cx("sq-tile", "is-" + state, className);
-		return onClick ? /* @__PURE__ */ jsx("button", {
-			type: "button",
-			onClick,
-			disabled,
-			"aria-pressed": state === "selected",
-			className: classes,
-			style: artSize(size),
-			children: content
-		}) : /* @__PURE__ */ jsx("div", {
-			className: classes,
-			style: artSize(size),
-			children: content
-		});
-	}
-	function NowPlaying({ label = "Now Playing", art, title, subtitle, hidden, className }) {
-		return /* @__PURE__ */ jsxs("section", {
-			className: cx("sq-nowplaying", className),
-			"aria-label": label,
-			children: [
-				/* @__PURE__ */ jsxs("div", {
-					className: "sq-nowplaying-head",
-					children: [/* @__PURE__ */ jsx(Icon, {
-						name: "play",
-						size: 8
-					}), label]
-				}),
-				/* @__PURE__ */ jsx("div", {
-					className: "sq-nowplaying-art",
-					children: hidden || !art ? /* @__PURE__ */ jsx(Sleeve, { hidden }) : /* @__PURE__ */ jsx("img", {
-						src: art,
-						alt: title ? "Cover of " + title : ""
-					})
-				}),
-				title || subtitle ? /* @__PURE__ */ jsxs("div", {
-					className: "sq-nowplaying-caption",
-					children: [title ? /* @__PURE__ */ jsx("div", {
-						className: "sq-nowplaying-title sq-ellipsis",
-						children: title
-					}) : null, subtitle ? /* @__PURE__ */ jsx("div", {
-						className: "sq-nowplaying-subtitle sq-ellipsis",
-						children: subtitle
-					}) : null]
-				}) : null
 			]
 		});
 	}

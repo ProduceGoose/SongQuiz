@@ -1,0 +1,12 @@
+/* SegmentedControl */
+.sq-segmented { display: inline-flex; border-radius: var(--radius-sm); }
+.sq-seg {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  height: calc(var(--control-h) - 2px); padding: 0 12px;
+  border: 0; border-left: 1px solid var(--bezel); background: transparent; color: var(--ink);
+  font-size: 11px; line-height: 14px; font-weight: 700; text-shadow: 0 1px 0 var(--engrave); white-space: nowrap;
+}
+.sq-seg:first-child { border-left: 0; border-radius: 3px 0 0 3px; }
+.sq-seg:last-child { border-radius: 0 3px 3px 0; }
+.sq-seg-icon { padding: 0 8px; }
+.sq-seg.is-on { background: linear-gradient(var(--pressed-top), var(--pressed-bottom)); color: var(--on-pressed); text-shadow: 0 -1px 0 rgba(0, 0, 0, .5); box-shadow: var(--shadow-pressed); }

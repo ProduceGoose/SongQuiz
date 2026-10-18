@@ -1,0 +1,4 @@
+/* Table: scroll container and clickable rows. The table itself is styled by List.css. */
+.app-table { overflow-x: auto; border-radius: var(--radius-xs); box-shadow: var(--shadow-art); }
+.app-row-link { cursor: pointer; }
+.app-row-link:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }

@@ -1,0 +1,41 @@
+/* Rules shared by every component. Imported first, so component styles can override them.
+   Reads the custom properties compiled from design-system/project/tokens.json. */
+
+[class^="sq-"], [class*=" sq-"] { box-sizing: border-box; }
+.sq-icon { display: inline-block; flex: none; vertical-align: middle; }
+.sq-ellipsis { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sq-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.sq-window, .sq-toolbar, .sq-transport, .sq-volume, .sq-lcd, .sq-segmented, .sq-search, .sq-btn,
+.sq-source, .sq-grid, .sq-tile, .sq-nowplaying, .sq-list, .sq-badge, .sq-statusbar {
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Brushed chrome — use on any custom bar that should match the toolbar. */
+.sq-chrome-bg { background: linear-gradient(var(--chrome-top), var(--chrome-bottom)); color: var(--ink); }
+
+/* Shared glossy control surface */
+.sq-transport-btn, .sq-segmented, .sq-btn, .sq-barbtn {
+  border: 1px solid var(--bezel);
+  background: linear-gradient(var(--control-top), var(--control-bottom));
+  box-shadow: var(--shadow-gloss);
+  color: var(--ink);
+}
+.sq-transport-btn, .sq-seg, .sq-btn, .sq-barbtn, .sq-source-item, .sq-source-heading, .sq-search-clear, .sq-tile, .sq-dot {
+  font: inherit;
+  margin: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.sq-transport-btn:active:not(:disabled), .sq-btn:active:not(:disabled), .sq-barbtn:active:not(:disabled) {
+  background: linear-gradient(var(--control-bottom), var(--control-top));
+  box-shadow: var(--shadow-pressed);
+}
+.sq-transport-btn:disabled, .sq-btn:disabled, .sq-barbtn:disabled, .sq-tile:disabled { opacity: .45; cursor: default; }
+.sq-transport-btn:focus-visible, .sq-btn:focus-visible, .sq-barbtn:focus-visible, .sq-seg:focus-visible, .sq-dot:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  position: relative;
+  z-index: 1;
+}

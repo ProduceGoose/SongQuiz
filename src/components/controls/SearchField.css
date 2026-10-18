@@ -1,0 +1,13 @@
+/* SearchField: toolbar search and the large answer field */
+.sq-search {
+  display: inline-flex; align-items: center; gap: 4px; width: 160px; height: var(--control-h); padding: 0 4px 0 8px;
+  border: 1px solid var(--bezel); border-radius: var(--radius-pill);
+  background: var(--surface); box-shadow: var(--shadow-field); color: var(--ink-muted);
+}
+.sq-search input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 12px; color: var(--ink); }
+.sq-search input::placeholder { color: var(--ink-muted); opacity: 1; }
+.sq-search:focus-within { box-shadow: var(--shadow-field), var(--shadow-focus); }
+.sq-search-lg { width: 100%; max-width: 520px; height: 34px; padding: 0 8px 0 14px; gap: 8px; }
+.sq-search-lg input { font-size: 15px; line-height: 20px; }
+.sq-search-clear { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; padding: 0; border: 0; border-radius: 50%; background: var(--ink-muted); color: var(--surface); }
+.sq-search-lg .sq-search-clear { width: 18px; height: 18px; }

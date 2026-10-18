@@ -1,0 +1,11 @@
+/* StatusBar and its BarButtons */
+.sq-statusbar {
+  display: flex; align-items: center; gap: 8px; height: var(--statusbar-h); padding: 0 8px;
+  background: linear-gradient(var(--chrome-top), var(--chrome-bottom)); border-top: 1px solid var(--chrome-edge);
+  color: var(--ink); font-size: 11px; line-height: 14px; text-shadow: 0 1px 0 var(--engrave);
+}
+.sq-statusbar-start, .sq-statusbar-end { flex: 1 1 0; display: flex; align-items: center; gap: 4px; min-width: 0; }
+.sq-statusbar-end { justify-content: flex-end; }
+.sq-statusbar-text { flex: 0 1 auto; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sq-barbtn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 18px; padding: 0; border-radius: var(--radius-sm); }
+.sq-barbtn.is-on { color: var(--toggle-on); }

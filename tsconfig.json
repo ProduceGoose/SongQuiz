@@ -14,10 +14,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["vite/client", "node"],
-    "paths": {
-      "@songquiz/ui": ["./design-system/project/components/src/index.ts"]
-    }
+    "types": ["vite/client", "node"]
   },
-  "include": ["web/src", "design-system/project/components/src", "vite.config.ts", "vite.design-system.config.ts", "build"]
+  "include": ["src", "vite.config.ts", "vite.design-system.config.ts", "build"]
 }

@@ -1,0 +1,12 @@
+/* Button */
+.sq-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: var(--control-h); padding: 0 16px; border-radius: var(--radius-pill);
+  font-size: 12px; line-height: 16px; text-shadow: 0 1px 0 var(--engrave); white-space: nowrap;
+}
+.sq-btn-lg { height: 34px; padding: 0 24px; font-size: 15px; line-height: 20px; }
+.sq-btn-primary {
+  border-color: var(--aqua-edge); color: var(--on-aqua); font-weight: 700; text-shadow: 0 -1px 0 rgba(0, 0, 0, .35);
+  background: linear-gradient(var(--aqua-hi), var(--aqua) 50%, var(--aqua));
+}
+.sq-btn-primary:active:not(:disabled) { background: linear-gradient(var(--aqua), var(--aqua-edge)); }
