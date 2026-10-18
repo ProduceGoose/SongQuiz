@@ -34,7 +34,14 @@ body {
 .sq-window-main { position: relative; }
 
 /* ---- Narrow screens -------------------------------------------------------- */
-.app-menu-btn { display: none; }
+.app-menu-btn, .app-chat-btn { display: none; }
+
+/* The chat becomes a drawer on the right, opened from the status bar's chat button. */
+@media (max-width: 1080px) {
+  .sq-window-panel { display: none; position: absolute; inset: 0 0 0 auto; z-index: 5; max-width: 100%; box-shadow: var(--shadow-window); }
+  .app-chat-open .sq-window-panel { display: flex; }
+  .app-chat-btn { display: inline-flex; }
+}
 
 @media (max-width: 760px) {
   .app-shell { padding-block: 8px; }

@@ -23,7 +23,7 @@ function Join({ app }: ScreenProps) {
 
   return (
     <form className="app-screen" onSubmit={submit} noValidate>
-      <ScreenHeader title="Join a room" hint="Ask the host for the room code. Try KX7Q for the demo room." />
+      <ScreenHeader title="Join a room" hint="Ask the host for the room code. Try KX7Q for the offline demo room." />
       <Sheet title="Room details" className="app-narrow">
         <Field
           id="join-code" label="Room code" icon="broadcast" placeholder="KX7Q" maxLength={4} mono

@@ -30,5 +30,9 @@ export { AlbumGrid, type AlbumGridProps } from './albums/AlbumGrid';
 export { AlbumTile, type AlbumTileProps, type AlbumTileState } from './albums/AlbumTile';
 export { Leaderboard, type PlayerStatus, type LeaderboardPlayer, type LeaderboardProps } from './tables/Leaderboard';
 
+// Chat panel on the right
+export { ChatPanel, type ChatPanelProps } from './chat/ChatPanel';
+export { ChatMessage, Avatar, type ChatEntry } from './chat/ChatMessage';
+
 // Status bar
 export { StatusBar, BarButton, type StatusBarProps, type BarButtonProps } from './statusbar/StatusBar';

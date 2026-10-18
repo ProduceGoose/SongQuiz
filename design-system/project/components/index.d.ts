@@ -4,7 +4,7 @@ import type * as React from 'react';
 export type IconName =
   | 'play' | 'pause' | 'prev' | 'next' | 'volume-low' | 'volume-high' | 'search' | 'plus' | 'shuffle' | 'repeat'
   | 'music' | 'playlist' | 'user' | 'users' | 'trophy' | 'check' | 'cross' | 'clock' | 'list' | 'grid'
-  | 'disclosure' | 'disclosure-down' | 'broadcast';
+  | 'disclosure' | 'disclosure-down' | 'broadcast' | 'chat';
 
 export interface IconProps { name: IconName; size?: number; title?: string; className?: string; style?: React.CSSProperties }
 export declare function Icon(props: IconProps): React.ReactElement;
@@ -13,6 +13,7 @@ export interface WindowProps {
   title?: React.ReactNode;
   toolbar?: React.ReactNode;
   sidebar?: React.ReactNode;
+  panel?: React.ReactNode;
   statusBar?: React.ReactNode;
   children?: React.ReactNode;
   onClose?: () => void;
@@ -112,3 +113,27 @@ declare global {
     };
   }
 }
+
+export interface ChatEntry {
+  id: string;
+  kind: 'message' | 'guess' | 'event';
+  author?: string;
+  avatar?: string;
+  text: React.ReactNode;
+  /** ms since epoch */
+  time: number;
+  mine?: boolean;
+  tone?: 'neutral' | 'correct' | 'reveal';
+}
+export interface ChatPanelProps {
+  entries: ChatEntry[];
+  onSend?: (text: string) => void;
+  title?: string;
+  placeholder?: string;
+  icon?: IconName;
+  disabled?: boolean;
+  className?: string;
+}
+export declare function ChatPanel(props: ChatPanelProps): React.ReactElement;
+export declare function ChatMessage(props: { entry: ChatEntry; now: number }): React.ReactElement;
+export declare function Avatar(props: { name: string; src?: string }): React.ReactElement;

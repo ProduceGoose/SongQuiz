@@ -1,0 +1,4 @@
+/* ChatPanel preview styles */
+body { margin: 0; font-family: var(--font-ui); }
+#root { display: flex; height: 440px; width: var(--panel-w); }
+#root > * { flex: 1; }

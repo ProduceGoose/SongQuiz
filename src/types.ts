@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import type { ChatEntry } from './components/chat/ChatMessage';
 
 // ---- Music -------------------------------------------------------------------
 
@@ -32,6 +33,8 @@ export interface RoomPlayer {
   id: string;
   name: string;
   ready: boolean;
+  /** Online rooms only: false while the player's browser is disconnected. */
+  connected?: boolean;
 }
 
 export type AnswerMode = 'covers' | 'typed';
@@ -67,6 +70,27 @@ export interface PastGame {
   playlistId: string;
   /** The entry with id "you" has no name; the current display name fills it in. */
   players: Array<{ id: string; name?: string; score: number; streak?: number }>;
+}
+
+// ---- Game --------------------------------------------------------------------
+
+export interface Round {
+  /** 1-based. */
+  number: number;
+  total: number;
+  /** The answer. Never shown before the reveal; in online rooms it is blank until then. */
+  track: Track;
+  /** Cover of the playlist the track is from, shown at the reveal. */
+  art: string;
+  /** Date.now() when the snippet started. */
+  startedAt: number;
+  /** Snippet length in seconds. */
+  length: number;
+  /** Ids of the players who guessed it, fastest first. */
+  solved: string[];
+  /** playing: guesses count. reveal: the answer is shown until `nextAt`. */
+  phase: 'playing' | 'reveal';
+  nextAt?: number;
 }
 
 // ---- Settings ----------------------------------------------------------------
@@ -114,6 +138,15 @@ export interface AppApi {
   leaveRoom(): void;
   toggleReady(): void;
   resetPrototype(): void;
+  /** Set while you're in, or joining, an online room; null in the demo room or no room. */
+  online: { code: string; status: 'connecting' | 'open' | 'reconnecting' } | null;
+  /** The room chat, oldest first. */
+  chat: ChatEntry[];
+  /** The round being played or revealed; null between games. */
+  round: Round | null;
+  /** Posts to the room chat. During a round it is also a guess; a correct one stays hidden. */
+  sendChat(text: string): void;
+  startGame(): void;
 }
 
 export interface ScreenProps {

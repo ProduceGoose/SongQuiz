@@ -27,12 +27,16 @@ function sections(room: Room | null): SourceSection[] {
 }
 
 export function AppSidebar({ app, selected }: { app: AppApi; selected: string }) {
-  const { room } = app;
+  const { room, round } = app;
   const upNext = room ? playlistById(room.playlistId) : null;
   return (
     <>
       <SourceList sections={sections(room)} selected={selected} onSelect={(id) => { if (isScreenName(id)) app.go(id); }} />
-      {room && upNext
+      {round?.phase === 'playing'
+        ? <NowPlaying hidden title={`Round ${round.number} of ${round.total}`} subtitle="Mystery track" />
+        : round?.phase === 'reveal'
+        ? <NowPlaying label="Last song" art={round.art} title={round.track.title} subtitle={round.track.artist} />
+        : room && upNext
         ? <NowPlaying label="Up next" art={upNext.art} title={upNext.title} subtitle={`${room.rounds} rounds in ${room.name}`} />
         : <NowPlaying hidden title="Nothing playing" subtitle="Join or create a room" />}
     </>

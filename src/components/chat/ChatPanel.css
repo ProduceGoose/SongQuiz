@@ -1,0 +1,88 @@
+/* ChatPanel: a timeline of speech bubbles next to player avatars, with a message field below. */
+.sq-chat {
+  display: flex; flex-direction: column; min-height: 0;
+  background: var(--chrome); color: var(--ink);
+  font-family: var(--font-ui); font-size: 12px; line-height: 16px; -webkit-font-smoothing: antialiased;
+}
+
+/* Header: brushed bar with a breadcrumb label */
+.sq-chat-head {
+  flex: none; display: flex; align-items: stretch; height: 22px; overflow: hidden;
+  background: linear-gradient(var(--chrome-top), var(--chrome-bottom)); border-bottom: 1px solid var(--chrome-edge);
+}
+.sq-chat-crumb {
+  position: relative; display: flex; align-items: center; padding: 0 20px 0 10px;
+  font-size: 11px; line-height: 14px; font-weight: 700; text-shadow: 0 1px 0 var(--engrave);
+}
+.sq-chat-crumb::after {
+  content: ""; position: absolute; right: 4px; top: 50%; width: 16px; height: 16px;
+  border-top: 1px solid var(--hairline); border-right: 1px solid var(--hairline);
+  transform: translateY(-50%) rotate(45deg) skew(10deg, 10deg);
+  box-shadow: 1px -1px 0 var(--engrave);
+}
+
+/* Timeline */
+.sq-chat-list {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 6px;
+  margin: 0; padding: 8px 8px 10px 6px; list-style: none;
+}
+.sq-chat-list > :first-child { margin-top: auto; }
+
+.sq-chat-msg { display: flex; align-items: flex-start; gap: 9px; }
+
+.sq-avatar {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  width: var(--avatar); height: var(--avatar); border-radius: var(--radius-sm); object-fit: cover;
+  background: linear-gradient(hsl(var(--sq-hue, 210) 52% 60%), hsl(var(--sq-hue, 210) 48% 38%));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 1px 2px rgba(0, 0, 0, .5);
+  color: #fff; font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: .02em;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, .35);
+}
+
+.sq-chat-bubble {
+  position: relative; flex: 1; min-width: 0; padding: 4px 8px 6px;
+  background: linear-gradient(var(--surface), var(--surface-alt));
+  border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+  box-shadow: 0 1px 0 var(--engrave);
+}
+/* The pointer towards the avatar: an outline triangle with a filled one on top. */
+.sq-chat-bubble::before, .sq-chat-bubble::after {
+  content: ""; position: absolute; top: 11px; border: 6px solid transparent; border-left: 0;
+}
+.sq-chat-bubble::before { left: -7px; border-right-color: var(--hairline); }
+.sq-chat-bubble::after { left: -6px; border-right-color: var(--surface); }
+.sq-chat-msg.is-mine .sq-chat-bubble { border-color: var(--aqua); }
+.sq-chat-msg.is-mine .sq-chat-bubble::before { border-right-color: var(--aqua); }
+
+.sq-chat-meta { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.sq-chat-author { font-weight: 700; }
+.sq-chat-tag {
+  flex: none; padding: 0 5px; border: 1px solid var(--hairline); border-radius: var(--radius-pill);
+  font-size: 10px; line-height: 12px; color: var(--ink-muted);
+}
+.sq-chat-time { flex: none; margin-left: auto; font-size: 10px; line-height: 12px; color: var(--ink-muted); white-space: nowrap; }
+.sq-chat-text { margin-top: 1px; overflow-wrap: anywhere; }
+.sq-chat-msg.is-guess .sq-chat-text { color: var(--ink-muted); }
+
+/* Events: round started, someone guessed it, the answer */
+.sq-chat-event {
+  align-self: center; display: inline-flex; align-items: center; gap: 4px; max-width: 100%;
+  padding: 1px 10px; border-radius: var(--radius-pill);
+  background: var(--count-bg); color: var(--on-count);
+  font-size: 11px; line-height: 16px; font-weight: 700; text-align: center;
+}
+.sq-chat-event.is-correct { background: var(--correct); color: var(--on-correct); }
+.sq-chat-event.is-reveal {
+  align-self: stretch; justify-content: center; padding: 6px 10px; border-radius: var(--radius-md);
+  background: var(--lcd-bg); color: var(--lcd-ink); border: 1px solid var(--lcd-bezel); box-shadow: var(--shadow-lcd);
+  font-size: 12px;
+}
+
+/* Message field */
+.sq-chat-compose {
+  flex: none; display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+  background: linear-gradient(var(--chrome-top), var(--chrome-bottom)); border-top: 1px solid var(--chrome-edge);
+}
+.sq-chat-field { flex: 1; width: auto; min-width: 0; cursor: text; }
+.sq-chat-send { flex: none; width: 26px; height: var(--control-h); }

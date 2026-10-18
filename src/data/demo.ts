@@ -1,5 +1,6 @@
 // Demo content for the SongQuiz prototype. Every room, player and score here is example data.
-import { ME, type PastGame, type Playlist, type Room, type RoomOptions, type Settings, type Track } from '../types';
+import { CODE_CHARS } from '../game/protocol';
+import { ME, type PastGame, type Playlist, type Room, type Settings, type Track } from '../types';
 
 // ---- Cover art -----------------------------------------------------------------
 // Flat geometric SVGs stand in for real album covers.
@@ -74,17 +75,19 @@ export function playlistById(id: string | undefined): Playlist {
 }
 
 // ---- Rooms ---------------------------------------------------------------------
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+/** The demo room plays offline with simulated players; every other code is a real online room. */
+export const DEMO_CODE = 'KX7Q';
 
-function randomCode(): string {
+/** A code for a new online room; never the demo room's. */
+export function randomCode(): string {
   let code = '';
   for (let i = 0; i < 4; i++) code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
-  return code;
+  return code === DEMO_CODE ? randomCode() : code;
 }
 
 export function demoRoom(myName: string): Room {
   return {
-    name: 'Friday Night Room', code: 'KX7Q', hostId: 'malik',
+    name: 'Friday Night Room', code: DEMO_CODE, hostId: 'malik',
     playlistId: 'synth-80s', rounds: 10, mode: 'covers', snippet: 20, maxPlayers: 8,
     players: [
       { id: 'malik', name: 'Malik', ready: true },
@@ -96,28 +99,21 @@ export function demoRoom(myName: string): Room {
   };
 }
 
-/** KX7Q joins the demo room; any other valid code makes up a room. */
-export function joinRoom(code: string, myName: string): Room {
-  if (code === 'KX7Q') return demoRoom(myName);
-  return {
-    name: 'Room ' + code, code, hostId: 'alex',
-    playlistId: 'y2k-pop', rounds: 10, mode: 'typed', snippet: 20, maxPlayers: 8,
-    players: [
-      { id: 'alex', name: 'Alex', ready: true },
-      { id: 'noor', name: 'Noor', ready: false },
-      { id: ME, name: myName, ready: false }
-    ]
-  };
-}
+// ---- Chat ----------------------------------------------------------------------
 
-export function newRoom(options: RoomOptions, myName: string): Room {
-  return {
-    name: options.name, code: randomCode(), hostId: ME,
-    playlistId: options.playlistId, rounds: Number(options.rounds), mode: options.mode,
-    snippet: Number(options.snippet), maxPlayers: Number(options.maxPlayers),
-    players: [{ id: ME, name: myName, ready: true }]
-  };
-}
+/** What the other players in the demo room said before you arrived. */
+export const demoChat: Array<{ playerId: string; text: string; secondsAgo: number }> = [
+  { playerId: 'malik', text: 'Welcome to Friday Night Room! We start as soon as everyone is ready.', secondsAgo: 170 },
+  { playerId: 'priya', text: '80s again? Fine by me, I know all of these.', secondsAgo: 95 },
+  { playerId: 'sam', text: 'Bold claim, Priya. Volume up, everyone.', secondsAgo: 60 },
+  { playerId: 'jonas', text: 'Grabbing a drink, back in a sec', secondsAgo: 25 }
+];
+
+/** How the demo players phrase a guess; {title} is the song they guess. */
+export const guessPhrases = ['{title}', '{title}?', 'is it {title}?', '{title}!!', 'hmm… {title}', 'pretty sure {title}'];
+
+/** Chat the demo players send while they have no idea. */
+export const stumpedPhrases = ['no idea', 'I know this one…', 'so familiar', 'replay it!', 'argh, the intro'];
 
 // ---- Past games ----------------------------------------------------------------
 export const pastGames: PastGame[] = [

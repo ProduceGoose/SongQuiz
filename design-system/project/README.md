@@ -15,6 +15,7 @@ Load `tokens.css`, `components/bundle.css`, React 18 and `components/bundle.js`;
 | Album wall | Answer choices as covers | `AlbumGrid`, `AlbumTile` |
 | Now Playing art | The mystery track, hidden until reveal | `NowPlaying` |
 | List view | The leaderboard | `Leaderboard` |
+| Inspector panel | Room chat; during a round every message is a guess | `ChatPanel` |
 | Bottom bar | Room summary, invite / shuffle / repeat | `StatusBar` |
 
 ## Content fundamentals

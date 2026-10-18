@@ -1,5 +1,4 @@
 // Lobby: the room code to share, who is in the room and who is ready.
-import { useState } from 'react';
 import { Badge } from '../components/controls/Badge';
 import { Button } from '../components/controls/Button';
 import { Notice, ScreenHeader, Section } from '../components/content/Layout';
@@ -23,10 +22,19 @@ function NoRoom({ app }: { app: AppApi }) {
   );
 }
 
+function Connecting({ app, code }: { app: AppApi; code: string }) {
+  return (
+    <div className="app-screen">
+      <ScreenHeader title={`Joining room ${code}…`} hint="Connecting to the SongQuiz server.">
+        <Button size="lg" onClick={app.leaveRoom}>Cancel</Button>
+      </ScreenHeader>
+    </div>
+  );
+}
+
 function Lobby({ app }: ScreenProps) {
-  const [triedStart, setTriedStart] = useState(false);
-  const { room } = app;
-  if (!room) return <NoRoom app={app} />;
+  const { room, round, online } = app;
+  if (!room) return online ? <Connecting app={app} code={online.code} /> : <NoRoom app={app} />;
 
   const playlist = playlistById(room.playlistId);
   const me = room.players.find((p) => p.id === ME);
@@ -76,7 +84,9 @@ function Lobby({ app }: ScreenProps) {
                   {notes.length ? <span className="sq-list-note">{` (${notes.join(', ')})`}</span> : null}
                 </td>
                 <td className="sq-col-status">
-                  {p.ready ? <Badge tone="aqua" icon="check">Ready</Badge> : <Badge>Not ready</Badge>}
+                  {p.connected === false ? <Badge icon="clock">Away</Badge>
+                    : p.ready ? <Badge tone="aqua" icon="check">Ready</Badge>
+                    : <Badge>Not ready</Badge>}
                 </td>
               </tr>
             );
@@ -84,13 +94,27 @@ function Lobby({ app }: ScreenProps) {
         </Table>
       </Section>
 
-      {triedStart ? <Notice>Gameplay isn’t part of this prototype yet. In the full game the first round would start now.</Notice> : null}
+      {round ? (
+        <Notice>
+          Round {round.number} of {round.total} is on. Type your guesses in the chat: wrong ones show up for everyone,
+          a right one stays hidden.
+        </Notice>
+      ) : isHost ? null : (
+        <Notice>
+          {online
+            ? `${host?.name ?? 'The host'} starts the game. Guesses go in the chat on the right.`
+            : `${host?.name ?? 'The host'} starts the game when you’re ready. Guesses go in the chat on the right.`}
+        </Notice>
+      )}
+      {online?.status === 'reconnecting' ? <Notice>Lost the connection to the server. Trying again…</Notice> : null}
 
       <div className="app-form-actions">
         <Button size="lg" onClick={app.leaveRoom}>Leave room</Button>
         <Button size="lg" icon={me?.ready ? null : 'check'} onClick={app.toggleReady}>{me?.ready ? 'I’m not ready' : 'I’m ready'}</Button>
-        {isHost
-          ? <Button variant="primary" size="lg" onClick={() => setTriedStart(true)}>Start game</Button>
+        {round
+          ? <Button variant="primary" size="lg" disabled>Game in progress</Button>
+          : isHost
+          ? <Button variant="primary" size="lg" onClick={app.startGame}>Start game</Button>
           : <Button variant="primary" size="lg" disabled>Waiting for {host?.name ?? 'the host'}</Button>}
       </div>
     </div>
@@ -100,11 +124,13 @@ function Lobby({ app }: ScreenProps) {
 export const lobbyScreen: ScreenDef = {
   title: 'Lobby',
   Component: Lobby,
-  lcd: ({ room }) => room
+  lcd: ({ room, online }) => room
     ? { title: `${room.name} · code ${room.code}`, subtitle: `${readyCount(room)} of ${room.players.length} players ready` }
+    : online
+    ? { title: `Joining room ${online.code}`, subtitle: 'Connecting to the server' }
     : { title: 'No room', subtitle: 'Create one or join with a code' },
-  status: ({ room }) => {
-    if (!room) return 'Not in a room';
+  status: ({ room, online }) => {
+    if (!room) return online ? 'Connecting' : 'Not in a room';
     const n = room.players.length;
     return `${n} ${n === 1 ? 'player' : 'players'}, ${room.rounds} rounds, ${playlistById(room.playlistId).title}`;
   }

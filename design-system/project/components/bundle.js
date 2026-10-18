@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"SongQuiz","components":[{"name":"Window"},{"name":"Toolbar"},{"name":"Transport"},{"name":"VolumeSlider"},{"name":"LcdDisplay"},{"name":"SegmentedControl"},{"name":"SearchField"},{"name":"Button"},{"name":"SourceList"},{"name":"AlbumGrid"},{"name":"AlbumTile"},{"name":"NowPlaying"},{"name":"Leaderboard"},{"name":"Badge"},{"name":"StatusBar"},{"name":"Icon"}]} */
+/* @ds-bundle: {"format":4,"namespace":"SongQuiz","components":[{"name":"Window"},{"name":"Toolbar"},{"name":"Transport"},{"name":"VolumeSlider"},{"name":"LcdDisplay"},{"name":"SegmentedControl"},{"name":"SearchField"},{"name":"Button"},{"name":"SourceList"},{"name":"AlbumGrid"},{"name":"AlbumTile"},{"name":"NowPlaying"},{"name":"Leaderboard"},{"name":"Badge"},{"name":"ChatPanel"},{"name":"StatusBar"},{"name":"Icon"}]} */
 var SongQuiz = (function(exports, react) {
 	Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 	//#region \0rolldown/runtime.js
@@ -39,6 +39,16 @@ var SongQuiz = (function(exports, react) {
 			onChange?.(next);
 		};
 		return [current, set];
+	}
+	/** "just now", "12 seconds ago", "3 minutes ago", "2 hours ago". */
+	function timeAgo(time, now = Date.now()) {
+		const s = Math.max(0, Math.floor((now - time) / 1e3));
+		if (s < 5) return "just now";
+		if (s < 60) return s + " seconds ago";
+		const m = Math.floor(s / 60);
+		if (m < 60) return m === 1 ? "1 minute ago" : m + " minutes ago";
+		const h = Math.floor(m / 60);
+		return h === 1 ? "1 hour ago" : h + " hours ago";
 	}
 	/** Seconds as m:ss; negative numbers get a leading minus ("-0:18"). */
 	function formatTime(seconds) {
@@ -180,7 +190,8 @@ var SongQuiz = (function(exports, react) {
 				"M3.1 3.1a7 7 0 0 0 0 9.8M12.9 3.1a7 7 0 0 1 0 9.8",
 				1.4
 			]
-		]
+		],
+		chat: [["f", "M1.5 3.75A1.75 1.75 0 0 1 3.25 2h9.5a1.75 1.75 0 0 1 1.75 1.75v6a1.75 1.75 0 0 1-1.75 1.75H7.2L3.75 14.5v-3H3.25A1.75 1.75 0 0 1 1.5 9.75z"]]
 	};
 	/** Every glyph name, in display order. */
 	var iconNames = Object.keys(ICONS);
@@ -210,7 +221,7 @@ var SongQuiz = (function(exports, react) {
 	}
 	//#endregion
 	//#region src/components/window/Window.tsx
-	function Window({ title, toolbar, sidebar, statusBar, children, onClose, closeLabel = "Leave room", className, style }) {
+	function Window({ title, toolbar, sidebar, panel, statusBar, children, onClose, closeLabel = "Leave room", className, style }) {
 		return /* @__PURE__ */ jsxs("div", {
 			className: cx("sq-window", className),
 			style,
@@ -248,13 +259,20 @@ var SongQuiz = (function(exports, react) {
 				}),
 				/* @__PURE__ */ jsxs("div", {
 					className: "sq-window-main",
-					children: [sidebar ? /* @__PURE__ */ jsx("aside", {
-						className: "sq-window-sidebar",
-						children: sidebar
-					}) : null, /* @__PURE__ */ jsx("div", {
-						className: "sq-window-content",
-						children
-					})]
+					children: [
+						sidebar ? /* @__PURE__ */ jsx("aside", {
+							className: "sq-window-sidebar",
+							children: sidebar
+						}) : null,
+						/* @__PURE__ */ jsx("div", {
+							className: "sq-window-content",
+							children
+						}),
+						panel ? /* @__PURE__ */ jsx("aside", {
+							className: "sq-window-panel",
+							children: panel
+						}) : null
+					]
 				}),
 				statusBar ?? null
 			]
@@ -788,6 +806,159 @@ var SongQuiz = (function(exports, react) {
 		});
 	}
 	//#endregion
+	//#region src/components/chat/ChatMessage.tsx
+	function initials(name) {
+		return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
+	}
+	/** A stable hue for a name, so each player keeps their colour. */
+	function hue(name) {
+		let h = 0;
+		for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 360;
+		return h;
+	}
+	function Avatar({ name, src }) {
+		return src ? /* @__PURE__ */ jsx("img", {
+			className: "sq-avatar",
+			src,
+			alt: ""
+		}) : /* @__PURE__ */ jsx("span", {
+			className: "sq-avatar",
+			style: { "--sq-hue": hue(name) },
+			"aria-hidden": true,
+			children: initials(name)
+		});
+	}
+	function ChatMessage({ entry, now }) {
+		if (entry.kind === "event") {
+			const tone = entry.tone ?? "neutral";
+			return /* @__PURE__ */ jsxs("li", {
+				className: cx("sq-chat-event", "is-" + tone),
+				children: [tone === "correct" ? /* @__PURE__ */ jsx(Icon, {
+					name: "check",
+					size: 9
+				}) : null, /* @__PURE__ */ jsx("span", { children: entry.text })]
+			});
+		}
+		const author = entry.author ?? "";
+		return /* @__PURE__ */ jsxs("li", {
+			className: cx("sq-chat-msg", entry.mine && "is-mine", entry.kind === "guess" && "is-guess"),
+			children: [/* @__PURE__ */ jsx(Avatar, {
+				name: author,
+				src: entry.avatar
+			}), /* @__PURE__ */ jsxs("div", {
+				className: "sq-chat-bubble",
+				children: [/* @__PURE__ */ jsxs("div", {
+					className: "sq-chat-meta",
+					children: [
+						/* @__PURE__ */ jsx("span", {
+							className: "sq-chat-author sq-ellipsis",
+							children: author
+						}),
+						entry.kind === "guess" ? /* @__PURE__ */ jsx("span", {
+							className: "sq-chat-tag",
+							children: "guess"
+						}) : null,
+						/* @__PURE__ */ jsx("time", {
+							className: "sq-chat-time",
+							dateTime: new Date(entry.time).toISOString(),
+							children: timeAgo(entry.time, now)
+						})
+					]
+				}), /* @__PURE__ */ jsx("div", {
+					className: "sq-chat-text",
+					children: entry.text
+				})]
+			})]
+		});
+	}
+	//#endregion
+	//#region src/components/chat/ChatPanel.tsx
+	/** Re-renders every `ms` so "12 seconds ago" stays current. */
+	function useNow(ms) {
+		const [now, setNow] = (0, react.useState)(() => Date.now());
+		(0, react.useEffect)(() => {
+			const id = window.setInterval(() => setNow(Date.now()), ms);
+			return () => window.clearInterval(id);
+		}, [ms]);
+		return now;
+	}
+	function ChatPanel({ entries, onSend, title = "Chat", placeholder = "Message", icon = "chat", disabled, className }) {
+		const [draft, setDraft] = (0, react.useState)("");
+		const listRef = (0, react.useRef)(null);
+		const pinned = (0, react.useRef)(true);
+		const now = useNow(5e3);
+		(0, react.useLayoutEffect)(() => {
+			const list = listRef.current;
+			if (list && pinned.current) list.scrollTop = list.scrollHeight;
+		}, [entries[entries.length - 1]?.id]);
+		function submit(e) {
+			e.preventDefault();
+			const text = draft.trim();
+			if (!text || disabled) return;
+			onSend?.(text);
+			setDraft("");
+			pinned.current = true;
+		}
+		return /* @__PURE__ */ jsxs("section", {
+			className: cx("sq-chat", className),
+			"aria-label": title,
+			children: [
+				/* @__PURE__ */ jsx("header", {
+					className: "sq-chat-head",
+					children: /* @__PURE__ */ jsx("span", {
+						className: "sq-chat-crumb",
+						children: title
+					})
+				}),
+				/* @__PURE__ */ jsx("ol", {
+					ref: listRef,
+					className: "sq-chat-list",
+					"aria-live": "polite",
+					"aria-relevant": "additions",
+					onScroll: (e) => {
+						const el = e.currentTarget;
+						pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+					},
+					children: entries.map((entry) => /* @__PURE__ */ jsx(ChatMessage, {
+						entry,
+						now
+					}, entry.id))
+				}),
+				/* @__PURE__ */ jsxs("form", {
+					className: "sq-chat-compose",
+					onSubmit: submit,
+					children: [/* @__PURE__ */ jsxs("label", {
+						className: "sq-search sq-chat-field",
+						children: [/* @__PURE__ */ jsx(Icon, {
+							name: icon,
+							size: 12
+						}), /* @__PURE__ */ jsx("input", {
+							type: "text",
+							value: draft,
+							placeholder,
+							"aria-label": placeholder,
+							maxLength: 200,
+							autoComplete: "off",
+							spellCheck: false,
+							disabled,
+							onChange: (e) => setDraft(e.target.value)
+						})]
+					}), /* @__PURE__ */ jsx("button", {
+						type: "submit",
+						className: "sq-barbtn sq-chat-send",
+						"aria-label": "Send",
+						title: "Send",
+						disabled: disabled || !draft.trim(),
+						children: /* @__PURE__ */ jsx(Icon, {
+							name: "disclosure",
+							size: 10
+						})
+					})]
+				})
+			]
+		});
+	}
+	//#endregion
 	//#region src/components/statusbar/StatusBar.tsx
 	function BarButton({ icon, label, active, onClick, disabled, className }) {
 		return /* @__PURE__ */ jsx("button", {
@@ -827,9 +998,12 @@ var SongQuiz = (function(exports, react) {
 	//#endregion
 	exports.AlbumGrid = AlbumGrid;
 	exports.AlbumTile = AlbumTile;
+	exports.Avatar = Avatar;
 	exports.Badge = Badge;
 	exports.BarButton = BarButton;
 	exports.Button = Button;
+	exports.ChatMessage = ChatMessage;
+	exports.ChatPanel = ChatPanel;
 	exports.Icon = Icon;
 	exports.LcdDisplay = LcdDisplay;
 	exports.Leaderboard = Leaderboard;

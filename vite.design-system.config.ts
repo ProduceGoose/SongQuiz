@@ -13,7 +13,7 @@ const path = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
 const COMPONENTS = [
   'Window', 'Toolbar', 'Transport', 'VolumeSlider', 'LcdDisplay', 'SegmentedControl', 'SearchField', 'Button',
-  'SourceList', 'AlbumGrid', 'AlbumTile', 'NowPlaying', 'Leaderboard', 'Badge', 'StatusBar', 'Icon'
+  'SourceList', 'AlbumGrid', 'AlbumTile', 'NowPlaying', 'Leaderboard', 'Badge', 'ChatPanel', 'StatusBar', 'Icon'
 ];
 const header = { format: 4, namespace: 'SongQuiz', components: COMPONENTS.map((name) => ({ name })) };
 

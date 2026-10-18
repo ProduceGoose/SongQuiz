@@ -9,6 +9,8 @@ export interface WindowProps {
   toolbar?: ReactNode;
   /** A SourceList, optionally followed by NowPlaying. */
   sidebar?: ReactNode;
+  /** Right-hand panel, usually a ChatPanel. */
+  panel?: ReactNode;
   /** A StatusBar. */
   statusBar?: ReactNode;
   children?: ReactNode;
@@ -20,7 +22,7 @@ export interface WindowProps {
   style?: CSSProperties;
 }
 
-export function Window({ title, toolbar, sidebar, statusBar, children, onClose, closeLabel = 'Leave room', className, style }: WindowProps) {
+export function Window({ title, toolbar, sidebar, panel, statusBar, children, onClose, closeLabel = 'Leave room', className, style }: WindowProps) {
   return (
     <div className={cx('sq-window', className)} style={style}>
       <div className="sq-window-head">
@@ -37,6 +39,7 @@ export function Window({ title, toolbar, sidebar, statusBar, children, onClose, 
       <div className="sq-window-main">
         {sidebar ? <aside className="sq-window-sidebar">{sidebar}</aside> : null}
         <div className="sq-window-content">{children}</div>
+        {panel ? <aside className="sq-window-panel">{panel}</aside> : null}
       </div>
       {statusBar ?? null}
     </div>

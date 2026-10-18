@@ -1,6 +1,8 @@
-// The app's status bar: menu, create, shuffle and repeat buttons, the current screen's
-// one-line summary (ScreenDef.status) and a shortcut to the lobby.
+// The app's status bar: menu, create, shuffle and repeat buttons, a one-line summary
+// (the round while one is playing, otherwise the current screen's ScreenDef.status),
+// and shortcuts to the chat and the lobby.
 import { useState } from 'react';
+import { formatTime } from '../utils';
 import type { AppApi, ScreenDef } from '../../types';
 import { BarButton, StatusBar } from './StatusBar';
 
@@ -10,9 +12,21 @@ export interface AppStatusBarProps {
   /** Whether the sidebar drawer is open on narrow screens. */
   navOpen: boolean;
   onToggleNav: () => void;
+  /** Whether the chat drawer is open on narrow screens. */
+  chatOpen: boolean;
+  onToggleChat: () => void;
 }
 
-export function AppStatusBar({ app, screen, navOpen, onToggleNav }: AppStatusBarProps) {
+function summary(app: AppApi, screen: ScreenDef): string {
+  const { room, round } = app;
+  if (room && round?.phase === 'playing') {
+    const left = Math.max(0, round.length - (Date.now() - round.startedAt) / 1000);
+    return `${room.players.length} players, round ${round.number} of ${round.total}, ${formatTime(Math.ceil(left))} left`;
+  }
+  return screen.status(app);
+}
+
+export function AppStatusBar({ app, screen, navOpen, onToggleNav, chatOpen, onToggleChat }: AppStatusBarProps) {
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState(true);
   const { room } = app;
@@ -24,9 +38,12 @@ export function AppStatusBar({ app, screen, navOpen, onToggleNav }: AppStatusBar
         <BarButton icon="shuffle" label="Shuffle songs" active={shuffle} onClick={() => setShuffle(!shuffle)} />
         <BarButton icon="repeat" label="Play again after the last round" active={repeat} onClick={() => setRepeat(!repeat)} />
       </>}
-      end={<BarButton icon="users" label={room ? 'Open the lobby' : 'Join a room'} onClick={() => app.go(room ? 'lobby' : 'join')} />}
+      end={<>
+        {room ? <BarButton icon="chat" label="Show chat" className="app-chat-btn" active={chatOpen} onClick={onToggleChat} /> : null}
+        <BarButton icon="users" label={room ? 'Open the lobby' : 'Join a room'} onClick={() => app.go(room ? 'lobby' : 'join')} />
+      </>}
     >
-      {screen.status(app)}
+      {summary(app, screen)}
     </StatusBar>
   );
 }

@@ -17,6 +17,17 @@ export function useMaybeControlled<T>(value: T | undefined | null, initial: T, o
   return [current, set];
 }
 
+/** "just now", "12 seconds ago", "3 minutes ago", "2 hours ago". */
+export function timeAgo(time: number, now: number = Date.now()): string {
+  const s = Math.max(0, Math.floor((now - time) / 1000));
+  if (s < 5) return 'just now';
+  if (s < 60) return s + ' seconds ago';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m === 1 ? '1 minute ago' : m + ' minutes ago';
+  const h = Math.floor(m / 60);
+  return h === 1 ? '1 hour ago' : h + ' hours ago';
+}
+
 /** Seconds as m:ss; negative numbers get a leading minus ("-0:18"). */
 export function formatTime(seconds: number): string {
   const negative = seconds < 0;

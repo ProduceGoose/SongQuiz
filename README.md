@@ -1,19 +1,28 @@
 # SongQuiz
 
 A multiplayer song quiz to play with friends, styled like a late-2000s desktop jukebox.
-The website is currently a clickable prototype of the menus: home, join a room, create a room,
-lobby, playlists, scores and settings. Gameplay is not built yet; all rooms, players and scores
-are example data from `src/data/demo.ts`.
+Create a room, share its 4-character code, and everyone who joins plays in the same room:
+they chat, and while a round plays every message is a guess. Wrong guesses show up for
+everyone; a correct one never does. No song plays yet; a round is a timer with a mystery track.
 
-Built with Vite, React 18 and TypeScript.
+The demo room (code KX7Q) works offline with simulated players: press "I'm ready" in its lobby
+and the host starts the game two seconds later. Playlists and past scores are example data
+from `src/data/demo.ts`.
+
+Built with Vite, React 18 and TypeScript. The server is a Cloudflare Worker with one
+Durable Object per room.
 
 ```
 npm install
-npm run dev                  # the website, with live reload, usually http://localhost:5173
-npm run build                # type-check and build the website into dist/
-npm run preview              # serve dist/ to check the production build
+npm run dev                  # website and server, with live reload, usually http://localhost:5173
+npm run build                # type-check and build into dist/ (dist/client: website, dist/songquiz: server)
+npm run preview              # serve the production build locally, server included
+npm run deploy               # build and publish to Cloudflare (run `npx wrangler login` once first)
 npm run build:design-system  # rebuild the design system's bundle.js and bundle.css after changing a component
 ```
+
+To play with several people locally, open the site in two browsers (or a normal and a private
+window): each browser is its own player.
 
 A bare `#name` in the address opens that screen, for example `#playlists` or `#settings`.
 
@@ -35,6 +44,7 @@ src/
     toolbar/                Toolbar, Transport, VolumeSlider; AppToolbar fills the toolbar for this app
     lcd/                    LcdDisplay; AppLcd shows a flashed message or the current screen's text
     sidebar/                SourceList, NowPlaying; AppSidebar is the app's navigation
+    chat/                   ChatPanel, ChatMessage, Avatar; AppChat is the room chat on the right
     statusbar/              StatusBar, BarButton; AppStatusBar is the app's bottom bar
     albums/                 AlbumGrid, AlbumTile and the placeholder Sleeve
     controls/               Button, SegmentedControl, SearchField, Badge, Icon
@@ -44,14 +54,34 @@ src/
     utils.ts                cx, formatTime, useMaybeControlled
     design-system.ts        entry for the design-system bundle: lists the reusable components
   screens/                  one file per screen (+ its CSS); index.ts maps route names to screens
-  data/demo.ts              example playlists, rooms and past games
+  game/                     useOnlineRoom: an online room over its WebSocket;
+                            useGame: the demo room's chat, rounds and simulated players;
+                            guess: does a message name the song? (used by the server too);
+                            protocol: the messages between browser and server
+  data/demo.ts              example playlists, rooms, chat and past games
   lib/settings.ts           saving settings in the browser and switching the theme
+worker/                     the server (Cloudflare Worker)
+  index.ts                  routes /api/rooms/:code/ws to the room's Durable Object
+  RoomObject.ts             one room: players, chat, rounds and their timers, guess checking
+wrangler.jsonc              Cloudflare settings: the Durable Object binding and the website's files
 build/                      build helpers: tokens.json → CSS, and the bundle's JSX runtime
 design-system/project/      the SongQuiz Aqua design system: docs, tokens and previews (see below)
 ```
 
 Files named `App…` are this app's wiring: they connect a region's components to the app state.
 Everything else in `src/components/` is a reusable design-system component.
+
+### Online rooms
+
+Every room code is a Durable Object on Cloudflare, created when the host opens the room and
+deleted when the last player leaves or after an hour with nobody connected. Each browser keeps a
+WebSocket to it. The room runs the game, not the browsers: it checks each chat message against
+the answer (`src/game/guess.ts`), so a correct guess is never sent to anyone, and the answer only
+leaves the server at the reveal. Round timers are Durable Object alarms.
+
+There are no accounts. A player is a random token saved in the browser, so a reload (or a
+dropped connection) rejoins the same room as the same player. Locally, `npm run dev` keeps the
+rooms in `.wrangler/state`.
 
 ### Screens
 
