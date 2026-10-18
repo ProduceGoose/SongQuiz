@@ -1,0 +1,5 @@
+/* Window preview styles */
+body { margin: 0; font-family: var(--font-ui); }
+
+.desk { padding: 20px; background: var(--chrome); }
+.placeholder { padding: 24px; color: var(--grid-muted); font-size: 12px; }

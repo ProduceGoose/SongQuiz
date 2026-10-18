@@ -1,0 +1,6 @@
+/* SourceList preview styles */
+body { margin: 0; font-family: var(--font-ui); }
+
+/* Sidebar-sized frame */
+.sidebar { display: flex; width: 180px; height: 310px; border-right: 1px solid var(--chrome-edge); }
+.sidebar > .sq-source { flex: 1; }

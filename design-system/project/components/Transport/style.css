@@ -1,0 +1,12 @@
+/* Transport preview styles */
+body { margin: 0; font-family: var(--font-ui); }
+
+/* Brushed toolbar background, where these controls normally sit */
+.stage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(var(--chrome-top), var(--chrome-bottom));
+}

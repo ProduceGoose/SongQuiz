@@ -3,18 +3,15 @@
 <html>
 <head>
 <meta charset="utf-8">
-<style>
-body { margin: 0; font-family: var(--font-ui); }
-.stage { padding: 16px; background: linear-gradient(var(--chrome-top), var(--chrome-bottom)); display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
-</style>
+<title>Transport preview</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<div class="stage"><div id="a"></div><div id="b"></div><div id="c"></div></div>
-<script>
-  var S = window.SongQuiz, h = React.createElement;
-  ReactDOM.createRoot(document.getElementById('a')).render(h(S.Transport, {}));
-  ReactDOM.createRoot(document.getElementById('b')).render(h(S.Transport, { playing: true }));
-  ReactDOM.createRoot(document.getElementById('c')).render(h(S.Transport, { disabled: true }));
-</script>
+<div class="stage">
+  <div id="idle"></div>
+  <div id="playing"></div>
+  <div id="disabled"></div>
+</div>
+<script src="./script.js"></script>
 </body>
 </html>

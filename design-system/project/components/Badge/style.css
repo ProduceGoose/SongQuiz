@@ -1,0 +1,4 @@
+/* Badge preview styles */
+body { margin: 0; font-family: var(--font-ui); }
+
+.row { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px; background: var(--surface); }

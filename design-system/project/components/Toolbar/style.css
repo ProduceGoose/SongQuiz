@@ -1,0 +1,4 @@
+/* Toolbar preview styles */
+body { margin: 0; font-family: var(--font-ui); }
+
+.bar { padding: 4px 12px; }

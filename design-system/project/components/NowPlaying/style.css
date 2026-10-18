@@ -1,0 +1,5 @@
+/* NowPlaying preview styles */
+body { margin: 0; font-family: var(--font-ui); }
+
+.row { display: flex; gap: 16px; padding: 16px; background: var(--chrome); }
+.panel { width: 180px; }

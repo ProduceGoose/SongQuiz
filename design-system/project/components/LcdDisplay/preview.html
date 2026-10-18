@@ -3,17 +3,14 @@
 <html>
 <head>
 <meta charset="utf-8">
-<style>
-body { margin: 0; font-family: var(--font-ui); }
-.stage { padding: 16px; background: linear-gradient(var(--chrome-top), var(--chrome-bottom)); display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
-</style>
+<title>LcdDisplay preview</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<div class="stage" style="flex-direction:column;align-items:stretch;max-width:480px"><div id="a"></div><div id="b"></div></div>
-<script>
-  var S = window.SongQuiz, h = React.createElement;
-  ReactDOM.createRoot(document.getElementById('a')).render(h(S.LcdDisplay, { title: 'Round 3 of 10 — Name that tune', subtitle: '5 of 8 players locked in', progress: 0.4, elapsed: 12, remaining: 18, start: h(S.Icon, { name: 'music', size: 14 }), end: h(S.Icon, { name: 'clock', size: 14 }) }));
-  ReactDOM.createRoot(document.getElementById('b')).render(h(S.LcdDisplay, { title: 'It was “Africa” by Toto', subtitle: 'Malik was fastest · next round in 0:05' }));
-</script>
+<div class="stage stack">
+  <div id="round"></div>
+  <div id="reveal"></div>
+</div>
+<script src="./script.js"></script>
 </body>
 </html>

@@ -1,0 +1,12 @@
+/* AlbumTile preview styles */
+body { margin: 0; font-family: var(--font-ui); }
+
+/* The dark album wall the tiles sit on */
+.stage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px 12px;
+  padding: 16px;
+  background: var(--grid-bg);
+}

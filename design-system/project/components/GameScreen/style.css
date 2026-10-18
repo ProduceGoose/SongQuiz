@@ -1,0 +1,18 @@
+/* GameScreen preview styles */
+body { margin: 0; font-family: var(--font-ui); }
+
+.desk { padding: 24px; background: var(--chrome); }
+
+/* The round prompt above the answer grid */
+.prompt { padding: 24px 16px 4px; text-align: center; }
+.question {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--grid-ink);
+}
+.hint { margin-top: 4px; font-size: 11px; line-height: 14px; color: var(--grid-muted); }
+.answer { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 16px; }
+.answer .sq-search-lg { max-width: 420px; }
