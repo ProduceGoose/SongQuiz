@@ -5,18 +5,21 @@
 // the answer, so a correct guess is never sent to anyone, and the answer itself only leaves the
 // server at the reveal. Round timers are Durable Object alarms.
 //
+// Each round's 30-second Apple Music preview is looked up when the round starts (or, for the
+// next round, during the reveal). Players get an anonymous address, /api/rooms/:code/audio/:round,
+// which worker/index.ts streams from Apple after asking audioFor() whether that round is current.
+//
 // The object uses the WebSocket Hibernation API: between messages Cloudflare may evict it from
 // memory while the sockets stay open, so the state is saved to storage after every change and
 // loaded again in the constructor.
 import { DurableObject } from 'cloudflare:workers';
 import { playlistById, playlists } from '../src/data/demo';
 import { isCorrectGuess } from '../src/game/guess';
+import { gameOrder, lookupPreview, REVEAL_SECONDS, snippetOffset } from '../src/game/preview';
 import { CODE_PATTERN, type ClientMessage, type ServerMessage, type WireChat, type WireRoom, type WireRound } from '../src/game/protocol';
 import type { Room, RoomOptions, Round, Track } from '../src/types';
 import type { Env } from './index';
 
-/** How long the answer stays up before the next round. */
-const REVEAL_MS = 5000;
 /** A room nobody is connected to is deleted after this long. */
 const IDLE_MS = 60 * 60 * 1000;
 const CHAT_LIMIT = 200;
@@ -38,6 +41,8 @@ interface State {
   round: Round | null;
   /** The playlist's songs in this game's order. */
   order: Track[];
+  /** Apple's preview address per round number, for the current and the next round. Never sent to players. */
+  previews: Record<number, string>;
   lastActive: number;
 }
 
@@ -45,18 +50,10 @@ interface Attachment {
   playerId: string;
 }
 
-const emptyState = (code = ''): State => ({ code, room: null, players: [], chat: [], round: null, order: [], lastActive: Date.now() });
+const emptyState = (code = ''): State => ({ code, room: null, players: [], chat: [], round: null, order: [], previews: {}, lastActive: Date.now() });
 const newId = () => crypto.randomUUID().slice(0, 8);
 const cleanName = (name: unknown, fallback: string) => (typeof name === 'string' ? name.trim().slice(0, 20) : '') || fallback;
 
-function shuffle<T>(list: T[]): T[] {
-  const out = list.slice();
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
-}
 
 /** The room settings from the Create screen, checked; null if any value is not one the screen offers. */
 function roomFromOptions(o: RoomOptions, code: string): Omit<Room, 'players'> | null {
@@ -70,11 +67,14 @@ function roomFromOptions(o: RoomOptions, code: string): Omit<Room, 'players'> | 
 
 export class RoomObject extends DurableObject<Env> {
   private s: State = emptyState();
+  /** True while a game is starting: the first preview lookup can take a moment. */
+  private starting = false;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     ctx.blockConcurrencyWhile(async () => {
-      this.s = (await ctx.storage.get<State>('state')) ?? emptyState();
+      // Spread over an empty state, so rooms saved by an older version get any new fields.
+      this.s = { ...emptyState(), ...(await ctx.storage.get<State>('state')) };
     });
     // Browsers ping every 30 s to keep the connection alive; answer without waking the object.
     ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair('ping', 'pong'));
@@ -106,7 +106,7 @@ export class RoomObject extends DurableObject<Env> {
     switch (msg.type) {
       case 'chat': {
         const text = typeof msg.text === 'string' ? msg.text.trim().slice(0, 200) : '';
-        if (text) this.chat(ws, player, text);
+        if (text) await this.chat(ws, player, text);
         break;
       }
       case 'ready':
@@ -118,7 +118,7 @@ export class RoomObject extends DurableObject<Env> {
         this.broadcastRoom();
         break;
       case 'start':
-        if (player.id === this.s.room?.hostId) this.startGame(player);
+        if (player.id === this.s.room?.hostId) await this.startGame(player);
         break;
       case 'leave':
         return this.leave(player);
@@ -198,14 +198,14 @@ export class RoomObject extends DurableObject<Env> {
 
   // ---- Chat and guesses --------------------------------------------------------
 
-  private chat(ws: WebSocket, player: Player, text: string) {
+  private async chat(ws: WebSocket, player: Player, text: string) {
     const r = this.s.round;
     if (r?.phase === 'playing' && isCorrectGuess(text, r.track)) {
       if (r.solved.includes(player.id)) {
         // Only the sender sees this; the message itself goes nowhere.
         this.send(ws, { type: 'chat', entry: { id: newId(), kind: 'event', text: 'Hidden, so you don’t give the answer away', time: Date.now() } });
       } else {
-        this.solve(player);
+        await this.solve(player);
       }
       return;
     }
@@ -225,48 +225,80 @@ export class RoomObject extends DurableObject<Env> {
 
   // ---- Rounds --------------------------------------------------------------------
 
-  private startGame(host: Player) {
-    if (this.s.round || !this.s.room) return;
-    this.s.order = shuffle(playlistById(this.s.room.playlistId).tracks);
-    this.event('{who} started the game', host);
-    this.beginRound(1);
+  private async startGame(host: Player) {
+    if (this.s.round || !this.s.room || this.starting) return;
+    this.starting = true;
+    try {
+      this.s.order = gameOrder(playlistById(this.s.room.playlistId).tracks);
+      this.s.previews = {};
+      this.event('{who} started the game', host);
+      await this.beginRound(1);
+    } finally {
+      this.starting = false;
+    }
   }
 
-  private beginRound(n: number) {
+  private trackFor(n: number): Track {
+    return this.s.order[(n - 1) % this.s.order.length]!;
+  }
+
+  /** Looks up round n's preview unless it already is; true if the song has one. */
+  private async preparePreview(n: number): Promise<boolean> {
+    if (!this.s.previews[n]) {
+      const id = this.trackFor(n).apple?.id;
+      const url = id ? await lookupPreview(id) : null;
+      if (url) this.s.previews[n] = url;
+    }
+    return !!this.s.previews[n];
+  }
+
+  private audioPath(n: number): string {
+    return `/api/rooms/${this.s.code}/audio/${n}`;
+  }
+
+  private async beginRound(n: number) {
     const room = this.s.room!;
     const playlist = playlistById(room.playlistId);
-    const track = this.s.order[(n - 1) % this.s.order.length]!;
+    const track = this.trackFor(n);
+    const hasAudio = await this.preparePreview(n);
+    for (const key of Object.keys(this.s.previews)) if (Number(key) < n) delete this.s.previews[Number(key)];
     this.s.round = {
       number: n, total: room.rounds, track, art: playlist.art,
-      startedAt: Date.now(), length: room.snippet, solved: [], phase: 'playing'
+      startedAt: Date.now(), length: room.snippet, solved: [], phase: 'playing',
+      audio: hasAudio ? { src: this.audioPath(n), offset: snippetOffset(room.snippet) } : undefined
     };
     this.event(`Round ${n} of ${room.rounds} — name that tune`);
     this.broadcastRound();
   }
 
-  private solve(player: Player) {
+  private async solve(player: Player) {
     const r = this.s.round!;
     r.solved = [...r.solved, player.id];
     this.event('{who} guessed it', player, 'correct');
     this.broadcastRound();
     const online = this.connectedIds();
-    if ([...online].every((id) => r.solved.includes(id))) this.reveal();
+    if ([...online].every((id) => r.solved.includes(id))) await this.reveal();
   }
 
-  private reveal() {
+  private async reveal() {
     const r = this.s.round;
     if (!r || r.phase !== 'playing') return;
     r.phase = 'reveal';
-    r.nextAt = Date.now() + REVEAL_MS;
+    r.nextAt = Date.now() + REVEAL_SECONDS * 1000;
     this.event(`It was “${r.track.title}” by ${r.track.artist}`, undefined, 'reveal');
     if (!r.solved.length) this.event('Nobody got this one');
     this.broadcastRound();
+    // Look up the next song now, so players can load it during the reveal.
+    if (r.number < r.total && (await this.preparePreview(r.number + 1)) && this.s.round === r) {
+      r.nextAudio = this.audioPath(r.number + 1);
+      this.broadcastRound();
+    }
   }
 
-  private next() {
+  private async next() {
     const r = this.s.round!;
     if (r.number < r.total) {
-      this.beginRound(r.number + 1);
+      await this.beginRound(r.number + 1);
     } else {
       this.s.round = null;
       this.event(`Game over after ${r.total} rounds. Thanks for playing!`);
@@ -277,14 +309,26 @@ export class RoomObject extends DurableObject<Env> {
   async alarm(): Promise<void> {
     const r = this.s.round;
     const now = Date.now() + 100; // Alarms can fire a moment early.
-    if (r?.phase === 'playing' && now >= r.startedAt + r.length * 1000) this.reveal();
-    else if (r?.phase === 'reveal' && now >= (r.nextAt ?? 0)) this.next();
+    if (r?.phase === 'playing' && now >= r.startedAt + r.length * 1000) await this.reveal();
+    else if (r?.phase === 'reveal' && now >= (r.nextAt ?? 0)) await this.next();
     else if (!r && this.connectedIds().size === 0) {
       await this.ctx.storage.deleteAll();
       this.s = emptyState(this.s.code);
       return;
     }
     await this.save();
+  }
+
+  // ---- Audio -------------------------------------------------------------------
+
+  /**
+   * Apple's preview address for round n, if players may load it now: the round being played or
+   * revealed, or the next one during the reveal. Called by worker/index.ts (RPC).
+   */
+  async audioFor(n: number): Promise<string | null> {
+    const r = this.s.round;
+    if (!r || !(n === r.number || (r.phase === 'reveal' && n === r.number + 1))) return null;
+    return this.s.previews[n] ?? null;
   }
 
   // ---- State -----------------------------------------------------------------

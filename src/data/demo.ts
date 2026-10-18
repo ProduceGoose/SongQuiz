@@ -1,6 +1,7 @@
 // Demo content for the SongQuiz prototype. Every room, player and score here is example data.
 import { CODE_CHARS } from '../game/protocol';
 import { ME, type PastGame, type Playlist, type Room, type Settings, type Track } from '../types';
+import playlistData from './playlists.json';
 
 // ---- Cover art -----------------------------------------------------------------
 // Flat geometric SVGs stand in for real album covers.
@@ -23,52 +24,16 @@ function coverArt(i: number): string {
 }
 
 // ---- Playlists -----------------------------------------------------------------
-const t = (title: string, artist: string, year: number): Track => ({ title, artist, year });
-
-const PLAYLIST_DATA: Array<Omit<Playlist, 'art' | 'subtitle'>> = [
-  {
-    id: 'synth-80s', title: '80s Synth Hits', era: '1980s', level: 'Easy', songs: 48,
-    description: 'Big drums, bigger choruses. A safe opener for any group.',
-    tracks: [t('Take On Me', 'a-ha', 1985), t('Girls Just Want to Have Fun', 'Cyndi Lauper', 1983), t('Sweet Dreams (Are Made of This)', 'Eurythmics', 1983), t('Don’t You Want Me', 'The Human League', 1981), t('Tainted Love', 'Soft Cell', 1981), t('Africa', 'Toto', 1982), t('Billie Jean', 'Michael Jackson', 1983), t('Just Can’t Get Enough', 'Depeche Mode', 1981)]
-  },
-  {
-    id: 'eurovision', title: 'Eurovision Bangers', era: '1974–2021', level: 'Medium', songs: 36,
-    description: 'Winners, wildcards and key changes from the song contest.',
-    tracks: [t('Waterloo', 'ABBA', 1974), t('Euphoria', 'Loreen', 2012), t('Fairytale', 'Alexander Rybak', 2009), t('Hard Rock Hallelujah', 'Lordi', 2006), t('Satellite', 'Lena', 2010), t('Arcade', 'Duncan Laurence', 2019), t('Zitti e buoni', 'Måneskin', 2021), t('Toy', 'Netta', 2018)]
-  },
-  {
-    id: 'soundtracks', title: 'Movie Soundtracks', era: '1977–2018', level: 'Easy', songs: 40,
-    description: 'Songs you know from the big screen, ballads to training montages.',
-    tracks: [t('My Heart Will Go On', 'Céline Dion', 1997), t('Eye of the Tiger', 'Survivor', 1982), t('Ghostbusters', 'Ray Parker Jr.', 1984), t('Footloose', 'Kenny Loggins', 1984), t('(I’ve Had) The Time of My Life', 'Bill Medley & Jennifer Warnes', 1987), t('Stayin’ Alive', 'Bee Gees', 1977), t('Let It Go', 'Idina Menzel', 2013), t('Shallow', 'Lady Gaga & Bradley Cooper', 2018)]
-  },
-  {
-    id: 'y2k-pop', title: 'Y2K Pop', era: '2000s', level: 'Easy', songs: 52,
-    description: 'Flip phones, frosted tips and every chorus you still know by heart.',
-    tracks: [t('Toxic', 'Britney Spears', 2003), t('Crazy in Love', 'Beyoncé', 2003), t('Hey Ya!', 'OutKast', 2003), t('Since U Been Gone', 'Kelly Clarkson', 2004), t('Hips Don’t Lie', 'Shakira', 2006), t('Umbrella', 'Rihanna', 2007), t('Poker Face', 'Lady Gaga', 2008), t('Mr. Brightside', 'The Killers', 2004)]
-  },
-  {
-    id: 'stadium-rock', title: 'Stadium Rock', era: '1975–2003', level: 'Medium', songs: 44,
-    description: 'Riffs that fill arenas. Expect air guitar.',
-    tracks: [t('Bohemian Rhapsody', 'Queen', 1975), t('Livin’ on a Prayer', 'Bon Jovi', 1986), t('Sweet Child o’ Mine', 'Guns N’ Roses', 1987), t('Don’t Stop Believin’', 'Journey', 1981), t('We Will Rock You', 'Queen', 1977), t('Wonderwall', 'Oasis', 1995), t('Seven Nation Army', 'The White Stripes', 2003), t('Smells Like Teen Spirit', 'Nirvana', 1991)]
-  },
-  {
-    id: 'disco', title: 'Disco Fever', era: '1970s', level: 'Medium', songs: 32,
-    description: 'Four-on-the-floor classics. Spot the bass line in two seconds.',
-    tracks: [t('Dancing Queen', 'ABBA', 1976), t('I Will Survive', 'Gloria Gaynor', 1978), t('Le Freak', 'Chic', 1978), t('September', 'Earth, Wind & Fire', 1978), t('Hot Stuff', 'Donna Summer', 1979), t('Y.M.C.A.', 'Village People', 1978), t('Don’t Leave Me This Way', 'Thelma Houston', 1976), t('Good Times', 'Chic', 1979)]
-  },
-  {
-    id: 'hiphop-90s', title: '90s Hip-Hop', era: '1990s', level: 'Hard', songs: 38,
-    description: 'Golden-era beats. The intros are short, so listen closely.',
-    tracks: [t('Juicy', 'The Notorious B.I.G.', 1994), t('Gin and Juice', 'Snoop Doggy Dogg', 1994), t('California Love', '2Pac', 1995), t('Gangsta’s Paradise', 'Coolio', 1995), t('Nuthin’ but a “G” Thang', 'Dr. Dre', 1992), t('C.R.E.A.M.', 'Wu-Tang Clan', 1994), t('Shook Ones, Pt. II', 'Mobb Deep', 1995), t('Hypnotize', 'The Notorious B.I.G.', 1997)]
-  },
-  {
-    id: 'indie', title: 'Indie Sing-Alongs', era: '2004–2013', level: 'Hard', songs: 30,
-    description: 'Festival favourites with whoa-ohs to shout along to.',
-    tracks: [t('Take Me Out', 'Franz Ferdinand', 2004), t('Float On', 'Modest Mouse', 2004), t('Rebellion (Lies)', 'Arcade Fire', 2005), t('Young Folks', 'Peter Bjorn and John', 2006), t('Electric Feel', 'MGMT', 2008), t('Pumped Up Kicks', 'Foster the People', 2010), t('Ho Hey', 'The Lumineers', 2012), t('Do I Wanna Know?', 'Arctic Monkeys', 2013)]
-  }
-];
+// The songs live in playlists.json, together with their Apple Music ids and covers
+// (filled in by `npm run apple-music`).
+const PLAYLIST_DATA = playlistData as Array<Omit<Playlist, 'art' | 'subtitle'>>;
 
 export const playlists: Playlist[] = PLAYLIST_DATA.map((p, i) => ({ ...p, art: coverArt(i), subtitle: `${p.songs} songs` }));
+
+/** A song's Apple Music cover at the given size in px, or undefined if it has none. */
+export function artworkUrl(track: Track, size: number): string | undefined {
+  return track.apple?.artwork.replaceAll('{size}', String(size));
+}
 
 export function playlistById(id: string | undefined): Playlist {
   return playlists.find((p) => p.id === id) ?? playlists[0];

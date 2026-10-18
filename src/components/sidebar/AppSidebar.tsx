@@ -1,5 +1,5 @@
 // The app's sidebar: navigation between screens, and the playlist up next in your room.
-import { playlistById, playlists } from '../../data/demo';
+import { artworkUrl, playlistById, playlists } from '../../data/demo';
 import { isScreenName } from '../../screens';
 import type { AppApi, Room } from '../../types';
 import { NowPlaying } from './NowPlaying';
@@ -35,7 +35,11 @@ export function AppSidebar({ app, selected }: { app: AppApi; selected: string })
       {round?.phase === 'playing'
         ? <NowPlaying hidden title={`Round ${round.number} of ${round.total}`} subtitle="Mystery track" />
         : round?.phase === 'reveal'
-        ? <NowPlaying label="Last song" art={round.art} title={round.track.title} subtitle={round.track.artist} />
+        ? (
+          <NowPlaying label="Last song" art={artworkUrl(round.track, 360) ?? round.art} title={round.track.title} subtitle={round.track.artist}>
+            {round.track.apple ? <a href={round.track.apple.url} target="_blank" rel="noopener noreferrer">Listen on Apple Music</a> : null}
+          </NowPlaying>
+        )
         : room && upNext
         ? <NowPlaying label="Up next" art={upNext.art} title={upNext.title} subtitle={`${room.rounds} rounds in ${room.name}`} />
         : <NowPlaying hidden title="Nothing playing" subtitle="Join or create a room" />}

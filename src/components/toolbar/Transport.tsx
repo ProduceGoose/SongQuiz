@@ -27,6 +27,7 @@ export function TransportButton({ icon = 'play', size = 'md', label, onClick, di
   );
 }
 
+/** A button whose handler is missing is disabled. */
 export interface TransportProps {
   /** Shows pause when true. */
   playing?: boolean;
@@ -40,9 +41,9 @@ export interface TransportProps {
 export function Transport({ playing = false, onPrevious, onToggle, onNext, disabled, className }: TransportProps) {
   return (
     <div className={cx('sq-transport', className)} role="group" aria-label="Playback">
-      <TransportButton icon="prev" onClick={onPrevious} disabled={disabled} />
-      <TransportButton icon={playing ? 'pause' : 'play'} size="lg" onClick={onToggle} disabled={disabled} />
-      <TransportButton icon="next" onClick={onNext} disabled={disabled} />
+      <TransportButton icon="prev" onClick={onPrevious} disabled={disabled || !onPrevious} />
+      <TransportButton icon={playing ? 'pause' : 'play'} size="lg" onClick={onToggle} disabled={disabled || !onToggle} />
+      <TransportButton icon="next" onClick={onNext} disabled={disabled || !onNext} />
     </div>
   );
 }

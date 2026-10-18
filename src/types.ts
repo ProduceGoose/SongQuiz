@@ -7,6 +7,14 @@ export interface Track {
   title: string;
   artist: string;
   year: number;
+  /** The song on Apple Music, from `npm run apple-music`. Without it the round has no sound. */
+  apple?: {
+    id: number;
+    /** The song's Apple Music page. */
+    url: string;
+    /** Cover image URL with {size} where the size in px goes; see artworkUrl in data/demo.ts. */
+    artwork: string;
+  };
 }
 
 export interface Playlist {
@@ -91,6 +99,27 @@ export interface Round {
   /** playing: guesses count. reveal: the answer is shown until `nextAt`. */
   phase: 'playing' | 'reveal';
   nextAt?: number;
+  /**
+   * The snippet: an audio address and where in it the round starts, in seconds. Online it is an
+   * anonymous address on our server, so it doesn't give the song away. Missing when the song
+   * has no preview.
+   */
+  audio?: { src: string; offset: number };
+  /** During the reveal: the next round's audio address, to load ahead. */
+  nextAudio?: string;
+}
+
+/** The round's song playing in this browser (game/useSnippet.ts). */
+export interface Snippet {
+  /** The round has a song to play. */
+  available: boolean;
+  playing: boolean;
+  /** The browser refused to start the sound until the next click. */
+  blocked: boolean;
+  /** Pause or resume, for you only; resuming jumps back to where the round is. */
+  toggle(): void;
+  /** Starts the round's snippet again from its beginning, for you only. */
+  replay(): void;
 }
 
 // ---- Settings ----------------------------------------------------------------
@@ -147,6 +176,8 @@ export interface AppApi {
   /** Posts to the room chat. During a round it is also a guess; a correct one stays hidden. */
   sendChat(text: string): void;
   startGame(): void;
+  /** The round's song in this browser. */
+  snippet: Snippet;
 }
 
 export interface ScreenProps {

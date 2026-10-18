@@ -3,7 +3,8 @@
 A multiplayer song quiz to play with friends, styled like a late-2000s desktop jukebox.
 Create a room, share its 4-character code, and everyone who joins plays in the same room:
 they chat, and while a round plays every message is a guess. Wrong guesses show up for
-everyone; a correct one never does. No song plays yet; a round is a timer with a mystery track.
+everyone; a correct one never does. Each round plays a snippet of the song's 30-second Apple
+Music preview; at the reveal the song's cover and a link to it on Apple Music appear.
 
 The demo room (code KX7Q) works offline with simulated players: press "I'm ready" in its lobby
 and the host starts the game two seconds later. Playlists and past scores are example data
@@ -18,6 +19,7 @@ npm run dev                  # website and server, with live reload, usually htt
 npm run build                # type-check and build into dist/ (dist/client: website, dist/songquiz: server)
 npm run preview              # serve the production build locally, server included
 npm run deploy               # build and publish to Cloudflare (run `npx wrangler login` once first)
+npm run apple-music          # find new songs in src/data/playlists.json on Apple Music
 npm run build:design-system  # rebuild the design system's bundle.js and bundle.css after changing a component
 ```
 
@@ -58,7 +60,11 @@ src/
                             useGame: the demo room's chat, rounds and simulated players;
                             guess: does a message name the song? (used by the server too);
                             protocol: the messages between browser and server
-  data/demo.ts              example playlists, rooms, chat and past games
+  game/preview.ts           Apple previews: lookup by id, where a snippet starts, song order
+  game/useSnippet.ts        plays the round's song in step with the round
+  data/playlists.json       the songs, with their Apple Music id, link and cover
+  data/demo.ts              example rooms, chat and past games; loads playlists.json
+scripts/apple-music.mjs     looks up the songs in playlists.json on Apple Music
   lib/settings.ts           saving settings in the browser and switching the theme
 worker/                     the server (Cloudflare Worker)
   index.ts                  routes /api/rooms/:code/ws to the room's Durable Object
@@ -82,6 +88,24 @@ leaves the server at the reveal. Round timers are Durable Object alarms.
 There are no accounts. A player is a random token saved in the browser, so a reload (or a
 dropped connection) rejoins the same room as the same player. Locally, `npm run dev` keeps the
 rooms in `.wrangler/state`.
+
+### Music
+
+The songs come from Apple Music's free 30-second previews (the iTunes Search API, no account
+needed). `npm run apple-music` finds each song in `src/data/playlists.json` and saves its Apple
+id, Apple Music link and cover next to it; it skips live, remix, karaoke and cover versions and
+lists any song it can't match safely. Run it after adding songs.
+
+When a round starts, the room looks up the song's preview by id and picks a start point that
+leaves room for the round and the reveal. Players load it from `/api/rooms/:code/audio/:round`,
+which the Worker streams from Apple without anything that names the song, and only while that
+round is on (or, during the reveal, the next one, so it can load ahead). Everyone hears the same
+moment: the browser starts at the start point plus the time since the round began.
+
+Browsers only play sound after a click. Most players click "I'm ready" or "Start game" first;
+otherwise the LCD says "Click anywhere to hear the song". The toolbar's play button pauses the song
+for you and the back button replays the snippet. The demo room plays the previews straight
+from Apple. Songs without a preview come last in a game and play silently.
 
 ### Screens
 

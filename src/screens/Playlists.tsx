@@ -6,8 +6,10 @@ import { Button } from '../components/controls/Button';
 import { Icon } from '../components/controls/Icon';
 import { ScreenHeader, Section } from '../components/content/Layout';
 import { Table, rowLink } from '../components/tables/Table';
-import { playlistById, playlists } from '../data/demo';
-import type { Playlist, ScreenDef, ScreenProps } from '../types';
+import { useEffect, useRef, useState } from 'react';
+import { artworkUrl, playlistById, playlists } from '../data/demo';
+import { lookupPreviews } from '../game/preview';
+import type { Playlist, ScreenDef, ScreenProps, Track } from '../types';
 import './Playlists.css';
 
 function matches(playlist: Playlist, query: string): boolean {
@@ -64,8 +66,57 @@ function Playlists({ app }: ScreenProps) {
   );
 }
 
+/**
+ * Plays the songs' Apple Music previews on the playlist page. The addresses are fetched in one
+ * request when the page opens, so a click can start the sound straight away (Safari only allows
+ * sound that starts within the click).
+ */
+function useSongPreviews(tracks: Track[], volume: number) {
+  const [urls, setUrls] = useState<Map<number, string>>(new Map());
+  const [playing, setPlaying] = useState<number | null>(null);
+  const audio = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    let current = true;
+    const ids = tracks.flatMap((t) => (t.apple ? [t.apple.id] : []));
+    void lookupPreviews(ids).then((found) => { if (current) setUrls(found); });
+    return () => {
+      current = false;
+      audio.current?.pause();
+    };
+  }, [tracks]);
+
+  useEffect(() => {
+    if (audio.current) audio.current.volume = volume / 100;
+  }, [volume]);
+
+  function toggle(track: Track) {
+    const id = track.apple?.id;
+    const url = id ? urls.get(id) : undefined;
+    if (!id || !url) return;
+    if (!audio.current) {
+      audio.current = new Audio();
+      audio.current.onended = () => setPlaying(null);
+    }
+    const a = audio.current;
+    if (playing === id) {
+      a.pause();
+      setPlaying(null);
+      return;
+    }
+    a.src = url;
+    a.volume = volume / 100;
+    a.play().then(() => setPlaying(id), () => setPlaying(null));
+  }
+
+  return { has: (t: Track) => !!t.apple && urls.has(t.apple.id), playing, toggle };
+}
+
 function PlaylistDetail({ app, id }: ScreenProps) {
   const p = playlistById(id);
+  const previews = useSongPreviews(p.tracks, app.settings.volume);
+  // No previews during a round: it would mix with the round's song.
+  const canPreview = !app.round;
   return (
     <div className="app-screen">
       <button type="button" className="app-back" onClick={() => app.go('playlists')}>
@@ -93,15 +144,35 @@ function PlaylistDetail({ app, id }: ScreenProps) {
           caption={'Sample songs in ' + p.title}
           columns={[{ label: '#', className: 'sq-col-rank' }, { label: 'Title' }, { label: 'Artist' }, { label: 'Year', className: 'sq-col-num' }]}
         >
-          {p.tracks.map((t, i) => (
-            <tr key={t.title}>
-              <td className="sq-col-rank">{i + 1}</td>
-              <td>{t.title}</td>
-              <td>{t.artist}</td>
-              <td className="sq-col-num">{t.year}</td>
-            </tr>
-          ))}
+          {p.tracks.map((t, i) => {
+            const on = previews.playing === t.apple?.id;
+            const cover = artworkUrl(t, 64);
+            return (
+              <tr key={t.title}>
+                <td className="sq-col-rank">
+                  {canPreview && previews.has(t) ? (
+                    <button
+                      type="button" className={on ? 'app-preview-btn is-on' : 'app-preview-btn'} aria-pressed={on}
+                      aria-label={(on ? 'Stop preview of ' : 'Play preview of ') + t.title} title={on ? 'Stop' : 'Play preview'}
+                      onClick={() => previews.toggle(t)}
+                    >
+                      <Icon name={on ? 'pause' : 'play'} size={8} />
+                    </button>
+                  ) : i + 1}
+                </td>
+                <td>
+                  <span className="app-cell-art">
+                    {cover ? <img src={cover} alt="" loading="lazy" /> : null}
+                    {t.apple ? <a className="app-song-link" href={t.apple.url} target="_blank" rel="noopener noreferrer">{t.title}</a> : t.title}
+                  </span>
+                </td>
+                <td>{t.artist}</td>
+                <td className="sq-col-num">{t.year}</td>
+              </tr>
+            );
+          })}
         </Table>
+        <p className="app-hint">Previews and covers from <a className="app-apple-link" href="https://music.apple.com" target="_blank" rel="noopener noreferrer">Apple Music</a>.</p>
       </Section>
     </div>
   );

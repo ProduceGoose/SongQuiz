@@ -18,7 +18,7 @@ function roundLcd(app: AppApi, round: Round): LcdDisplayProps {
     const elapsed = Math.min(round.length, (Date.now() - round.startedAt) / 1000);
     return {
       title: `Round ${round.number} of ${round.total} — Name that tune`,
-      subtitle: `${round.solved.length} of ${players} players guessed it`,
+      subtitle: app.snippet.blocked ? 'Click anywhere to hear the song' : `${round.solved.length} of ${players} players guessed it`,
       progress: elapsed / round.length,
       elapsed: Math.floor(elapsed),
       remaining: Math.ceil(round.length - elapsed)

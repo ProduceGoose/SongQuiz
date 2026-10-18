@@ -11,7 +11,10 @@ export function AppToolbar({ app, screen, message }: AppLcdProps) {
   return (
     <Toolbar
       start={<>
-        <Transport disabled />
+        <Transport
+          playing={app.snippet.playing} disabled={!app.snippet.available}
+          onToggle={app.snippet.toggle} onPrevious={app.snippet.replay}
+        />
         <VolumeSlider value={app.settings.volume} onChange={(v) => app.updateSettings({ volume: v })} />
       </>}
       center={<AppLcd app={app} screen={screen} message={message} />}

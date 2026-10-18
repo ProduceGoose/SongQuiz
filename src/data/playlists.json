@@ -1,0 +1,146 @@
+[
+  {
+    "id": "synth-80s",
+    "title": "80s Synth Hits",
+    "era": "1980s",
+    "level": "Easy",
+    "songs": 48,
+    "description": "Big drums, bigger choruses. A safe opener for any group.",
+    "tracks": [
+      {"title":"Take On Me","artist":"a-ha","year":1985,"apple":{"id":380907765,"url":"https://music.apple.com/us/album/take-on-me/380907762?i=380907765","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music/c6/e1/c8/mzi.ixgzfcmc.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Girls Just Want to Have Fun","artist":"Cyndi Lauper","year":1983,"apple":{"id":400603693,"url":"https://music.apple.com/us/album/girls-just-want-to-have-fun/400603643?i=400603693","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/8a/8c/13/8a8c13e0-06af-1710-7b7d-ebec65fb8361/074643893022.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Sweet Dreams (Are Made of This)","artist":"Eurythmics","year":1983,"apple":{"id":255966421,"url":"https://music.apple.com/us/album/sweet-dreams-are-made-of-this/255965840?i=255966421","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/f2/4c/c2/f24cc223-f889-c8a3-ebbc-8ce458438580/mzi.zbvljpxb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Don’t You Want Me","artist":"The Human League","year":1981,"apple":{"id":724437870,"url":"https://music.apple.com/us/album/dont-you-want-me/724437555?i=724437870","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/60/b1/b0/60b1b052-1a98-b1c7-7554-dc68d91da6e7/13UABIM56819.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Tainted Love","artist":"Soft Cell","year":1981,"apple":{"id":1440517679,"url":"https://music.apple.com/us/album/tainted-love/1440517668?i=1440517679","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/70/ff/8c/70ff8c59-95dc-5444-fd3b-81204d0477e5/00600753223598.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Africa","artist":"Toto","year":1982,"apple":{"id":185717604,"url":"https://music.apple.com/us/album/africa/185716551?i=185717604","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/69/ce/d2/69ced240-07a7-2a04-bbab-2afbacf30809/074643772822.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Billie Jean","artist":"Michael Jackson","year":1983,"apple":{"id":269573364,"url":"https://music.apple.com/us/album/billie-jean/269572838?i=269573364","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/32/4f/fd/324ffda2-9e51-8f6a-0c2d-c6fd2b41ac55/074643811224.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Just Can’t Get Enough","artist":"Depeche Mode","year":1981,"apple":{"id":665413042,"url":"https://music.apple.com/us/album/just-cant-get-enough/665412305?i=665413042","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/19/b8/13/19b81309-d81c-66f7-25b5-ecf545bc2db7/0094635797954.jpg/{size}x{size}bb.jpg"}}
+    ]
+  },
+  {
+    "id": "eurovision",
+    "title": "Eurovision Bangers",
+    "era": "1974–2021",
+    "level": "Medium",
+    "songs": 36,
+    "description": "Winners, wildcards and key changes from the song contest.",
+    "tracks": [
+      {"title":"Waterloo","artist":"ABBA","year":1974,"apple":{"id":1422649021,"url":"https://music.apple.com/us/album/waterloo/1422648512?i=1422649021","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/60/f8/a6/60f8a6bc-e875-238d-f2f8-f34a6034e6d2/14UMGIM07615.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Euphoria","artist":"Loreen","year":2012,"apple":{"id":568114160,"url":"https://music.apple.com/us/album/euphoria/568113928?i=568114160","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/c9/05/79/c9057908-6d9c-afa6-bdf3-88846881a6df/825646544554.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Fairytale","artist":"Alexander Rybak","year":2009,"apple":{"id":1438988564,"url":"https://music.apple.com/us/album/fairytale/1438988563?i=1438988564","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/d4/62/20/d4622093-950c-530e-3876-56beb320cddf/cover.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Hard Rock Hallelujah","artist":"Lordi","year":2006,"apple":{"id":389516413,"url":"https://music.apple.com/us/album/hard-rock-hallelujah/389516373?i=389516413","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music/c7/6a/a5/mzi.kzwrzrrs.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Satellite","artist":"Lena","year":2010,"apple":{"id":1443256022,"url":"https://music.apple.com/us/album/satellite/1443256021?i=1443256022","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/44/c6/62/44c66222-86ec-045c-46ff-18f9e1e7ec63/10UMGIM08990.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Arcade","artist":"Duncan Laurence","year":2019,"apple":{"id":1566066035,"url":"https://music.apple.com/us/album/arcade/1566066013?i=1566066035","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/ff/fe/a6/fffea680-66ac-3c78-0064-5b7e1e728884/21UMGIM34817.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Zitti e buoni","artist":"Måneskin","year":2021,"apple":{"id":1558504599,"url":"https://music.apple.com/us/album/zitti-e-buoni-eurovision-version/1558504054?i=1558504599","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/5e/76/14/5e761416-1c55-1b56-e8c3-177fb475bef2/886449160334.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Toy","artist":"Netta","year":2018,"apple":{"id":1518643036,"url":"https://music.apple.com/us/album/toy/1518643035?i=1518643036","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/49/4a/b3/494ab3df-e849-5cfb-81b9-45f204ae2f1a/4050538615074.jpg/{size}x{size}bb.jpg"}}
+    ]
+  },
+  {
+    "id": "soundtracks",
+    "title": "Movie Soundtracks",
+    "era": "1977–2018",
+    "level": "Easy",
+    "songs": 40,
+    "description": "Songs you know from the big screen, ballads to training montages.",
+    "tracks": [
+      {"title":"My Heart Will Go On","artist":"Céline Dion","year":1997,"apple":{"id":1745568934,"url":"https://music.apple.com/us/album/my-heart-will-go-on/1745568585?i=1745568934","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/25/b5/f5/25b5f570-73aa-d037-fbe0-921989de6271/196871888974.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Eye of the Tiger","artist":"Survivor","year":1982,"apple":{"id":254685026,"url":"https://music.apple.com/us/album/eye-of-the-tiger/254685010?i=254685026","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/f9/02/8f/f9028f63-7a55-235e-f789-1e8946430fa2/614223201122.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Ghostbusters","artist":"Ray Parker Jr.","year":1984,"apple":{"id":1490326466,"url":"https://music.apple.com/us/album/ghostbusters/1490326465?i=1490326466","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/f0/d1/1d/f0d11daf-9585-0b16-496b-97324ce91bf9/886448098706.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Footloose","artist":"Kenny Loggins","year":1984,"apple":{"id":1164757333,"url":"https://music.apple.com/us/album/footloose/1164757097?i=1164757333","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/ab/e1/f9/abe1f91c-4f32-4384-6632-13334c07c4b2/886446159812.jpg/{size}x{size}bb.jpg"}},
+      {"title":"(I’ve Had) The Time of My Life","artist":"Bill Medley & Jennifer Warnes","year":1987,"apple":{"id":254938549,"url":"https://music.apple.com/us/album/ive-had-the-time-of-my-life/254938499?i=254938549","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/8c/f2/1f/8cf21f62-eed1-64c0-e710-df52dc3556c3/078635640823.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Stayin’ Alive","artist":"Bee Gees","year":1977,"apple":{"id":1445669633,"url":"https://music.apple.com/us/album/stayin-alive/1445668810?i=1445669633","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/94/a7/5f/94a75fd1-17da-3a38-42dc-c5e35bf56046/16UMGIM86639.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Let It Go","artist":"Idina Menzel","year":2013,"apple":{"id":1440618281,"url":"https://music.apple.com/us/album/let-it-go/1440618177?i=1440618281","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/4c/5d/31/4c5d3166-3a4b-fb3c-473e-1776ff947466/13DMGIM04437.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Shallow","artist":"Lady Gaga & Bradley Cooper","year":2018,"apple":{"id":1434371887,"url":"https://music.apple.com/us/album/shallow/1434371867?i=1434371887","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b1/9f/ef/b19fef51-79de-a940-e8ab-9e4e07b04d96/18UMGIM53752.rgb.jpg/{size}x{size}bb.jpg"}}
+    ]
+  },
+  {
+    "id": "y2k-pop",
+    "title": "Y2K Pop",
+    "era": "2000s",
+    "level": "Easy",
+    "songs": 52,
+    "description": "Flip phones, frosted tips and every chorus you still know by heart.",
+    "tracks": [
+      {"title":"Toxic","artist":"Britney Spears","year":2003,"apple":{"id":251948354,"url":"https://music.apple.com/us/album/toxic/251947909?i=251948354","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/38/8b/7a/388b7a8f-10ff-a4e0-7624-65e29ac6a793/828765374828.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Crazy in Love","artist":"Beyoncé","year":2003,"apple":{"id":262218448,"url":"https://music.apple.com/us/album/crazy-in-love/262218429?i=262218448","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/17/5d/37/175d3726-19c6-7d9a-2977-facb590b3656/888880063199.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Hey Ya!","artist":"OutKast","year":2003,"apple":{"id":1774799818,"url":"https://music.apple.com/us/album/hey-ya/1774798661?i=1774799818","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/71/ae/6a/71ae6a46-99a6-e9d8-d7f3-41c0f2df45c4/196872579123.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Since U Been Gone","artist":"Kelly Clarkson","year":2004,"apple":{"id":275765380,"url":"https://music.apple.com/us/album/since-u-been-gone/275765354?i=275765380","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/e3/7e/c5/e37ec5d7-725b-695c-333c-ee0deb5adcc6/dj.mveioodu.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Hips Don’t Lie","artist":"Shakira","year":2006,"apple":{"id":1817217411,"url":"https://music.apple.com/us/album/hips-dont-lie-featuring-wyclef-jean-en-espa%C3%B1ol/1817217057?i=1817217411","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0d/b5/8a/0db58a8b-7b17-dd53-3464-116a415d0f49/196872648836.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Umbrella","artist":"Rihanna","year":2007,"apple":{"id":1441154437,"url":"https://music.apple.com/us/album/umbrella-feat-ja%C3%BF-z/1441154435?i=1441154437","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/2b/c0/81/2bc081c8-25f0-ba43-d451-587a54613778/16UMGIM59202.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Poker Face","artist":"Lady Gaga","year":2008},
+      {"title":"Mr. Brightside","artist":"The Killers","year":2004,"apple":{"id":1440891171,"url":"https://music.apple.com/us/album/mr-brightside/1440891166?i=1440891171","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/11/64/9c/11649c80-2066-dba8-77a9-df7eecae26c1/17UM1IM06937.rgb.jpg/{size}x{size}bb.jpg"}}
+    ]
+  },
+  {
+    "id": "stadium-rock",
+    "title": "Stadium Rock",
+    "era": "1975–2003",
+    "level": "Medium",
+    "songs": 44,
+    "description": "Riffs that fill arenas. Expect air guitar.",
+    "tracks": [
+      {"title":"Bohemian Rhapsody","artist":"Queen","year":1975,"apple":{"id":6781024437,"url":"https://music.apple.com/us/album/bohemian-rhapsody/6781024026?i=6781024437","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/8b/0a/ea/8b0aea60-6f4a-195b-5958-cdf459c2333b/602527644271.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Livin’ on a Prayer","artist":"Bon Jovi","year":1986,"apple":{"id":1440677665,"url":"https://music.apple.com/us/album/livin-on-a-prayer/1440677662?i=1440677665","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/3c/96/b3/3c96b3cb-59c0-9641-cfad-a33346ab87f9/24UMGIM83177.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Sweet Child o’ Mine","artist":"Guns N’ Roses","year":1987,"apple":{"id":1377826892,"url":"https://music.apple.com/us/album/sweet-child-o-mine/1377826053?i=1377826892","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/56/47/b7/5647b700-6b9d-9e72-ec9f-51140b6d4492/00602567673781.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Don’t Stop Believin’","artist":"Journey","year":1981,"apple":{"id":160024096,"url":"https://music.apple.com/us/album/dont-stop-believin/160024077?i=160024096","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Features114/v4/f9/c9/49/f9c9495e-f91c-54c5-02ba-47d5db500f15/dj.nsdhasdt.jpg/{size}x{size}bb.jpg"}},
+      {"title":"We Will Rock You","artist":"Queen","year":1977,"apple":{"id":6781080737,"url":"https://music.apple.com/us/album/we-will-rock-you/6781080679?i=6781080737","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/3a/25/81/3a258183-09c1-e6ee-b517-258288ca3d03/602527717487.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Wonderwall","artist":"Oasis","year":1995,"apple":{"id":1517447333,"url":"https://music.apple.com/us/album/wonderwall/1517447039?i=1517447333","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/04/92/e0/0492e08b-cbcc-9969-9ad6-8f5a0888068c/5051961007107.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Seven Nation Army","artist":"The White Stripes","year":2003,"apple":{"id":1533513537,"url":"https://music.apple.com/us/album/seven-nation-army/1533513536?i=1533513537","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/07/25/09/0725098a-09f4-f240-e551-94384a590371/886448799009.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Smells Like Teen Spirit","artist":"Nirvana","year":1991,"apple":{"id":1440783625,"url":"https://music.apple.com/us/album/smells-like-teen-spirit/1440783617?i=1440783625","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/95/fd/b9/95fdb9b2-6d2b-92a6-97f2-51c1a6d77f1a/00602527874609.rgb.jpg/{size}x{size}bb.jpg"}}
+    ]
+  },
+  {
+    "id": "disco",
+    "title": "Disco Fever",
+    "era": "1970s",
+    "level": "Medium",
+    "songs": 32,
+    "description": "Four-on-the-floor classics. Spot the bass line in two seconds.",
+    "tracks": [
+      {"title":"Dancing Queen","artist":"ABBA","year":1976,"apple":{"id":1422648513,"url":"https://music.apple.com/us/album/dancing-queen/1422648512?i=1422648513","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/60/f8/a6/60f8a6bc-e875-238d-f2f8-f34a6034e6d2/14UMGIM07615.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"I Will Survive","artist":"Gloria Gaynor","year":1978,"apple":{"id":1443818368,"url":"https://music.apple.com/us/album/i-will-survive/1443818103?i=1443818368","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/33/12/df/3312dfbf-2cd2-e149-1ccb-9688e2a60980/00731454913720.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Le Freak","artist":"Chic","year":1978,"apple":{"id":301649381,"url":"https://music.apple.com/us/album/le-freak/301649365?i=301649381","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Features114/v4/49/e1/78/49e178f5-0d78-9ef5-4bc7-25a810dea995/dj.etkcfosv.jpg/{size}x{size}bb.jpg"}},
+      {"title":"September","artist":"Earth, Wind & Fire","year":1978,"apple":{"id":1456623340,"url":"https://music.apple.com/us/album/september/1456623332?i=1456623340","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/5c/8e/19/5c8e191d-b458-fc29-54ef-bd9367835044/886447618547.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Hot Stuff","artist":"Donna Summer","year":1979,"apple":{"id":6793735690,"url":"https://music.apple.com/us/album/hot-stuff/6793735689?i=6793735690","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/10/07/f5/1007f5f4-71b2-6ba1-65e0-52e75b450980/602567826309_Cover.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Y.M.C.A.","artist":"Village People","year":1978,"apple":{"id":1452863525,"url":"https://music.apple.com/us/album/y-m-c-a/1452862752?i=1452863525","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/99/e7/7f/99e77faa-bbb8-d177-a128-88b1f7d30b84/00044001374326.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Don’t Leave Me This Way","artist":"Thelma Houston","year":1976,"apple":{"id":1439279592,"url":"https://music.apple.com/us/album/dont-leave-me-this-way/1439279410?i=1439279592","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/84/33/66/84336688-1346-a1ee-951c-d24120b16b77/00602577112454.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Good Times","artist":"Chic","year":1979,"apple":{"id":301649414,"url":"https://music.apple.com/us/album/good-times/301649365?i=301649414","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Features114/v4/49/e1/78/49e178f5-0d78-9ef5-4bc7-25a810dea995/dj.etkcfosv.jpg/{size}x{size}bb.jpg"}}
+    ]
+  },
+  {
+    "id": "hiphop-90s",
+    "title": "90s Hip-Hop",
+    "era": "1990s",
+    "level": "Hard",
+    "songs": 38,
+    "description": "Golden-era beats. The intros are short, so listen closely.",
+    "tracks": [
+      {"title":"Juicy","artist":"The Notorious B.I.G.","year":1994,"apple":{"id":217613305,"url":"https://music.apple.com/us/album/juicy/217613303?i=217613305","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Features115/v4/08/66/e3/0866e3ef-c111-c0a2-f18e-a10035a5bb07/dj.hpsoegav.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Gin and Juice","artist":"Snoop Doggy Dogg","year":1994,"apple":{"id":1683195628,"url":"https://music.apple.com/us/album/gin-and-juice/1683195625?i=1683195628","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/59/5c/49/595c49ca-20af-1a27-3716-fe1fe481c45e/617513535860_cover.jpg/{size}x{size}bb.jpg"}},
+      {"title":"California Love","artist":"2Pac","year":1995,"apple":{"id":1440662041,"url":"https://music.apple.com/us/album/california-love-feat-roger-troutman-dr-dre/1440661662?i=1440662041","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/72/00/89/720089d8-c063-a323-e0cc-de921e50b968/00602527051789.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Gangsta’s Paradise","artist":"Coolio","year":1995,"apple":{"id":1827554491,"url":"https://music.apple.com/us/album/gangstas-paradise/1827554490?i=1827554491","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/88/6c/9f/886c9fa3-3ae3-dda9-2910-b91bb0e46c6a/016998558966.png/{size}x{size}bb.jpg"}},
+      {"title":"Nuthin’ but a “G” Thang","artist":"Dr. Dre","year":1992,"apple":{"id":1683195629,"url":"https://music.apple.com/us/album/nuthin-but-a-g-thang/1683195625?i=1683195629","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/59/5c/49/595c49ca-20af-1a27-3716-fe1fe481c45e/617513535860_cover.jpg/{size}x{size}bb.jpg"}},
+      {"title":"C.R.E.A.M.","artist":"Wu-Tang Clan","year":1994,"apple":{"id":1439215037,"url":"https://music.apple.com/us/album/c-r-e-a-m-cash-rules-everything-around-me-radio-edit/1439215034?i=1439215037","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/ab/93/61/ab93616a-e4ec-6976-180e-01d4bb32af6b/886446512969.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Shook Ones, Pt. II","artist":"Mobb Deep","year":1995,"apple":{"id":304715179,"url":"https://music.apple.com/us/album/shook-ones-pt-ii-a-cappella-wu-tang-clan-aint-nuthing-ta-fwit/304715036?i=304715179","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/c4/f1/5a/c4f15a7d-7b2c-4f1d-c215-88aeedc5e1e5/078636680521.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Hypnotize","artist":"The Notorious B.I.G.","year":1997,"apple":{"id":217613319,"url":"https://music.apple.com/us/album/hypnotize/217613303?i=217613319","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Features115/v4/08/66/e3/0866e3ef-c111-c0a2-f18e-a10035a5bb07/dj.hpsoegav.jpg/{size}x{size}bb.jpg"}}
+    ]
+  },
+  {
+    "id": "indie",
+    "title": "Indie Sing-Alongs",
+    "era": "2004–2013",
+    "level": "Hard",
+    "songs": 30,
+    "description": "Festival favourites with whoa-ohs to shout along to.",
+    "tracks": [
+      {"title":"Take Me Out","artist":"Franz Ferdinand","year":2004,"apple":{"id":315844084,"url":"https://music.apple.com/us/album/take-me-out/315843479?i=315844084","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/83/c6/54/83c6541f-3b90-b46a-b46a-17bf8fd9af16/5034202113645.png/{size}x{size}bb.jpg"}},
+      {"title":"Float On","artist":"Modest Mouse","year":2004,"apple":{"id":190780833,"url":"https://music.apple.com/us/album/float-on/190780827?i=190780833","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3a/15/73/3a1573f6-fd63-bd5d-3182-65399cbade55/mzi.kplxkuxw.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Rebellion (Lies)","artist":"Arcade Fire","year":2005,"apple":{"id":1249418627,"url":"https://music.apple.com/us/album/rebellion-lies/1249417623?i=1249418627","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/2b/09/6e/2b096e8c-ae65-fc42-a4b1-19abb4100433/886446576442.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Young Folks","artist":"Peter Bjorn and John","year":2006,"apple":{"id":1442990320,"url":"https://music.apple.com/us/album/young-folks/1442990312?i=1442990320","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/8b/b4/e0/8bb4e070-90f5-fe3b-966c-8947a14e83bd/05055036261081.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Electric Feel","artist":"MGMT","year":2008,"apple":{"id":264720106,"url":"https://music.apple.com/us/album/electric-feel/264720008?i=264720106","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/72/f3/ed/72f3edba-cbb0-4887-bb89-4aedf97ecd12/888880287779.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Pumped Up Kicks","artist":"Foster the People","year":2010,"apple":{"id":435761212,"url":"https://music.apple.com/us/album/pumped-up-kicks/435761204?i=435761212","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/ba/07/5b/ba075b3c-f0c4-b519-59f3-7ae74d43246b/dj.lajxsvkg.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Ho Hey","artist":"The Lumineers","year":2012,"apple":{"id":1754031516,"url":"https://music.apple.com/us/album/ho-hey/1754031514?i=1754031516","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/83/20/a9/8320a945-11ac-e7cd-29e7-d80782698f55/18515.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Do I Wanna Know?","artist":"Arctic Monkeys","year":2013,"apple":{"id":663097965,"url":"https://music.apple.com/us/album/do-i-wanna-know/663097964?i=663097965","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/69/9c/b5/699cb5d6-115c-ff73-9d26-e57ea4350d72/887828031795.png/{size}x{size}bb.jpg"}}
+    ]
+  }
+]

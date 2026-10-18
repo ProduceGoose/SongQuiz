@@ -21,3 +21,16 @@
 .app-detail { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 24px; }
 .app-detail-art { flex: none; width: 160px; height: 160px; max-width: 100%; border-radius: var(--radius-xs); box-shadow: var(--shadow-art); }
 .app-detail-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1 1 280px; }
+
+/* Sample songs: preview buttons and links to Apple Music */
+.app-preview-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; padding: 0 0 0 1px;
+  border: 1px solid var(--bezel); border-radius: 50%; cursor: pointer;
+  background: linear-gradient(var(--control-top), var(--control-bottom)); box-shadow: var(--shadow-gloss); color: var(--ink);
+}
+.app-preview-btn.is-on { padding-left: 0; background: linear-gradient(var(--aqua-hi), var(--aqua)); border-color: var(--aqua-edge); color: var(--on-aqua); }
+.app-preview-btn:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.app-song-link { color: inherit; text-decoration: none; }
+.app-song-link:hover { text-decoration: underline; }
+.app-song-link:focus-visible, .app-apple-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.app-apple-link { color: inherit; font-weight: 700; }

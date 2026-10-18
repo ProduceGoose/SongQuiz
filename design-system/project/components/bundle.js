@@ -329,18 +329,18 @@ var SongQuiz = (function(exports, react) {
 				/* @__PURE__ */ jsx(TransportButton, {
 					icon: "prev",
 					onClick: onPrevious,
-					disabled
+					disabled: disabled || !onPrevious
 				}),
 				/* @__PURE__ */ jsx(TransportButton, {
 					icon: playing ? "pause" : "play",
 					size: "lg",
 					onClick: onToggle,
-					disabled
+					disabled: disabled || !onToggle
 				}),
 				/* @__PURE__ */ jsx(TransportButton, {
 					icon: "next",
 					onClick: onNext,
-					disabled
+					disabled: disabled || !onNext
 				})
 			]
 		});
@@ -613,7 +613,7 @@ var SongQuiz = (function(exports, react) {
 	var artSize = (size) => size ? { "--sq-art": size + "px" } : void 0;
 	//#endregion
 	//#region src/components/sidebar/NowPlaying.tsx
-	function NowPlaying({ label = "Now Playing", art, title, subtitle, hidden, className }) {
+	function NowPlaying({ label = "Now Playing", art, title, subtitle, hidden, children, className }) {
 		return /* @__PURE__ */ jsxs("section", {
 			className: cx("sq-nowplaying", className),
 			"aria-label": label,
@@ -632,15 +632,22 @@ var SongQuiz = (function(exports, react) {
 						alt: title ? "Cover of " + title : ""
 					})
 				}),
-				title || subtitle ? /* @__PURE__ */ jsxs("div", {
+				title || subtitle || children ? /* @__PURE__ */ jsxs("div", {
 					className: "sq-nowplaying-caption",
-					children: [title ? /* @__PURE__ */ jsx("div", {
-						className: "sq-nowplaying-title sq-ellipsis",
-						children: title
-					}) : null, subtitle ? /* @__PURE__ */ jsx("div", {
-						className: "sq-nowplaying-subtitle sq-ellipsis",
-						children: subtitle
-					}) : null]
+					children: [
+						title ? /* @__PURE__ */ jsx("div", {
+							className: "sq-nowplaying-title sq-ellipsis",
+							children: title
+						}) : null,
+						subtitle ? /* @__PURE__ */ jsx("div", {
+							className: "sq-nowplaying-subtitle sq-ellipsis",
+							children: subtitle
+						}) : null,
+						children ? /* @__PURE__ */ jsx("div", {
+							className: "sq-nowplaying-extra",
+							children
+						}) : null
+					]
 				}) : null
 			]
 		});

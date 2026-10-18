@@ -9,9 +9,9 @@ import type { ChatEntry } from '../components/chat/ChatMessage';
 import { DEMO_CODE, demoChat, guessPhrases, playlistById, stumpedPhrases } from '../data/demo';
 import { ME, type Room, type Round, type Track } from '../types';
 import { isCorrectGuess } from './guess';
+import { gameOrder, lookupPreview, REVEAL_SECONDS, snippetOffset } from './preview';
 
-/** How long the answer stays up before the next round. */
-const REVEAL_MS = 5000;
+const REVEAL_MS = REVEAL_SECONDS * 1000;
 /** A simulated host starts this long after you are ready. */
 const HOST_START_MS = 2000;
 const CHAT_LIMIT = 200;
@@ -28,6 +28,8 @@ interface GameState {
   order: Track[];
   /** Simulated players' messages, waiting for their time. */
   queue: Scheduled[];
+  /** Apple preview addresses by round number, looked up as rounds come up. */
+  previews: Map<number, Promise<string | null>>;
 }
 
 export interface Game {
@@ -41,14 +43,6 @@ let nextId = 0;
 const pick = <T,>(list: T[]): T => list[Math.floor(Math.random() * list.length)]!;
 const between = (min: number, max: number) => min + Math.random() * Math.max(0, max - min);
 
-function shuffle<T>(list: T[]): T[] {
-  const out = list.slice();
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
-}
 
 /**
  * @param onStart Called when a simulated host starts the game, so the app can mark everyone ready.
@@ -56,7 +50,7 @@ function shuffle<T>(list: T[]): T[] {
 export function useGame(room: Room | null, myName: string, onStart: () => void): Game {
   const [, rerender] = useReducer((n: number) => n + 1, 0);
   // Mutable game state; the timers below read and change it, then re-render.
-  const g = useRef<GameState>({ chat: [], round: null, order: [], queue: [] }).current;
+  const g = useRef<GameState>({ chat: [], round: null, order: [], queue: [], previews: new Map() }).current;
   const latest = useRef({ room, myName, onStart });
   latest.current = { room, myName, onStart };
 
@@ -72,10 +66,20 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
 
   // ---- Rounds ----
 
+  /** Round n's preview address from Apple, looked up once. */
+  function preview(n: number): Promise<string | null> {
+    if (!g.previews.has(n)) {
+      const id = g.order[(n - 1) % g.order.length]?.apple?.id;
+      g.previews.set(n, id ? lookupPreview(id) : Promise.resolve(null));
+    }
+    return g.previews.get(n)!;
+  }
+
   function startGame() {
     const { room } = latest.current;
     if (!room || g.round) return;
-    g.order = shuffle(playlistById(room.playlistId).tracks);
+    g.order = gameOrder(playlistById(room.playlistId).tracks);
+    g.previews.clear();
     event(room.hostId === ME ? 'You started the game' : `${nameOf(room.hostId)} started the game`);
     beginRound(1);
   }
@@ -87,6 +91,13 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     const track = g.order[(n - 1) % g.order.length]!;
     const startedAt = Date.now();
     g.round = { number: n, total: room.rounds, track, art: playlist.art, startedAt, length: room.snippet, solved: [], phase: 'playing' };
+    const offset = snippetOffset(room.snippet);
+    void preview(n).then((src) => {
+      if (src && g.round?.number === n) {
+        g.round = { ...g.round, audio: { src, offset } };
+        rerender();
+      }
+    });
     event(`Round ${n} of ${room.rounds} — name that tune`);
     const decoys = playlist.tracks.filter((t) => !isCorrectGuess(t.title, track));
     g.queue = room.players.filter((p) => p.id !== ME).flatMap((p) => simulatedGuesses(p.id, n, decoys));
@@ -129,6 +140,14 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     g.round = { ...r, phase: 'reveal', nextAt: Date.now() + REVEAL_MS };
     g.queue = [];
     event(`It was “${r.track.title}” by ${r.track.artist}`, 'reveal');
+    if (r.number < r.total) {
+      void preview(r.number + 1).then((src) => {
+        if (src && g.round?.number === r.number && g.round.phase === 'reveal') {
+          g.round = { ...g.round, nextAudio: src };
+          rerender();
+        }
+      });
+    }
     if (!r.solved.length) event('Nobody got this one');
   }
 

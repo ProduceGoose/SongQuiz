@@ -12,6 +12,7 @@ import { Window } from './components/window/Window';
 import { DEMO_CODE, defaultSettings, demoRoom, randomCode } from './data/demo';
 import { useGame } from './game/useGame';
 import { useOnlineRoom, type OnlineTarget } from './game/useOnlineRoom';
+import { useSnippet } from './game/useSnippet';
 import { applyTheme, clearSettings, loadSettings, saveSettings } from './lib/settings';
 import { isScreenName, screens } from './screens';
 import { ME, type AppApi, type LcdText, type Room, type Route, type ScreenName, type Settings } from './types';
@@ -68,6 +69,7 @@ export function App() {
 
   const room = online ? net.room : demo;
   const game = online ? net : sim;
+  const snippet = useSnippet(game.round, settings.volume);
   const screen = screens[route.name];
 
   useEffect(() => applyTheme(settings.theme), [settings.theme]);
@@ -92,7 +94,7 @@ export function App() {
   const app: AppApi = {
     route, room, settings, query, playlistView, setPlaylistView,
     online: online ? { code: online.code, status: net.status } : null,
-    chat: game.chat, round: game.round, sendChat: game.sendChat, startGame: game.startGame,
+    chat: game.chat, round: game.round, sendChat: game.sendChat, startGame: game.startGame, snippet,
 
     go(name: ScreenName, id?: string) {
       setRoute({ name, id });

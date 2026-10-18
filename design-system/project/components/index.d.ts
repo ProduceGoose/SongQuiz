@@ -82,7 +82,7 @@ export interface AlbumTileProps {
 }
 export declare function AlbumTile(props: AlbumTileProps): React.ReactElement;
 
-export interface NowPlayingProps { label?: string; art?: string; title?: string; subtitle?: string; hidden?: boolean; className?: string }
+export interface NowPlayingProps { label?: string; art?: string; title?: string; subtitle?: string; hidden?: boolean; children?: React.ReactNode; className?: string }
 export declare function NowPlaying(props: NowPlayingProps): React.ReactElement;
 
 export interface LeaderboardPlayer {
