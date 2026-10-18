@@ -1,0 +1,38 @@
+<!-- @dsCard group="Navigation" height=330 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+.fill { flex: 1; }
+</style>
+</head>
+<body>
+<div id="root" style="width:180px;height:310px;display:flex;border-right:1px solid var(--chrome-edge)"></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+
+  var SECTIONS = [
+    { title: 'Room', items: [
+      { id: 'room', label: 'Friday Night Room', icon: 'broadcast', badge: 8 },
+      { id: 'round', label: 'Current round', icon: 'music' },
+      { id: 'scores', label: 'Scores', icon: 'trophy' }
+    ] },
+    { title: 'Players', collapsible: true, items: [
+      { id: 'p-malik', label: 'Malik', icon: 'user', badge: '5,360' },
+      { id: 'p-lena', label: 'Lena (you)', icon: 'user', badge: '4,820' },
+      { id: 'p-priya', label: 'Priya', icon: 'user', badge: '4,210' },
+      { id: 'p-jonas', label: 'Jonas', icon: 'user', badge: '3,980' }
+    ] },
+    { title: 'Playlists', collapsible: true, items: [
+      { id: 'pl-80s', label: '80s Synth Hits', icon: 'playlist' },
+      { id: 'pl-euro', label: 'Eurovision Bangers', icon: 'playlist' },
+      { id: 'pl-film', label: 'Movie Soundtracks', icon: 'playlist' }
+    ] }
+  ];
+  function Demo() { var s = React.useState('room'); return h(S.SourceList, { sections: SECTIONS, selected: s[0], onSelect: s[1], className: 'fill' }); }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

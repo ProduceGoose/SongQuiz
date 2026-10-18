@@ -1,0 +1,19 @@
+<!-- @dsCard group="Input" height=120 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+.stage { padding: 16px; background: linear-gradient(var(--chrome-top), var(--chrome-bottom)); display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+</style>
+</head>
+<body>
+<div class="stage" style="flex-direction:column;align-items:flex-start"><div id="a"></div><div id="b" style="width:420px"></div></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('a')).render(h(S.SearchField, { placeholder: 'Search songs' }));
+  ReactDOM.createRoot(document.getElementById('b')).render(h(S.SearchField, { size: 'lg', icon: 'music', placeholder: 'Type the song or artist…', defaultValue: 'Take On', label: 'Your answer' }));
+</script>
+</body>
+</html>

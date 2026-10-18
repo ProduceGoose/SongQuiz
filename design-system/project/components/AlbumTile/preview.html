@@ -1,0 +1,46 @@
+<!-- @dsCard group="Answers" height=200 subtitle="idle · selected · correct · wrong · hidden · dimmed · playing" -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+.stage { padding: 16px; background: var(--grid-bg); display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 12px; }
+</style>
+</head>
+<body>
+<div class="stage" id="root"></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+
+  // Demo cover art: flat geometric SVGs standing in for real album covers.
+  function cover(i, letter) {
+    var P = [['#d9472b','#f6d36b'],['#1b3a5c','#e9e2cf'],['#2f7d5b','#f1efe6'],['#f2c14e','#1c1c1c'],['#7a2e8e','#f4b6c2'],['#e8e3d8','#c0392b'],['#0f4c81','#ff8c42'],['#3a3a3a','#e5e5e5'],['#f4f1ea','#1b3a5c'],['#c2185b','#ffe0b2']];
+    var p = P[i % P.length], bg = p[0], fg = p[1], s;
+    switch (i % 5) {
+      case 0: s = '<circle cx="50" cy="54" r="28" fill="' + fg + '"/>'; break;
+      case 1: s = '<path d="M0 60h100v9H0zM0 76h100v9H0zM0 92h100v8H0z" fill="' + fg + '"/>'; break;
+      case 2: s = '<path d="M0 100L100 20v80z" fill="' + fg + '"/>'; break;
+      case 3: s = '<path d="M14 74a36 36 0 0 1 72 0z" fill="' + fg + '"/><path d="M0 78h100v22H0z" fill="' + fg + '" opacity=".5"/>'; break;
+      default: s = '<path d="M20 20h28v28H20zM52 52h28v28H52z" fill="' + fg + '"/>';
+    }
+    var t = letter ? '<text x="9" y="22" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="13" fill="' + fg + '">' + letter + '</text>' : '';
+    return 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="' + bg + '"/>' + s + t + '</svg>');
+  }
+
+  var SONGS = [
+    ['Take On Me', 'a-ha'], ['Dancing Queen', 'ABBA'], ['Africa', 'Toto'], ['Hey Ya!', 'OutKast'],
+    ['Poker Face', 'Lady Gaga'], ['Wonderwall', 'Oasis'], ['Mr. Brightside', 'The Killers'], ['Hips Don\'t Lie', 'Shakira'],
+    ['Bohemian Rhapsody', 'Queen'], ['Rolling in the Deep', 'Adele']
+  ];
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+    h(S.AlbumTile, { art: cover(0), title: SONGS[0][0], subtitle: SONGS[0][1], onClick: function () {} }),
+    h(S.AlbumTile, { art: cover(1), title: SONGS[1][0], subtitle: SONGS[1][1], state: 'selected', onClick: function () {} }),
+    h(S.AlbumTile, { art: cover(2), title: SONGS[2][0], subtitle: SONGS[2][1], state: 'correct' }),
+    h(S.AlbumTile, { art: cover(3), title: SONGS[3][0], subtitle: SONGS[3][1], state: 'wrong' }),
+    h(S.AlbumTile, { title: 'Mystery track', subtitle: 'Round 4', state: 'hidden' }),
+    h(S.AlbumTile, { art: cover(5), title: SONGS[5][0], subtitle: SONGS[5][1], state: 'dimmed' }),
+    h(S.AlbumTile, { title: SONGS[6][0], subtitle: SONGS[6][1], playing: true })));
+</script>
+</body>
+</html>

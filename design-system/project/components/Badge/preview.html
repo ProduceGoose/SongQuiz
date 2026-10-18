@@ -1,0 +1,17 @@
+<!-- @dsCard group="Status" height=56 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+</style>
+</head>
+<body>
+<div id="root" style="display:flex;gap:8px;flex-wrap:wrap;padding:16px;background:var(--surface)"></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null, h(S.Badge, null, 'Guessing'), h(S.Badge, { tone: 'aqua' }, 'Locked in'), h(S.Badge, { tone: 'correct' }, 'Correct'), h(S.Badge, { tone: 'wrong' }, 'Wrong'), h(S.Badge, { tone: 'gold' }, '3-streak'), h(S.Badge, { tone: 'correct', icon: null }, '+120')));
+</script>
+</body>
+</html>

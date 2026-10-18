@@ -1,0 +1,18 @@
+<!-- @dsCard group="Layout" height=48 width=760 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+  function Demo() { var r = React.useState(true); var sh = React.useState(false); return h(S.StatusBar, { start: h(React.Fragment, null, h(S.BarButton, { icon: 'plus', label: 'Invite friends' }), h(S.BarButton, { icon: 'shuffle', label: 'Shuffle playlist', active: sh[0], onClick: function () { sh[1](!sh[0]); } }), h(S.BarButton, { icon: 'repeat', label: 'Play again after the last round', active: r[0], onClick: function () { r[1](!r[0]); } })), end: h(S.BarButton, { icon: 'users', label: 'Players' }) }, '8 players, round 3 of 10, 0:18 left'); }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

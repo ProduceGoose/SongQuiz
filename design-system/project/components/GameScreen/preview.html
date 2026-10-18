@@ -1,0 +1,85 @@
+<!-- @dsCard group="Screens" height=640 width=1100 page subtitle="A round in progress, built from the kit" -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+.prompt { padding: 24px 16px 4px; text-align: center; }
+.q { font-family: var(--font-display); font-size: 28px; line-height: 32px; font-weight: 700; letter-spacing: -0.01em; color: var(--grid-ink); }
+.hint { margin-top: 4px; font-size: 11px; line-height: 14px; color: var(--grid-muted); }
+.answer { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 16px; }
+.answer .sq-search-lg { max-width: 420px; }
+</style>
+</head>
+<body>
+<div id="root" style="padding:24px;background:var(--chrome)"></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+
+  // Demo cover art: flat geometric SVGs standing in for real album covers.
+  function cover(i, letter) {
+    var P = [['#d9472b','#f6d36b'],['#1b3a5c','#e9e2cf'],['#2f7d5b','#f1efe6'],['#f2c14e','#1c1c1c'],['#7a2e8e','#f4b6c2'],['#e8e3d8','#c0392b'],['#0f4c81','#ff8c42'],['#3a3a3a','#e5e5e5'],['#f4f1ea','#1b3a5c'],['#c2185b','#ffe0b2']];
+    var p = P[i % P.length], bg = p[0], fg = p[1], s;
+    switch (i % 5) {
+      case 0: s = '<circle cx="50" cy="54" r="28" fill="' + fg + '"/>'; break;
+      case 1: s = '<path d="M0 60h100v9H0zM0 76h100v9H0zM0 92h100v8H0z" fill="' + fg + '"/>'; break;
+      case 2: s = '<path d="M0 100L100 20v80z" fill="' + fg + '"/>'; break;
+      case 3: s = '<path d="M14 74a36 36 0 0 1 72 0z" fill="' + fg + '"/><path d="M0 78h100v22H0z" fill="' + fg + '" opacity=".5"/>'; break;
+      default: s = '<path d="M20 20h28v28H20zM52 52h28v28H52z" fill="' + fg + '"/>';
+    }
+    var t = letter ? '<text x="9" y="22" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="13" fill="' + fg + '">' + letter + '</text>' : '';
+    return 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="' + bg + '"/>' + s + t + '</svg>');
+  }
+
+  var SONGS = [
+    ['Take On Me', 'a-ha'], ['Dancing Queen', 'ABBA'], ['Africa', 'Toto'], ['Hey Ya!', 'OutKast'],
+    ['Poker Face', 'Lady Gaga'], ['Wonderwall', 'Oasis'], ['Mr. Brightside', 'The Killers'], ['Hips Don\'t Lie', 'Shakira'],
+    ['Bohemian Rhapsody', 'Queen'], ['Rolling in the Deep', 'Adele']
+  ];
+
+  var SECTIONS = [
+    { title: 'Room', items: [
+      { id: 'room', label: 'Friday Night Room', icon: 'broadcast', badge: 8 },
+      { id: 'round', label: 'Current round', icon: 'music' },
+      { id: 'scores', label: 'Scores', icon: 'trophy' }
+    ] },
+    { title: 'Players', collapsible: true, items: [
+      { id: 'p-malik', label: 'Malik', icon: 'user', badge: '5,360' },
+      { id: 'p-lena', label: 'Lena (you)', icon: 'user', badge: '4,820' },
+      { id: 'p-priya', label: 'Priya', icon: 'user', badge: '4,210' },
+      { id: 'p-jonas', label: 'Jonas', icon: 'user', badge: '3,980' }
+    ] },
+    { title: 'Playlists', collapsible: true, items: [
+      { id: 'pl-80s', label: '80s Synth Hits', icon: 'playlist' },
+      { id: 'pl-euro', label: 'Eurovision Bangers', icon: 'playlist' },
+      { id: 'pl-film', label: 'Movie Soundtracks', icon: 'playlist' }
+    ] }
+  ];
+  function Game() {
+    var pick = React.useState(1), ans = React.useState('');
+    var choices = SONGS.slice(0, 6);
+    return h(S.Window, {
+      title: 'SongQuiz — Friday Night Room', style: { height: 592 },
+      toolbar: h(S.Toolbar, {
+        start: h(React.Fragment, null, h(S.Transport, { playing: true }), h(S.VolumeSlider, {})),
+        center: h(S.LcdDisplay, { title: 'Round 3 of 10 — Name that tune', subtitle: '5 of 8 players locked in', progress: 0.4, elapsed: 12, remaining: 18, start: h(S.Icon, { name: 'music', size: 14 }), end: h(S.Icon, { name: 'clock', size: 14 }) }),
+        end: h(React.Fragment, null, h(S.SegmentedControl, { label: 'Section', options: ['Round', 'Scores', 'History'] }), h(S.SearchField, { placeholder: 'Search songs' }))
+      }),
+      sidebar: h(React.Fragment, null,
+        h(S.SourceList, { sections: SECTIONS, selected: 'round' }),
+        h(S.NowPlaying, { hidden: true, title: 'Mystery track', subtitle: 'Revealed when time runs out' })),
+      statusBar: h(S.StatusBar, { start: h(React.Fragment, null, h(S.BarButton, { icon: 'plus', label: 'Invite friends' }), h(S.BarButton, { icon: 'shuffle', label: 'Shuffle playlist' }), h(S.BarButton, { icon: 'repeat', label: 'Play again', active: true })), end: h(S.BarButton, { icon: 'users', label: 'Players' }) }, '8 players, round 3 of 10, 0:18 left')
+    },
+      h('div', { className: 'prompt' },
+        h('div', { className: 'q' }, 'Which song is playing?'),
+        h('div', { className: 'hint' }, 'Pick a cover or type your answer — faster answers score more.'),
+        h('div', { className: 'answer' }, h(S.SearchField, { size: 'lg', icon: 'music', placeholder: 'Type the song or artist…', value: ans[0], onChange: ans[1], label: 'Your answer' }), h(S.Button, { variant: 'primary', size: 'lg' }, 'Lock in'))),
+      h(S.AlbumGrid, { label: 'Answer choices', size: 112 }, choices.map(function (x, i) {
+        return h(S.AlbumTile, { key: i, art: cover(i), title: x[0], subtitle: x[1], state: pick[0] === i ? 'selected' : 'idle', onClick: function () { pick[1](i); } });
+      })));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(Game));
+</script>
+</body>
+</html>

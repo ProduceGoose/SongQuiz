@@ -1,0 +1,45 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; }
+  body { position: relative; width: 960px; height: 288px; overflow: hidden; background: var(--chrome); }
+  svg { position: absolute; left: 0; top: 0; }
+  .lcd { fill: var(--lcd-bg); }
+  .aqua { fill: var(--aqua); }
+  .wall { fill: var(--grid-bg); }
+  .gold { fill: var(--gold); }
+  .tile { rx: var(--radius-md); }
+  .groove { fill: none; stroke: var(--chrome); stroke-width: 1.5; }
+  .label { fill: var(--aqua); }
+  .text { position: absolute; left: 40px; bottom: 32px; max-width: 440px; }
+  .name { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 88px; line-height: .95; letter-spacing: -0.02em; color: var(--ink); }
+  .tag { margin: 16px 0 0; font-family: var(--font-ui); font-size: 13px; line-height: 18px; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<svg width="960" height="288" viewBox="0 0 960 288" aria-hidden="true">
+  <!--
+    blocks: lcd-bg 192×64 (space-6 multiples), aqua 192×168 bleeding off the bottom, grid-bg 256×288 slab bleeding off top/right/bottom, gold 48×48 disc for relief.
+    arrangement: one tall dark slab (the album wall) with two stacked satellites (the LCD over the aqua button) on a chrome ground, gaps of space-4.
+    pattern: literal motif → a record: four concentric grooves in the ground colour (chrome) cut into the grid-bg slab around an aqua label; chosen because the system is a jukebox and its placeholder sleeve is that record.
+    scales: gaps space-4 16px, top inset space-6 24px, tile corners radius-md, groove pitch space-6 24px, label r = space-6.
+  -->
+  <rect class="lcd tile" x="496" y="24" width="192" height="64"/>
+  <rect class="aqua tile" x="496" y="104" width="192" height="200"/>
+  <circle class="gold" cx="640" cy="56" r="16"/>
+  <rect class="wall" x="704" y="0" width="256" height="288"/>
+  <circle class="groove" cx="840" cy="144" r="48"/>
+  <circle class="groove" cx="840" cy="144" r="72"/>
+  <circle class="groove" cx="840" cy="144" r="96"/>
+  <circle class="groove" cx="840" cy="144" r="120"/>
+  <circle class="label" cx="840" cy="144" r="24"/>
+</svg>
+<div class="text">
+  <h1 class="name">SongQuiz<br>Aqua</h1>
+  <p class="tag">A jukebox-era kit for song quizzes with friends.</p>
+</div>
+</body>
+</html>

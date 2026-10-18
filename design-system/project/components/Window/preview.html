@@ -1,0 +1,22 @@
+<!-- @dsCard group="Layout" height=320 subtitle="Window frame with title bar, toolbar, sidebar and status bar" -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+</style>
+</head>
+<body>
+<div id="root" style="padding:20px;background:var(--chrome)"></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(S.Window, {
+    title: 'Friday Night Room', style: { height: 280 },
+    toolbar: h(S.Toolbar, { start: h(S.Transport, {}), center: h(S.LcdDisplay, { title: 'Waiting for players', subtitle: 'Share code KX7Q to invite friends' }), end: h(S.Button, { variant: 'primary' }, 'Start game') }),
+    sidebar: h(S.SourceList, { selected: 'room', sections: [{ title: 'Room', items: [{ id: 'room', label: 'Friday Night Room', icon: 'broadcast', badge: 3 }] }] }),
+    statusBar: h(S.StatusBar, { start: h(S.BarButton, { icon: 'plus', label: 'Invite' }) }, '3 players in the lobby')
+  }, h('div', { style: { padding: 24, color: 'var(--grid-muted)', fontSize: 12 } }, 'Content goes here — usually an AlbumGrid.')));
+</script>
+</body>
+</html>

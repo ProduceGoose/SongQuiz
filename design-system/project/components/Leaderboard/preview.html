@@ -1,0 +1,28 @@
+<!-- @dsCard group="Scores" height=210 width=640 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+
+  var PLAYERS = [
+    { id: 'lena', name: 'Lena', note: '(you)', score: 4820, delta: 120, streak: 3, status: 'correct' },
+    { id: 'malik', name: 'Malik', score: 5360, delta: 140, streak: 4, status: 'correct' },
+    { id: 'priya', name: 'Priya', score: 4210, streak: 0, status: 'wrong' },
+    { id: 'jonas', name: 'Jonas', score: 3980, delta: 90, streak: 1, status: 'correct' },
+    { id: 'sam', name: 'Sam', score: 3110, streak: 0, status: 'locked' },
+    { id: 'noor', name: 'Noor', score: 2875, streak: 0, status: 'guessing' },
+    { id: 'theo', name: 'Theo', score: 2410, streak: 0, status: 'guessing' },
+    { id: 'ava', name: 'Ava', score: 1990, streak: 0, status: 'away' }
+  ];
+  ReactDOM.createRoot(document.getElementById('root')).render(h(S.Leaderboard, { players: PLAYERS, highlight: 'lena', caption: 'Scores after round 3' }));
+</script>
+</body>
+</html>

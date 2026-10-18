@@ -1,0 +1,19 @@
+<!-- @dsCard group="Navigation" height=64 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+.stage { padding: 16px; background: linear-gradient(var(--chrome-top), var(--chrome-bottom)); display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+</style>
+</head>
+<body>
+<div class="stage"><div id="a"></div><div id="b"></div></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('a')).render(h(S.SegmentedControl, { label: 'Section', options: ['Round', 'Scores', 'History'] }));
+  ReactDOM.createRoot(document.getElementById('b')).render(h(S.SegmentedControl, { label: 'View', defaultValue: 'grid', options: [{ value: 'list', icon: 'list', title: 'List' }, { value: 'grid', icon: 'grid', title: 'Covers' }] }));
+</script>
+</body>
+</html>

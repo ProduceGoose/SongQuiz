@@ -1,0 +1,19 @@
+<!-- @dsCard group="Playback" height=64 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+.stage { padding: 16px; background: linear-gradient(var(--chrome-top), var(--chrome-bottom)); display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+</style>
+</head>
+<body>
+<div class="stage"><div id="a"></div><div id="b"></div></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('a')).render(h(S.VolumeSlider, { defaultValue: 70 }));
+  ReactDOM.createRoot(document.getElementById('b')).render(h(S.VolumeSlider, { defaultValue: 20 }));
+</script>
+</body>
+</html>

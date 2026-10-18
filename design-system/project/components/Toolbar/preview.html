@@ -1,0 +1,21 @@
+<!-- @dsCard group="Layout" height=96 width=980 -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { margin: 0; font-family: var(--font-ui); }
+</style>
+</head>
+<body>
+<div id="root" class="sq-chrome-bg" style="padding:4px 12px"></div>
+<script>
+  var S = window.SongQuiz, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(S.Toolbar, {
+    start: h(React.Fragment, null, h(S.Transport, { playing: true }), h(S.VolumeSlider, {})),
+    center: h(S.LcdDisplay, { title: 'Round 3 of 10 — Name that tune', subtitle: '5 of 8 players locked in', progress: 0.4, elapsed: 12, remaining: 18 }),
+    end: h(React.Fragment, null, h(S.SegmentedControl, { label: 'View', options: [{ value: 'list', icon: 'list', title: 'List' }, { value: 'grid', icon: 'grid', title: 'Covers' }], defaultValue: 'grid' }), h(S.SearchField, { placeholder: 'Search songs' }))
+  }));
+</script>
+</body>
+</html>
