@@ -1,6 +1,6 @@
 SongQuiz Aqua dresses a multiplayer song quiz in the brushed-metal jukebox look of late-2000s desktop music players. Every screen sits in one silver window. A glowing LCD tells everyone what is happening, a blue-gray source list runs down the left, and a dark wall of album art fills the middle. Use it for every screen of the game (lobby, round, reveal, scores) so a whole quiz night feels like one window.
 
-Load `tokens.css`, `components/bundle.css`, React 18 and `components/bundle.js`; the components are on `window.SongQuiz`. The `GameScreen` card shows a round put together from the kit.
+Load `tokens.css`, `components/bundle.css`, React 18 and `components/bundle.js`; the components are on `window.SongQuiz`. In a React app with a bundler, import the components from `components/src/index.ts` (TypeScript source) and load `components/bundle.css` instead. `bundle.js` is built from that source; never edit it by hand. The `GameScreen` card shows a round put together from the kit.
 
 ## How the jukebox maps to the game
 

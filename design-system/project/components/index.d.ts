@@ -1,3 +1,4 @@
+// Public API of the SongQuiz Aqua components, as documentation. The implementation is in src/.
 import type * as React from 'react';
 
 export type IconName =
@@ -60,7 +61,7 @@ export interface SearchFieldProps {
 export declare function SearchField(props: SearchFieldProps): React.ReactElement;
 
 export interface ButtonProps {
-  children?: React.ReactNode; variant?: 'default' | 'primary'; size?: 'md' | 'lg'; icon?: IconName;
+  children?: React.ReactNode; variant?: 'default' | 'primary'; size?: 'md' | 'lg'; icon?: IconName | null;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void; disabled?: boolean; type?: 'button' | 'submit'; title?: string; className?: string;
 }
 export declare function Button(props: ButtonProps): React.ReactElement;

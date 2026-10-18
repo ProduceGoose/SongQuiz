@@ -4,32 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>SongQuiz</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <meta name="claude:viewport-fit-sides" content="cover">
-
-  <!-- Design system: tokens and component styles (synced by scripts/sync-design-system.mjs) -->
-  <link rel="stylesheet" href="vendor/songquiz/tokens.css">
-  <link rel="stylesheet" href="vendor/songquiz/bundle.css">
-  <!-- This site's own layout and screen styles -->
-  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div id="app" class="app-shell"></div>
-
-  <!-- Libraries -->
-  <script src="vendor/react/react.production.min.js"></script>
-  <script src="vendor/react/react-dom.production.min.js"></script>
-  <script src="vendor/songquiz/bundle.js"></script>
-
-  <!-- App: demo data and shared UI first, then one file per screen, then the shell -->
-  <script src="js/data.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/screens/home.js"></script>
-  <script src="js/screens/join.js"></script>
-  <script src="js/screens/create.js"></script>
-  <script src="js/screens/lobby.js"></script>
-  <script src="js/screens/playlists.js"></script>
-  <script src="js/screens/scores.js"></script>
-  <script src="js/screens/settings.js"></script>
-  <script src="js/app.js"></script>
+  <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

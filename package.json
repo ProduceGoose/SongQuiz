@@ -1,0 +1,26 @@
+{
+  "name": "songquiz",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A multiplayer song quiz to play with friends, styled like a late-2000s desktop jukebox.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "build:design-system": "vite build --config vite.design-system.config.ts"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.6",
+    "@types/react": "18.3.31",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "6.1.1",
+    "typescript": "5.9.3",
+    "vite": "8.3.2"
+  }
+}
