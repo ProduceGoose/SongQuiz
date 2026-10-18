@@ -1,0 +1,172 @@
+/* SongQuiz Aqua — generated from tokens.json by scripts/sync-design-system.mjs. Do not edit. */
+
+:root, [data-theme="light"] {
+  --chrome-top: #ececec;
+  --chrome: #d0d0d0;
+  --chrome-bottom: #b4b4b4;
+  --chrome-edge: #5e5e5e;
+  --engrave: #ffffffb3;
+  --ink: #1a1a1a;
+  --ink-muted: #404040;
+  --bezel: #5a5a5a;
+  --hairline: #a6a6a6;
+  --control-top: #ffffff;
+  --control-bottom: #c9c9c9;
+  --pressed-top: #4a4a4a;
+  --pressed-bottom: #666666;
+  --on-pressed: #ffffff;
+  --source-bg: #d8dfe8;
+  --source-heading: #505a66;
+  --source-ink: #1a1a1a;
+  --source-icon: #3a5a8c;
+  --select-top: #5675a6;
+  --select-bottom: #3a5a8c;
+  --on-select: #ffffff;
+  --count-bg: #5d6b82;
+  --on-count: #ffffff;
+  --surface: #ffffff;
+  --surface-alt: #edf2fa;
+  --sort-top: #c5d7f0;
+  --sort-bottom: #91acd6;
+  --lcd-bg: #e9edd5;
+  --lcd-ink: #262a1e;
+  --lcd-muted: #5a604c;
+  --lcd-fill: #3d4330;
+  --lcd-bezel: #7b7f6c;
+  --grid-bg: #2a2a2a;
+  --grid-ink: #ececec;
+  --grid-muted: #a3a3a3;
+  --aqua: #1d6fe0;
+  --aqua-hi: #7db7f5;
+  --aqua-edge: #0b4fb8;
+  --on-aqua: #ffffff;
+  --focus: #0b4fb8;
+  --toggle-on: #0b4fb8;
+  --correct: #4cc26a;
+  --on-correct: #0f2a16;
+  --wrong: #a3241c;
+  --on-wrong: #ffffff;
+  --gold: #f0b429;
+  --on-gold: #2a1d00;
+  --dot-close: #ee5b52;
+  --dot-minimize: #f2b53a;
+  --dot-zoom: #4fbf4a;
+  --shadow-window: 0 10px 34px rgba(0,0,0,0.38), 0 0 0 1px rgba(0,0,0,0.25);
+  --shadow-gloss: inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 0 rgba(255,255,255,0.45);
+  --shadow-pressed: inset 0 1px 3px rgba(0,0,0,0.45);
+  --shadow-lcd: inset 0 1px 3px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.6);
+  --shadow-field: inset 0 1px 2px rgba(0,0,0,0.35);
+  --shadow-art: 0 3px 6px rgba(0,0,0,0.6);
+  --shadow-dot: inset 0 1px 1px rgba(255,255,255,0.55), 0 0 0 1px rgba(0,0,0,0.3);
+  --shadow-focus: 0 0 0 2px #ffffff, 0 0 0 4px #0b4fb8;
+  color-scheme: light;
+}
+
+/* No explicit theme: follow the device. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --chrome-top: #4e4e4e;
+    --chrome: #383838;
+    --chrome-bottom: #2a2a2a;
+    --chrome-edge: #0e0e0e;
+    --engrave: #00000099;
+    --ink: #f2f2f2;
+    --ink-muted: #c4c4c4;
+    --bezel: #a0a0a0;
+    --hairline: #1a1a1a;
+    --control-top: #6a6a6a;
+    --control-bottom: #3a3a3a;
+    --pressed-top: #161616;
+    --pressed-bottom: #2a2a2a;
+    --source-bg: #22262c;
+    --source-heading: #9aa6b4;
+    --source-ink: #e8e8e8;
+    --source-icon: #8fb3e6;
+    --select-top: #4a6b9e;
+    --select-bottom: #2c4a7a;
+    --count-bg: #4e5a6c;
+    --surface: #1f1f1f;
+    --surface-alt: #262b33;
+    --sort-top: #4a6894;
+    --sort-bottom: #34507c;
+    --lcd-bg: #1a2214;
+    --lcd-ink: #cfe8a8;
+    --lcd-muted: #8ea676;
+    --lcd-fill: #b7d98a;
+    --lcd-bezel: #0b0f08;
+    --grid-bg: #141414;
+    --grid-muted: #9a9a9a;
+    --focus: #6aa8ff;
+    --toggle-on: #a6ccff;
+    --shadow-window: 0 10px 34px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.6);
+    --shadow-gloss: inset 0 1px 0 rgba(255,255,255,0.18), 0 1px 0 rgba(0,0,0,0.3);
+    --shadow-lcd: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.08);
+    --shadow-focus: 0 0 0 2px #000000, 0 0 0 4px #6aa8ff;
+    color-scheme: dark;
+  }
+}
+
+[data-theme="dark"] {
+  --chrome-top: #4e4e4e;
+  --chrome: #383838;
+  --chrome-bottom: #2a2a2a;
+  --chrome-edge: #0e0e0e;
+  --engrave: #00000099;
+  --ink: #f2f2f2;
+  --ink-muted: #c4c4c4;
+  --bezel: #a0a0a0;
+  --hairline: #1a1a1a;
+  --control-top: #6a6a6a;
+  --control-bottom: #3a3a3a;
+  --pressed-top: #161616;
+  --pressed-bottom: #2a2a2a;
+  --source-bg: #22262c;
+  --source-heading: #9aa6b4;
+  --source-ink: #e8e8e8;
+  --source-icon: #8fb3e6;
+  --select-top: #4a6b9e;
+  --select-bottom: #2c4a7a;
+  --count-bg: #4e5a6c;
+  --surface: #1f1f1f;
+  --surface-alt: #262b33;
+  --sort-top: #4a6894;
+  --sort-bottom: #34507c;
+  --lcd-bg: #1a2214;
+  --lcd-ink: #cfe8a8;
+  --lcd-muted: #8ea676;
+  --lcd-fill: #b7d98a;
+  --lcd-bezel: #0b0f08;
+  --grid-bg: #141414;
+  --grid-muted: #9a9a9a;
+  --focus: #6aa8ff;
+  --toggle-on: #a6ccff;
+  --shadow-window: 0 10px 34px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.6);
+  --shadow-gloss: inset 0 1px 0 rgba(255,255,255,0.18), 0 1px 0 rgba(0,0,0,0.3);
+  --shadow-lcd: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.08);
+  --shadow-focus: 0 0 0 2px #000000, 0 0 0 4px #6aa8ff;
+  color-scheme: dark;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-pill: 999px;
+  --titlebar-h: 22px;
+  --toolbar-h: 50px;
+  --statusbar-h: 24px;
+  --sidebar-w: 180px;
+  --row-h: 20px;
+  --control-h: 22px;
+  --transport-md: 28px;
+  --transport-lg: 36px;
+  --lcd-h: 48px;
+  --art-md: 96px;
+  --font-ui: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
+  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
