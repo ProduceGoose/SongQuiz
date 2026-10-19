@@ -6,12 +6,32 @@
 // from its start as soon as it has loaded, so nobody misses it while it loads. Then it's quiet
 // until the reveal, where the song plays from the snippet's start.
 //
+// Effects (game/effects.ts) play while players guess: speed changes how much of the song a second
+// of the round covers. At the reveal the song plays clean.
+//
 // Browsers only allow sound after the person has clicked something. Most players click "I'm
 // ready" or "Start game" first; if the browser still blocks it, `blocked` is set and the next
 // click anywhere starts the song.
 import { useEffect, useRef, useState } from 'react';
 import type { Round, Snippet } from '../types';
+import { EffectChain } from './audioEffects';
+import { NO_EFFECTS, SPEED_RATES } from './effects';
 import { PREVIEW_SECONDS, roundElapsed } from './preview';
+
+/** How fast the round's song plays while players guess. */
+const rateOf = (r: Round) => SPEED_RATES[(r.effects ?? NO_EFFECTS).speed];
+
+/** Where in the preview the round is now, in seconds of the song. */
+function songPosition(r: Round, offset: number): number {
+  const short = r.snippet < r.length;
+  if (r.phase === 'playing') return short ? offset : offset + roundElapsed(r) * rateOf(r);
+  // The reveal plays at normal speed: a short snippet from its start again, a long one on from
+  // where the guessing stopped.
+  const sinceReveal = (Date.now() - (r.revealedAt ?? Date.now())) / 1000;
+  if (short) return offset + sinceReveal;
+  const guessed = r.revealedAt === undefined ? r.length : Math.min(r.length, (r.revealedAt - r.startedAt) / 1000);
+  return offset + guessed * rateOf(r) + sinceReveal;
+}
 
 /** Half a second of silence, played on the first click so the browser allows sound later. */
 const SILENCE = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
@@ -32,18 +52,23 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
   if (!audioRef.current && typeof Audio !== 'undefined') {
     const a = new Audio();
     a.preload = 'auto';
+    // So the effects may read the sound (see audioEffects.ts).
+    a.crossOrigin = 'anonymous';
     a.onplaying = () => setPlaying(true);
     a.onpause = () => setPlaying(false);
     a.onended = () => setPlaying(false);
     audioRef.current = a;
   }
   const audio = audioRef.current;
+  const chain = useRef<EffectChain | null>(null);
+  if (!chain.current && audio) chain.current = new EffectChain(audio);
 
   /** While guessing, stops a short snippet when it has played to its end. */
   function stopAtSnippetEnd(r: Round) {
     window.clearTimeout(stopTimer.current);
     if (!audio || !r.audio || r.phase !== 'playing' || r.snippet >= r.length) return;
-    const left = r.audio.offset + r.snippet - audio.currentTime;
+    // Seconds of the song left, and how long they take at the round's speed.
+    const left = (r.audio.offset + r.snippet * rateOf(r) - audio.currentTime) / rateOf(r);
     stopTimer.current = window.setTimeout(() => {
       const now = latest.current;
       if (now?.number !== r.number || now.phase !== 'playing') return;
@@ -60,15 +85,14 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
     const short = r.snippet < r.length;
     if (short && r.phase === 'playing' && heard.current === r.number) return;
     const start = () => {
-      // Measured after loading, so the time spent loading is skipped too. A short snippet plays
-      // from its start; at the reveal it plays from there again.
-      const since = r.phase === 'reveal' && short ? (Date.now() - (r.revealedAt ?? Date.now())) / 1000 : roundElapsed(r);
-      const at = short && r.phase === 'playing' ? offset : offset + since;
+      // Measured after loading, so the time spent loading is skipped too.
+      const at = songPosition(r, offset);
       if (at >= PREVIEW_SECONDS - 0.25) {
         audio.pause();
         return;
       }
       audio.currentTime = Math.max(offset, at);
+      void chain.current?.resume().then((ok) => { if (!ok) setBlocked(true); });
       audio.play().then(() => {
         setBlocked(false);
         stopAtSnippetEnd(r);
@@ -79,6 +103,12 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
     if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) start();
     else audio.addEventListener('loadedmetadata', start, { once: true });
   }
+
+  // The round's effects while guessing; clean at the reveal and between games. Before the effect
+  // below that loads a new song, so it starts with the right ones.
+  const fx = round?.phase === 'playing' ? round.effects ?? NO_EFFECTS : NO_EFFECTS;
+  const fxKey = `${fx.speed} ${fx.tone} ${fx.distort}`;
+  useEffect(() => chain.current?.apply(fx), [fxKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A new round (or its audio arriving): load it and play from the right moment.
   const src = round?.audio?.src;
@@ -137,6 +167,7 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
   useEffect(() => {
     if (!audio) return;
     const onClick = () => {
+      void chain.current?.resume();
       if (latest.current?.audio) sync();
       else if (!audio.src) {
         audio.src = SILENCE;
@@ -151,6 +182,7 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
   useEffect(() => () => {
     window.clearTimeout(stopTimer.current);
     audio?.pause();
+    chain.current?.close();
   }, [audio]);
 
   return {

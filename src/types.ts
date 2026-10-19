@@ -63,6 +63,20 @@ export type HostControls = 'on' | 'off';
 /** Players can type /skip to vote a song away. Never on together with host controls. */
 export type VoteSkip = 'on' | 'off';
 
+/** Effects on a round's song (game/effects.ts). One choice per kind, so they stack across kinds only. */
+export interface AudioEffects {
+  /** fast and slow change the pitch too. */
+  speed: 'normal' | 'fast' | 'slow';
+  /** muffled: only the lows get through. telephone: only a narrow middle band. */
+  tone: 'clean' | 'muffled' | 'telephone';
+  distort: 'off' | 'on';
+}
+
+/** A room's effects. With random on, each round gets its own mix and the others are ignored. */
+export interface RoomEffects extends AudioEffects {
+  random: 'off' | 'on';
+}
+
 export interface Room {
   name: string;
   /** 4 letters or digits, e.g. "KX7Q". */
@@ -77,6 +91,7 @@ export interface Room {
   advance: Advance;
   hostControls: HostControls;
   voteSkip: VoteSkip;
+  effects: RoomEffects;
   maxPlayers: number;
   players: RoomPlayer[];
 }
@@ -92,6 +107,7 @@ export interface RoomOptions {
   advance: Advance;
   hostControls: HostControls;
   voteSkip: VoteSkip;
+  effects: RoomEffects;
   maxPlayers: string;
 }
 
@@ -122,6 +138,8 @@ export interface Round {
   /** How long the song plays while players guess, in seconds. */
   snippet: number;
   guess: GuessMode;
+  /** What the song sounds like while players guess; at the reveal it plays clean. */
+  effects: AudioEffects;
   /** Ids of the players who named the title, fastest first. */
   solvedTitle: string[];
   /** Ids of the players who named the artist, fastest first. */

@@ -44,7 +44,9 @@
 .app-columns { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
 .app-columns.is-even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .app-columns.is-stacked { grid-template-columns: minmax(0, 1fr); }
-.app-columns.is-stacked > .app-sheet { max-width: 440px; }
+.app-columns.is-stacked > .app-stack { max-width: 440px; }
+/* Sheets on top of each other, in one column */
+.app-stack { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
 .app-form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .app-stack { display: flex; flex-direction: column; gap: 14px; }
 

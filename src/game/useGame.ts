@@ -9,6 +9,7 @@ import type { ChatEntry } from '../components/chat/ChatMessage';
 import { DEMO_CODE, demoChat, guessPhrases, playlistById, stumpedPhrases } from '../data/demo';
 import { ME, type Room, type Round, type Session, type Track } from '../types';
 import { checkGuess, type Named } from './guess';
+import { NO_EFFECTS, roundEffects, SPEED_RATES } from './effects';
 import { gameOrder, lookupPreview, REVEAL_SECONDS, roundSeconds, snippetOffset } from './preview';
 import { canHost, canVoteSkip, controlsRound, isSkipVote, votesToSkip, waitsForHost } from './rooms';
 import { addGame, allSolved, award, emptySession, gameResult, type Scores } from './scoring';
@@ -104,11 +105,12 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     const playlist = playlistById(room.playlistId);
     const track = g.order[(n - 1) % g.order.length]!;
     const startedAt = Date.now();
+    const effects = roundEffects(room.effects ?? NO_EFFECTS);
     g.round = {
       number: n, total: room.rounds, track, art: playlist.art, startedAt, phase: 'playing',
-      length: roundSeconds(room.snippet), snippet: room.snippet, guess: room.guess, solvedTitle: [], solvedArtist: [], solvedBoth: [], skipVotes: []
+      length: roundSeconds(room.snippet), snippet: room.snippet, guess: room.guess, effects, solvedTitle: [], solvedArtist: [], solvedBoth: [], skipVotes: []
     };
-    const offset = snippetOffset(room.snippet);
+    const offset = snippetOffset(room.snippet * SPEED_RATES[effects.speed]);
     void preview(n).then((src) => {
       if (src && g.round?.number === n) {
         g.round = { ...g.round, audio: { src, offset } };

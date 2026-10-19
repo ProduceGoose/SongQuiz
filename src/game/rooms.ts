@@ -1,6 +1,7 @@
 // Room settings: the values the room form offers, and checking what a browser sends. Used by the
 // screens and the server (worker/RoomObject.ts).
 import { playlists } from '../data/demo';
+import { NO_EFFECTS, validEffects } from './effects';
 import type { Advance, GuessMode, HostControls, Hosting, Room, RoomOptions, Round, VoteSkip } from '../types';
 
 export const ROUND_OPTIONS = ['5', '10', '15', '20'];
@@ -50,14 +51,15 @@ export type RoomSettings = Omit<Room, 'code' | 'hostId' | 'players'>;
 /** The settings, checked; null if any value is not one the room form offers. */
 export function settingsFromOptions(o: RoomOptions): RoomSettings | null {
   const name = typeof o.name === 'string' ? o.name.trim().slice(0, 32) : '';
-  const ok = name && ROUND_OPTIONS.includes(o.rounds) && SNIPPET_OPTIONS.includes(o.snippet) && MAX_PLAYER_OPTIONS.includes(o.maxPlayers)
+  const effects = validEffects(o.effects);
+  const ok = name && effects && ROUND_OPTIONS.includes(o.rounds) && SNIPPET_OPTIONS.includes(o.snippet) && MAX_PLAYER_OPTIONS.includes(o.maxPlayers)
     && Object.hasOwn(GUESS_LABELS, o.guess) && Object.hasOwn(HOSTING_LABELS, o.hosting) && Object.hasOwn(ADVANCE_LABELS, o.advance)
     && Object.hasOwn(HOST_CONTROL_LABELS, o.hostControls) && Object.hasOwn(VOTE_SKIP_LABELS, o.voteSkip) && playlists.some((p) => p.id === o.playlistId);
   if (!ok) return null;
   return {
     name, playlistId: o.playlistId, rounds: Number(o.rounds), snippet: Number(o.snippet),
     guess: o.guess, hosting: o.hosting, advance: o.advance, hostControls: o.hostControls,
-    voteSkip: o.hostControls === 'on' ? 'off' : o.voteSkip, maxPlayers: Number(o.maxPlayers)
+    voteSkip: o.hostControls === 'on' ? 'off' : o.voteSkip, effects: effects!, maxPlayers: Number(o.maxPlayers)
   };
 }
 
@@ -67,6 +69,7 @@ export function optionsOf(room: Room | RoomSettings): RoomOptions {
     name: room.name, playlistId: room.playlistId, rounds: String(room.rounds), snippet: String(room.snippet),
     // Rooms opened before these settings existed have neither.
     guess: room.guess ?? 'separate', hosting: room.hosting ?? 'host', advance: room.advance ?? 'auto',
-    hostControls: room.hostControls ?? 'off', voteSkip: room.voteSkip ?? 'off', maxPlayers: String(room.maxPlayers)
+    hostControls: room.hostControls ?? 'off', voteSkip: room.voteSkip ?? 'off',
+    effects: room.effects ?? NO_EFFECTS, maxPlayers: String(room.maxPlayers)
   };
 }

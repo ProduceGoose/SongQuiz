@@ -6,6 +6,7 @@ import { Table } from '../components/tables/Table';
 import { playlistById } from '../data/demo';
 import { ME, type AppApi, type Room, type ScreenDef, type ScreenProps } from '../types';
 import { canHost, canVoteSkip, GUESS_LABELS, SKIP_COMMAND, waitsForHost } from '../game/rooms';
+import { roomEffectsText } from '../game/effects';
 import { GUESS_RULES } from '../game/scoring';
 import { RoomSettings } from './RoomForm';
 import { EndGameButton, NextRoundButton } from './Scores';
@@ -65,6 +66,7 @@ function Lobby({ app }: ScreenProps) {
             {room.hosting === 'everyone' ? <Badge icon="users">Everyone hosts</Badge> : null}
             {room.hostControls === 'on' ? <Badge icon="pause">Pause & skip</Badge> : null}
             {canVoteSkip(room) ? <Badge>{SKIP_COMMAND} votes</Badge> : null}
+            {roomEffectsText(room.effects) ? <Badge>{roomEffectsText(room.effects)}</Badge> : null}
           </div>
         </div>
         <div className="app-code-box">
