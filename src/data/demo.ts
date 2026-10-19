@@ -40,14 +40,18 @@ export function playlistById(id: string | undefined): Playlist {
 }
 
 // ---- Rooms ---------------------------------------------------------------------
-/** The demo room plays offline with simulated players; every other code is a real online room. */
-export const DEMO_CODE = 'KX7Q';
+/**
+ * The demo room plays offline with simulated players; every other code is a real online room.
+ * Its code isn't shown anywhere in the app. It has a 1, which CODE_CHARS leaves out, so no online
+ * room can get it.
+ */
+export const DEMO_CODE = 'SH1T';
 
-/** A code for a new online room; never the demo room's. */
+/** A code for a new online room; never the demo room's, since CODE_CHARS has no 1. */
 export function randomCode(): string {
   let code = '';
   for (let i = 0; i < 4; i++) code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
-  return code === DEMO_CODE ? randomCode() : code;
+  return code;
 }
 
 export function demoRoom(myName: string): Room {

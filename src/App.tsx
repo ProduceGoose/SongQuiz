@@ -1,8 +1,9 @@
 // The app: its state and actions (AppApi), and the window that holds the current screen.
 // Each window region has its own folder in ./components; each screen is in ./screens.
 //
-// You are in at most one room. The demo room (code KX7Q) runs offline with simulated players
-// (game/useGame.ts); every other room is online, on the server (game/useOnlineRoom.ts).
+// You are in at most one room, and in none when the app opens. The demo room (code DEMO_CODE,
+// in data/demo.ts) runs offline with simulated players (game/useGame.ts); every other room is
+// online, on the server (game/useOnlineRoom.ts).
 import { useEffect, useRef, useState } from 'react';
 import { AppChat } from './components/chat/AppChat';
 import { AppSidebar } from './components/sidebar/AppSidebar';
@@ -40,7 +41,7 @@ export function App() {
   const [route, setRoute] = useState<Route>(initialRoute);
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [online, setOnline] = useState<OnlineTarget | null>(savedOnlineRoom);
-  const [demo, setDemo] = useState<Room | null>(() => (online ? null : demoRoom(settings.name)));
+  const [demo, setDemo] = useState<Room | null>(null);
   const [query, setQueryState] = useState('');
   const [playlistView, setPlaylistView] = useState<'grid' | 'list'>('grid');
   const [message, setMessage] = useState<LcdText | null>(null);
@@ -173,11 +174,10 @@ export function App() {
       clearSettings();
       setSettings({ ...defaultSettings });
       exitRoom();
-      setDemo(demoRoom(defaultSettings.name));
       setQueryState('');
       setPlaylistView('grid');
       app.go('home');
-      app.flash('Prototype reset', 'Back to the demo room and default settings');
+      app.flash('Prototype reset', 'Out of the room and back to default settings');
     }
   };
 

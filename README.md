@@ -7,8 +7,9 @@ everyone; a correct one never does. The title and the artist score on their own:
 players to name each one get 3, 2 and 1 points, and the scores come up as each round starts. Each round plays a snippet of the song's 30-second Apple
 Music preview; at the reveal the song's cover and a link to it on Apple Music appear.
 
-The demo room (code KX7Q) works offline with simulated players: press "I'm ready" in its lobby
-and the host starts the game two seconds later. Playlists are example data from
+You start outside any room. A demo room that works offline with simulated players is behind a
+code that the app doesn't show (`DEMO_CODE` in `src/data/demo.ts`): join with it, press
+"I'm ready" in its lobby, and the host starts the game two seconds later. Playlists are example data from
 `src/data/demo.ts`. The Scores screen shows the game in your room and the room's session: games
 won and points since the room was opened, which the host can reset.
 
