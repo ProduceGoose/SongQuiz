@@ -5,6 +5,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import type { ChatEntry } from '../components/chat/ChatMessage';
 import { ME, type Room, type RoomOptions, type Round, type Session } from '../types';
 import type { ClientMessage, ServerMessage, WireChat, WireRoom, WireRound } from './protocol';
+import { NO_EFFECTS } from './effects';
 import type { Scores } from './scoring';
 
 export interface OnlineTarget {
@@ -212,6 +213,7 @@ function localRound(round: WireRound, you: string, offset: number): Round {
     solvedTitle: round.solvedTitle.map(id),
     solvedArtist: round.solvedArtist.map(id),
     solvedBoth: round.solvedBoth.map(id),
+    effects: round.effects ?? NO_EFFECTS,
     skipVotes: (round.skipVotes ?? []).map(id),
     // Server times to this browser's clock.
     startedAt: round.startedAt - offset,

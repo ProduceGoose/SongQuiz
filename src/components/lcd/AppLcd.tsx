@@ -5,6 +5,7 @@ import { formatTime } from '../utils';
 import { LcdDisplay, type LcdDisplayProps } from './LcdDisplay';
 import { canHost, votesToSkip } from '../../game/rooms';
 import { roundElapsed } from '../../game/preview';
+import { effectsText, NO_EFFECTS } from '../../game/effects';
 import { fastest } from '../../game/scoring';
 import { ME, type AppApi, type LcdText, type Round, type ScreenDef } from '../../types';
 
@@ -37,7 +38,7 @@ function roundLcd(app: AppApi, round: Round): LcdDisplayProps {
   if (round.phase === 'playing') {
     const elapsed = Math.min(round.length, roundElapsed(round));
     return {
-      title: `Round ${round.number} of ${round.total} — Name that tune`,
+      title: `Round ${round.number} of ${round.total} — ${effectsText(round.effects ?? NO_EFFECTS) || 'Name that tune'}`,
       subtitle: round.pausedAt !== undefined
         ? 'Paused by the host'
         : app.snippet.blocked
