@@ -45,7 +45,17 @@ export interface RoomPlayer {
   connected?: boolean;
 }
 
-export type AnswerMode = 'covers' | 'typed';
+/**
+ * What players have to name. separate: the title and the artist each score on their own.
+ * title / artist: only that one counts. both: points only once a player has named both.
+ */
+export type GuessMode = 'separate' | 'title' | 'artist' | 'both';
+
+/** Who may start games, change the settings and reset the scores: the host, or everyone. */
+export type Hosting = 'host' | 'everyone';
+
+/** After a reveal, the next round starts by itself or when a host presses Next round. */
+export type Advance = 'auto' | 'host';
 
 export interface Room {
   name: string;
@@ -54,9 +64,11 @@ export interface Room {
   hostId: string;
   playlistId: string;
   rounds: number;
-  mode: AnswerMode;
-  /** Snippet length in seconds. */
+  /** Snippet length in seconds: how long the song plays while players guess. */
   snippet: number;
+  guess: GuessMode;
+  hosting: Hosting;
+  advance: Advance;
   maxPlayers: number;
   players: RoomPlayer[];
 }
@@ -66,8 +78,10 @@ export interface RoomOptions {
   name: string;
   playlistId: string;
   rounds: string;
-  mode: AnswerMode;
   snippet: string;
+  guess: GuessMode;
+  hosting: Hosting;
+  advance: Advance;
   maxPlayers: string;
 }
 
@@ -91,14 +105,22 @@ export interface Round {
   art: string;
   /** Date.now() when the snippet started. */
   startedAt: number;
-  /** Snippet length in seconds. */
+  /** Guessing time in seconds; at least MIN_ROUND_SECONDS, longer if the snippet is. */
   length: number;
+  /** How long the song plays while players guess, in seconds. */
+  snippet: number;
+  guess: GuessMode;
   /** Ids of the players who named the title, fastest first. */
   solvedTitle: string[];
   /** Ids of the players who named the artist, fastest first. */
   solvedArtist: string[];
+  /** "both" rounds: ids of the players who have named both, fastest first. */
+  solvedBoth: string[];
   /** playing: guesses count. reveal: the answer is shown until `nextAt`. */
   phase: 'playing' | 'reveal';
+  /** Date.now() when the answer was shown. */
+  revealedAt?: number;
+  /** When the next round starts; unset during a reveal that waits for a host (see waitsForHost). */
   nextAt?: number;
   /**
    * The snippet: an audio address and where in it the round starts, in seconds. Online it is an
@@ -165,6 +187,8 @@ export interface AppApi {
   updateSettings(patch: Partial<Settings>): void;
   joinRoom(code: string, name: string): void;
   createRoom(options: RoomOptions): void;
+  /** Hosts only (see canHost), between games: changes the room's playlist and rules (not its name). */
+  updateRoom(options: RoomOptions): void;
   leaveRoom(): void;
   toggleReady(): void;
   resetPrototype(): void;
@@ -183,6 +207,8 @@ export interface AppApi {
   /** Posts to the room chat. During a round it is also a guess; a correct title or artist stays hidden. */
   sendChat(text: string): void;
   startGame(): void;
+  /** Hosts only, while the room waits for them after a reveal: the next round, or the result after the last. */
+  nextRound(): void;
   /** The round's song in this browser. */
   snippet: Snippet;
 }

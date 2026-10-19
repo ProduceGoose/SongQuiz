@@ -24,7 +24,9 @@ export interface OnlineRoom {
   session: Session | null;
   sendChat(text: string): void;
   startGame(): void;
+  nextRound(): void;
   resetSession(): void;
+  updateRoom(options: RoomOptions): void;
   setReady(ready: boolean): void;
   rename(name: string): void;
   /** Tells the server you left; the caller then drops the target. */
@@ -179,7 +181,9 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
     status, room, chat, round, scores, session,
     sendChat: (text) => send({ type: 'chat', text }),
     startGame: () => send({ type: 'start' }),
+    nextRound: () => send({ type: 'next' }),
     resetSession: () => send({ type: 'resetSession' }),
+    updateRoom: (options) => send({ type: 'updateRoom', options }),
     setReady: (ready) => send({ type: 'ready', ready }),
     rename: (name) => send({ type: 'rename', name }),
     leave: () => send({ type: 'leave' })
@@ -201,8 +205,10 @@ function localRound(round: WireRound, you: string, offset: number): Round {
     art: round.art ?? '',
     solvedTitle: round.solvedTitle.map(id),
     solvedArtist: round.solvedArtist.map(id),
+    solvedBoth: round.solvedBoth.map(id),
     // Server times to this browser's clock.
     startedAt: round.startedAt - offset,
+    revealedAt: round.revealedAt === undefined ? undefined : round.revealedAt - offset,
     nextAt: round.nextAt === undefined ? undefined : round.nextAt - offset
   };
 }

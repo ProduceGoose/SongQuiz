@@ -4,10 +4,12 @@ import { Button } from '../components/controls/Button';
 import { Notice, ScreenHeader, Section } from '../components/content/Layout';
 import { Table } from '../components/tables/Table';
 import { playlistById } from '../data/demo';
-import { ME, type AnswerMode, type AppApi, type Room, type ScreenDef, type ScreenProps } from '../types';
+import { ME, type AppApi, type Room, type ScreenDef, type ScreenProps } from '../types';
+import { canHost, GUESS_LABELS, waitsForHost } from '../game/rooms';
+import { GUESS_RULES } from '../game/scoring';
+import { RoomSettings } from './RoomForm';
+import { NextRoundButton } from './Scores';
 import './Lobby.css';
-
-const MODE_LABELS: Record<AnswerMode, string> = { covers: 'Pick a cover', typed: 'Type it' };
 
 const readyCount = (room: Room) => room.players.filter((p) => p.ready).length;
 
@@ -39,7 +41,7 @@ function Lobby({ app }: ScreenProps) {
   const playlist = playlistById(room.playlistId);
   const me = room.players.find((p) => p.id === ME);
   const host = room.players.find((p) => p.id === room.hostId);
-  const isHost = room.hostId === ME;
+  const isHost = canHost(room, ME);
 
   function copyCode() {
     const failed = () => app.flash('Couldn’t copy the code', 'Tell your friends: ' + room!.code);
@@ -58,8 +60,9 @@ function Lobby({ app }: ScreenProps) {
           <div className="app-meta">
             <Badge icon="playlist">{playlist.title}</Badge>
             <Badge>{room.rounds} rounds</Badge>
-            <Badge>{MODE_LABELS[room.mode]}</Badge>
             <Badge>{room.snippet} s snippets</Badge>
+            <Badge>{GUESS_LABELS[room.guess ?? 'separate']}</Badge>
+            {room.hosting === 'everyone' ? <Badge icon="users">Everyone hosts</Badge> : null}
           </div>
         </div>
         <div className="app-code-box">
@@ -96,8 +99,8 @@ function Lobby({ app }: ScreenProps) {
 
       {round ? (
         <Notice>
-          Round {round.number} of {round.total} is on. Name the title and the artist in the chat: the first three
-          to get each one score 3, 2 and 1 points. Wrong guesses show up for everyone, right ones stay hidden.
+          Round {round.number} of {round.total} is on. Guess in the chat. {GUESS_RULES[round.guess]} Wrong guesses
+          show up for everyone, right ones stay hidden.
         </Notice>
       ) : isHost ? null : (
         <Notice>
@@ -111,12 +114,16 @@ function Lobby({ app }: ScreenProps) {
       <div className="app-form-actions">
         <Button size="lg" onClick={app.leaveRoom}>Leave room</Button>
         <Button size="lg" icon={me?.ready ? null : 'check'} onClick={app.toggleReady}>{me?.ready ? 'I’m not ready' : 'I’m ready'}</Button>
-        {round
+        {round && isHost && waitsForHost(round)
+          ? <NextRoundButton app={app} />
+          : round
           ? <Button variant="primary" size="lg" disabled>Game in progress</Button>
           : isHost
           ? <Button variant="primary" size="lg" onClick={app.startGame}>Start game</Button>
           : <Button variant="primary" size="lg" disabled>Waiting for {host?.name ?? 'the host'}</Button>}
       </div>
+
+      {isHost && !round ? <RoomSettings app={app} /> : null}
     </div>
   );
 }

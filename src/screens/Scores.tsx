@@ -6,12 +6,14 @@ import { ScreenHeader, Section } from '../components/content/Layout';
 import { Table } from '../components/tables/Table';
 import { Button } from '../components/controls/Button';
 import { Icon } from '../components/controls/Icon';
-import { gameResult, POINTS, pointsText, roundPoints } from '../game/scoring';
+import { canHost, waitsForHost } from '../game/rooms';
+import { gameResult, GUESS_RULES, hasSolved, pointsText, roundPoints } from '../game/scoring';
 import { ME, type AppApi, type Round, type ScreenDef, type ScreenProps } from '../types';
+import { RoomSettings } from './RoomForm';
 
 function roundStatus(round: Round, id: string): PlayerStatus {
+  if (hasSolved(round, id)) return 'correct';
   const title = round.solvedTitle.includes(id), artist = round.solvedArtist.includes(id);
-  if (title && artist) return 'correct';
   if (title) return 'title';
   if (artist) return 'artist';
   return round.phase === 'playing' ? 'guessing' : 'wrong';
@@ -30,13 +32,22 @@ function standings(app: AppApi): LeaderboardPlayer[] {
   }));
 }
 
-const RULES = `The first three to name the title get ${POINTS.join(', ')} points, and so do the first three to name the artist.`;
+/** For hosts while the room waits for them: the next round, or the result after the last. */
+export function NextRoundButton({ app }: { app: AppApi }) {
+  const { room, round } = app;
+  if (!room || !round || !waitsForHost(round) || !canHost(room, ME)) return null;
+  return (
+    <Button variant="primary" size="lg" icon="play" onClick={app.nextRound}>
+      {round.number < round.total ? 'Next round' : 'Show the result'}
+    </Button>
+  );
+}
 
 function GameStandings({ app }: { app: AppApi }) {
   const { room, round } = app;
   const title = round ? `Round ${round.number} of ${round.total}` : 'Final scores';
   return (
-    <Section title={title} hint={round ? `${room!.name} · ${RULES}` : `${room!.name} · ${room!.rounds} rounds`}>
+    <Section action={<NextRoundButton app={app} />} title={title} hint={round ? `${room!.name} · ${GUESS_RULES[round.guess]}` : `${room!.name} · ${room!.rounds} rounds`}>
       <div className="app-table">
         <Leaderboard players={standings(app)} highlight={ME} caption={'Scores in ' + room!.name} />
       </div>
@@ -52,7 +63,7 @@ function GameOver({ app }: { app: AppApi }) {
   const title = !winners.length ? 'Game over' : winners.length > 1 ? 'It’s a tie!' : winners[0]!.id === ME ? 'You won!' : `${winners[0]!.name} won!`;
   return (
     <ScreenHeader title={<><Icon name="trophy" size={24} /> {title}</>} hint={`${text} Thanks for playing ${room.name}.`}>
-      {room.hostId === ME ? <Button variant="primary" size="lg" icon="play" onClick={app.startGame}>Play again</Button> : null}
+      {canHost(room, ME) ? <Button variant="primary" size="lg" icon="play" onClick={app.startGame}>Play again</Button> : null}
       <Button size="lg" onClick={() => app.go('lobby')}>Back to the lobby</Button>
     </ScreenHeader>
   );
@@ -65,7 +76,7 @@ function SessionStandings({ app }: { app: AppApi }) {
   const rows = room.players
     .map((p) => ({ ...p, ...(session.players[p.id] ?? { wins: 0, points: 0 }) }))
     .sort((a, b) => b.wins - a.wins || b.points - a.points);
-  const isHost = room.hostId === ME;
+  const isHost = canHost(room, ME);
   const hint = session.games
     ? `${session.games} ${session.games === 1 ? 'game' : 'games'} since ${room.name} opened.`
     : `No games finished since ${room.name} opened. Wins and points add up here after each game.`;
@@ -112,6 +123,7 @@ function Scores({ app }: ScreenProps) {
         />
       )}
       {gameOn ? <GameStandings app={app} /> : null}
+      {gameOn && !app.round && canHost(app.room, ME) ? <RoomSettings app={app} /> : null}
       <SessionStandings app={app} />
     </div>
   );

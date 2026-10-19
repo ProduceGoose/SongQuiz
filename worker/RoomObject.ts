@@ -14,12 +14,13 @@
 // memory while the sockets stay open, so the state is saved to storage after every change and
 // loaded again in the constructor.
 import { DurableObject } from 'cloudflare:workers';
-import { playlistById, playlists } from '../src/data/demo';
+import { playlistById } from '../src/data/demo';
 import { checkGuess, type Named } from '../src/game/guess';
-import { gameOrder, lookupPreview, REVEAL_SECONDS, snippetOffset } from '../src/game/preview';
+import { gameOrder, lookupPreview, REVEAL_SECONDS, roundSeconds, snippetOffset } from '../src/game/preview';
+import { canHost, settingsFromOptions, waitsForHost } from '../src/game/rooms';
 import { CODE_PATTERN, type ClientMessage, type ServerMessage, type WireChat, type WireRoom, type WireRound } from '../src/game/protocol';
 import { addGame, allSolved, award, emptySession, gameResult, type Scores } from '../src/game/scoring';
-import type { Room, RoomOptions, Round, Session, Track } from '../src/types';
+import type { Room, Round, Session, Track } from '../src/types';
 import type { Env } from './index';
 
 /** A room nobody is connected to is deleted after this long. */
@@ -61,16 +62,6 @@ const newId = () => crypto.randomUUID().slice(0, 8);
 const cleanName = (name: unknown, fallback: string) => (typeof name === 'string' ? name.trim().slice(0, 20) : '') || fallback;
 
 
-/** The room settings from the Create screen, checked; null if any value is not one the screen offers. */
-function roomFromOptions(o: RoomOptions, code: string): Omit<Room, 'players'> | null {
-  const rounds = Number(o.rounds), snippet = Number(o.snippet), maxPlayers = Number(o.maxPlayers);
-  const name = typeof o.name === 'string' ? o.name.trim().slice(0, 32) : '';
-  if (!name || ![5, 10, 15, 20].includes(rounds) || ![10, 20, 30].includes(snippet) || ![4, 8, 12].includes(maxPlayers)) return null;
-  if (o.mode !== 'covers' && o.mode !== 'typed') return null;
-  if (!playlists.some((p) => p.id === o.playlistId)) return null;
-  return { name, code, hostId: '', playlistId: o.playlistId, rounds, mode: o.mode, snippet, maxPlayers };
-}
-
 export class RoomObject extends DurableObject<Env> {
   private s: State = emptyState();
   /** True while a game is starting: the first preview lookup can take a moment. */
@@ -81,8 +72,8 @@ export class RoomObject extends DurableObject<Env> {
     ctx.blockConcurrencyWhile(async () => {
       // Spread over an empty state, so rooms saved by an older version get any new fields.
       this.s = { ...emptyState(), ...(await ctx.storage.get<State>('state')) };
-      // A round saved before title and artist were scored apart can't go on.
-      if (this.s.round && !this.s.round.solvedTitle) this.s.round = null;
+      // A round saved before the guess modes can't go on.
+      if (this.s.round && !this.s.round.guess) this.s.round = null;
     });
     // Browsers ping every 30 s to keep the connection alive; answer without waking the object.
     ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair('ping', 'pong'));
@@ -126,10 +117,16 @@ export class RoomObject extends DurableObject<Env> {
         this.broadcastRoom();
         break;
       case 'start':
-        if (player.id === this.s.room?.hostId) await this.startGame(player);
+        if (this.isHost(player)) await this.startGame(player);
+        break;
+      case 'next':
+        if (this.isHost(player) && waitsForHost(this.s.round)) await this.next();
+        break;
+      case 'updateRoom':
+        if (this.isHost(player)) this.updateRoom(ws, msg.options);
         break;
       case 'resetSession':
-        if (player.id === this.s.room?.hostId) {
+        if (this.isHost(player)) {
           this.s.session = emptySession();
           this.event('{who} reset the session scores', player);
           this.broadcastSession();
@@ -164,10 +161,10 @@ export class RoomObject extends DurableObject<Env> {
 
     if (!this.s.room) {
       if (!msg.create) return this.reject(ws, 'not_found', `There’s no room with code ${this.s.code}. Check the code with your host.`);
-      const room = roomFromOptions(msg.create, this.s.code);
-      if (!room) return this.reject(ws, 'bad_request', 'Those room settings aren’t valid.');
+      const settings = msg.create && typeof msg.create === 'object' ? settingsFromOptions(msg.create) : null;
+      if (!settings) return this.reject(ws, 'bad_request', 'Those room settings aren’t valid.');
       player = { id: newId(), token, name, ready: true };
-      this.s = { ...emptyState(this.s.code), room: { ...room, hostId: player.id }, players: [player] };
+      this.s = { ...emptyState(this.s.code), room: { ...settings, code: this.s.code, hostId: player.id }, players: [player] };
       this.event('{who} opened the room', player);
     } else if (!player) {
       // A rejoining player is found by token above, so a create here means the code is in use.
@@ -184,6 +181,21 @@ export class RoomObject extends DurableObject<Env> {
     this.send(ws, { type: 'welcome', you: player.id, room: this.wireRoom(), round: this.wireRound(), scores: this.s.scores, session: this.wireSession(), chat: this.s.chat, now: Date.now() });
     this.broadcastRoom();
     await this.save();
+  }
+
+  /**
+   * The host's new playlist and rules, between games; the name stays as the room was opened.
+   * Anything else only gets a note back to the host.
+   */
+  private updateRoom(ws: WebSocket, options: unknown) {
+    const room = this.s.room!;
+    const settings = options && typeof options === 'object' ? settingsFromOptions(options as Parameters<typeof settingsFromOptions>[0]) : null;
+    const note = (text: string) => this.send(ws, { type: 'chat', entry: { id: newId(), kind: 'event', text, time: Date.now() } });
+    if (this.s.round || this.starting) return note('The settings can change once the game is over.');
+    if (!settings) return note('Those room settings aren’t valid.');
+    if (settings.maxPlayers < this.s.players.length) return note(`There are already ${this.s.players.length} players in the room.`);
+    this.s.room = { ...room, ...settings, name: room.name };
+    this.broadcastRoom();
   }
 
   private async leave(player: Player) {
@@ -279,7 +291,8 @@ export class RoomObject extends DurableObject<Env> {
     for (const key of Object.keys(this.s.previews)) if (Number(key) < n) delete this.s.previews[Number(key)];
     this.s.round = {
       number: n, total: room.rounds, track, art: playlist.art,
-      startedAt: Date.now(), length: room.snippet, solvedTitle: [], solvedArtist: [], phase: 'playing',
+      startedAt: Date.now(), phase: 'playing', length: roundSeconds(room.snippet), snippet: room.snippet,
+      guess: room.guess ?? 'separate', solvedTitle: [], solvedArtist: [], solvedBoth: [],
       audio: hasAudio ? { src: this.audioPath(n), offset: snippetOffset(room.snippet) } : undefined
     };
     this.event(`Round ${n} of ${room.rounds} — name that tune`);
@@ -302,9 +315,11 @@ export class RoomObject extends DurableObject<Env> {
     const r = this.s.round;
     if (!r || r.phase !== 'playing') return;
     r.phase = 'reveal';
-    r.nextAt = Date.now() + REVEAL_SECONDS * 1000;
+    r.revealedAt = Date.now();
+    if ((this.s.room?.advance ?? 'auto') === 'auto') r.nextAt = r.revealedAt + REVEAL_SECONDS * 1000;
     this.event(`It was “${r.track.title}” by ${r.track.artist}`, undefined, 'reveal');
     if (!r.solvedTitle.length && !r.solvedArtist.length) this.event('Nobody got this one');
+    if (waitsForHost(r)) this.event(r.number < r.total ? 'Waiting for the host to start the next round' : 'Waiting for the host to show the result');
     this.broadcastRound();
     // Look up the next song now, so players can load it during the reveal.
     if (r.number < r.total && (await this.preparePreview(r.number + 1)) && this.s.round === r) {
@@ -330,8 +345,8 @@ export class RoomObject extends DurableObject<Env> {
     const r = this.s.round;
     const now = Date.now() + 100; // Alarms can fire a moment early.
     if (r?.phase === 'playing' && now >= r.startedAt + r.length * 1000) await this.reveal();
-    else if (r?.phase === 'reveal' && now >= (r.nextAt ?? 0)) await this.next();
-    else if (!r && this.connectedIds().size === 0) {
+    else if (r?.phase === 'reveal' && r.nextAt !== undefined && now >= r.nextAt) await this.next();
+    else if ((!r || waitsForHost(r)) && this.connectedIds().size === 0) {
       await this.ctx.storage.deleteAll();
       this.s = emptyState(this.s.code);
       return;
@@ -358,15 +373,20 @@ export class RoomObject extends DurableObject<Env> {
     if (!this.s.room) return;
     const r = this.s.round;
     const connected = this.connectedIds(closing).size > 0;
-    if (connected || r) this.s.lastActive = Date.now();
+    // A room waiting for a host counts as idle, so it's deleted when nobody comes back.
+    if (connected || (r && !waitsForHost(r))) this.s.lastActive = Date.now();
     await this.ctx.storage.put('state', this.s);
 
     let at: number | null = null;
     if (r?.phase === 'playing') at = r.startedAt + r.length * 1000;
-    else if (r?.phase === 'reveal') at = r.nextAt ?? Date.now();
+    else if (r?.phase === 'reveal' && r.nextAt !== undefined) at = r.nextAt;
     else if (!connected) at = this.s.lastActive + IDLE_MS;
     if (at === null) await this.ctx.storage.deleteAlarm();
     else await this.ctx.storage.setAlarm(at);
+  }
+
+  private isHost(player: Player): boolean {
+    return !!this.s.room && canHost(this.s.room, player.id);
   }
 
   private attachment(ws: WebSocket): Attachment | null {

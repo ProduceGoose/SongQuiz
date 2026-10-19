@@ -11,7 +11,11 @@ You start outside any room. A demo room that works offline with simulated player
 code that the app doesn't show (`DEMO_CODE` in `src/data/demo.ts`): join with it, press
 "I'm ready" in its lobby, and the host starts the game two seconds later. Playlists are example data from
 `src/data/demo.ts`. The Scores screen shows the game in your room and the room's session: games
-won and points since the room was opened, which the host can reset.
+won and points since the room was opened, which the host can reset. Between games the host can change
+the room's playlist, rounds, snippet length (0.1 to 30 seconds; guessing always lasts at least
+20), what has to be guessed (title and artist apart, only one of them, or both for any points),
+the player limit and whether everyone may act as host, in the lobby or under a game's result;
+the room's name stays as it was opened.
 
 Built with Vite, React 18 and TypeScript. The server is a Cloudflare Worker with one
 Durable Object per room.

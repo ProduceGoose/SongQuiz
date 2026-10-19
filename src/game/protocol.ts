@@ -33,6 +33,10 @@ export type ClientMessage =
   | { type: 'chat'; text: string }
   | { type: 'ready'; ready: boolean }
   | { type: 'start' }
+  /** Hosts only, while the room waits for them after a reveal. */
+  | { type: 'next' }
+  /** Host only, between games. */
+  | { type: 'updateRoom'; options: RoomOptions }
   | { type: 'rename'; name: string }
   /** Host only: the session's wins and points back to 0. */
   | { type: 'resetSession' }

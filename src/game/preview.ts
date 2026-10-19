@@ -6,6 +6,11 @@
 export const PREVIEW_SECONDS = 30;
 /** How long the answer stays up before the next round; the song keeps playing meanwhile. */
 export const REVEAL_SECONDS = 5;
+/** Players always get at least this long to guess, however short the snippet. */
+export const MIN_ROUND_SECONDS = 20;
+
+/** A round's guessing time for a snippet length. */
+export const roundSeconds = (snippet: number) => Math.max(snippet, MIN_ROUND_SECONDS);
 
 /** Preview addresses on Apple's servers by Apple id, in one request; songs without one are left out. */
 export async function lookupPreviews(appleIds: number[]): Promise<Map<number, string>> {

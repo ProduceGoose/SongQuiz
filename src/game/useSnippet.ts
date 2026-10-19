@@ -2,6 +2,10 @@
 // point plus the time since the round began, so someone joining mid-round hears the same moment.
 // The song keeps playing through the reveal and stops when the game ends.
 //
+// A snippet shorter than the round (Round.snippet < Round.length, e.g. 1 second) plays once, whole,
+// from its start as soon as it has loaded, so nobody misses it while it loads. Then it's quiet
+// until the reveal, where the song plays from the snippet's start.
+//
 // Browsers only allow sound after the person has clicked something. Most players click "I'm
 // ready" or "Start game" first; if the browser still blocks it, `blocked` is set and the next
 // click anywhere starts the song.
@@ -19,6 +23,9 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
   const [playing, setPlaying] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const pausedByYou = useRef(false);
+  /** The round whose short snippet has played; it doesn't play again by itself. */
+  const heard = useRef<number | null>(null);
+  const stopTimer = useRef<number>();
   const latest = useRef(round);
   latest.current = round;
 
@@ -32,20 +39,40 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
   }
   const audio = audioRef.current;
 
+  /** While guessing, stops a short snippet when it has played to its end. */
+  function stopAtSnippetEnd(r: Round) {
+    window.clearTimeout(stopTimer.current);
+    if (!audio || !r.audio || r.phase !== 'playing' || r.snippet >= r.length) return;
+    const left = r.audio.offset + r.snippet - audio.currentTime;
+    stopTimer.current = window.setTimeout(() => {
+      const now = latest.current;
+      if (now?.number !== r.number || now.phase !== 'playing') return;
+      audio.pause();
+      heard.current = r.number;
+    }, Math.max(0, left * 1000));
+  }
+
   /** Plays from where the round is now. */
   function sync() {
     const r = latest.current;
     if (!audio || !r?.audio || pausedByYou.current) return;
     const { offset } = r.audio;
+    const short = r.snippet < r.length;
+    if (short && r.phase === 'playing' && heard.current === r.number) return;
     const start = () => {
-      // Measured after loading, so the time spent loading is skipped too.
-      const at = offset + (Date.now() - r.startedAt) / 1000;
+      // Measured after loading, so the time spent loading is skipped too. A short snippet plays
+      // from its start; at the reveal it plays from there again.
+      const since = Date.now() - (r.phase === 'reveal' && short ? r.revealedAt ?? Date.now() : r.startedAt);
+      const at = short && r.phase === 'playing' ? offset : offset + since / 1000;
       if (at >= PREVIEW_SECONDS - 0.25) {
         audio.pause();
         return;
       }
       audio.currentTime = Math.max(offset, at);
-      audio.play().then(() => setBlocked(false), (err: DOMException) => {
+      audio.play().then(() => {
+        setBlocked(false);
+        stopAtSnippetEnd(r);
+      }, (err: DOMException) => {
         if (err.name === 'NotAllowedError') setBlocked(true);
       });
     };
@@ -65,6 +92,13 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
     if (audio.src !== absolute(src)) audio.src = src;
     sync();
   }, [src]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The reveal of a round with a short snippet: the song plays again from the snippet's start.
+  const revealing = round?.phase === 'reveal' && round.snippet < round.length ? round.number : null;
+  useEffect(() => {
+    window.clearTimeout(stopTimer.current);
+    if (revealing !== null) sync();
+  }, [revealing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The game ended.
   const inGame = !!round;
@@ -101,7 +135,10 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
   }, [audio, blocked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Stop for good when the page closes.
-  useEffect(() => () => audio?.pause(), [audio]);
+  useEffect(() => () => {
+    window.clearTimeout(stopTimer.current);
+    audio?.pause();
+  }, [audio]);
 
   return {
     available: !!round?.audio,
@@ -121,7 +158,10 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
       if (!audio || !round?.audio) return;
       pausedByYou.current = false;
       audio.currentTime = round.audio.offset;
-      audio.play().then(() => setBlocked(false), () => setBlocked(true));
+      audio.play().then(() => {
+        setBlocked(false);
+        stopAtSnippetEnd(round);
+      }, () => setBlocked(true));
     }
   };
 }

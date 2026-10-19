@@ -1,6 +1,5 @@
 - Coop Mode where you have to guess songs together (Maybe like a Rogue Like where you have to go as far as possible together without guessing wrong)
 - Harder Modes with distorted audio
-- Shorter Song Duration like 1s or even less
 - Own Playlist creation
 - Bet System (Where you can bet points on other peoples failure)
 - Year Guessing

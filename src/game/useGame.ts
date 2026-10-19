@@ -9,7 +9,8 @@ import type { ChatEntry } from '../components/chat/ChatMessage';
 import { DEMO_CODE, demoChat, guessPhrases, playlistById, stumpedPhrases } from '../data/demo';
 import { ME, type Room, type Round, type Session, type Track } from '../types';
 import { checkGuess, type Named } from './guess';
-import { gameOrder, lookupPreview, REVEAL_SECONDS, snippetOffset } from './preview';
+import { gameOrder, lookupPreview, REVEAL_SECONDS, roundSeconds, snippetOffset } from './preview';
+import { canHost, waitsForHost } from './rooms';
 import { addGame, allSolved, award, emptySession, gameResult, type Scores } from './scoring';
 
 const REVEAL_MS = REVEAL_SECONDS * 1000;
@@ -44,6 +45,7 @@ export interface Game {
   session: Session;
   sendChat(text: string): void;
   startGame(): void;
+  nextRound(): void;
   resetSession(): void;
 }
 
@@ -99,7 +101,10 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     const playlist = playlistById(room.playlistId);
     const track = g.order[(n - 1) % g.order.length]!;
     const startedAt = Date.now();
-    g.round = { number: n, total: room.rounds, track, art: playlist.art, startedAt, length: room.snippet, solvedTitle: [], solvedArtist: [], phase: 'playing' };
+    g.round = {
+      number: n, total: room.rounds, track, art: playlist.art, startedAt, phase: 'playing',
+      length: roundSeconds(room.snippet), snippet: room.snippet, guess: room.guess, solvedTitle: [], solvedArtist: [], solvedBoth: []
+    };
     const offset = snippetOffset(room.snippet);
     void preview(n).then((src) => {
       if (src && g.round?.number === n) {
@@ -157,7 +162,9 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
   function reveal() {
     const r = g.round;
     if (!r || r.phase !== 'playing') return;
-    g.round = { ...r, phase: 'reveal', nextAt: Date.now() + REVEAL_MS };
+    const revealedAt = Date.now();
+    const auto = (latest.current.room?.advance ?? 'auto') === 'auto';
+    g.round = { ...r, phase: 'reveal', revealedAt, nextAt: auto ? revealedAt + REVEAL_MS : undefined };
     g.queue = [];
     event(`It was “${r.track.title}” by ${r.track.artist}`, 'reveal');
     if (r.number < r.total) {
@@ -169,6 +176,7 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
       });
     }
     if (!r.solvedTitle.length && !r.solvedArtist.length) event('Nobody got this one');
+    if (!auto) event(r.number < r.total ? 'Waiting for the host to start the next round' : 'Waiting for the host to show the result');
   }
 
   function next() {
@@ -183,9 +191,14 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     }
   }
 
+  function nextRound() {
+    const { room } = latest.current;
+    if (room && canHost(room, ME) && waitsForHost(g.round)) next();
+  }
+
   function resetSession() {
     const { room } = latest.current;
-    if (room?.hostId !== ME) return;
+    if (!room || !canHost(room, ME)) return;
     g.session = emptySession();
     event('You reset the session scores');
   }
@@ -238,7 +251,7 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
       }
       const r = g.round;
       if (r?.phase === 'playing' && t >= r.startedAt + r.length * 1000) reveal();
-      else if (r?.phase === 'reveal' && t >= (r.nextAt ?? 0)) next();
+      else if (r?.phase === 'reveal' && r.nextAt !== undefined && t >= r.nextAt) next();
       if (g.round) rerender();
     }, 250);
     return () => window.clearInterval(id);
@@ -259,5 +272,5 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     return () => window.clearTimeout(timer);
   }, [hostIsSimulated, ready, room?.code]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, sendChat, startGame, resetSession };
+  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, sendChat, startGame, nextRound, resetSession };
 }

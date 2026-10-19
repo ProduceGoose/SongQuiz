@@ -15,6 +15,7 @@ import { useGame } from './game/useGame';
 import { useOnlineRoom, type OnlineTarget } from './game/useOnlineRoom';
 import { useSnippet } from './game/useSnippet';
 import { applyTheme, clearSettings, loadSettings, saveSettings } from './lib/settings';
+import { canHost, settingsFromOptions } from './game/rooms';
 import { gameResult } from './game/scoring';
 import { isScreenName, screens } from './screens';
 import { ME, type AppApi, type LcdText, type Room, type Route, type ScreenName, type Settings } from './types';
@@ -114,7 +115,7 @@ export function App() {
   const app: AppApi = {
     route, room, settings, query, playlistView, setPlaylistView,
     online: online ? { code: online.code, status: net.status } : null,
-    chat: game.chat, round: game.round, scores: game.scores, sendChat: game.sendChat, startGame: game.startGame, snippet,
+    chat: game.chat, round: game.round, scores: game.scores, sendChat: game.sendChat, startGame: game.startGame, nextRound: game.nextRound, snippet,
     session: room ? game.session : null, resetSession: game.resetSession,
 
     go(name: ScreenName, id?: string) {
@@ -169,6 +170,16 @@ export function App() {
       exitRoom();
       setOnline({ code: randomCode(), create: options });
       app.go('lobby');
+    },
+
+    updateRoom(options) {
+      if (!room || !canHost(room, ME) || game.round) return;
+      if (online) {
+        net.updateRoom(options);
+        return;
+      }
+      const settings = settingsFromOptions(options);
+      if (demo && settings) setDemo({ ...demo, ...settings, name: demo.name });
     },
 
     leaveRoom() {
