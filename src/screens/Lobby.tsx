@@ -5,7 +5,7 @@ import { Notice, ScreenHeader, Section } from '../components/content/Layout';
 import { Table } from '../components/tables/Table';
 import { playlistById } from '../data/demo';
 import { ME, type AppApi, type Room, type ScreenDef, type ScreenProps } from '../types';
-import { canHost, GUESS_LABELS, waitsForHost } from '../game/rooms';
+import { canHost, canVoteSkip, GUESS_LABELS, SKIP_COMMAND, waitsForHost } from '../game/rooms';
 import { GUESS_RULES } from '../game/scoring';
 import { RoomSettings } from './RoomForm';
 import { NextRoundButton } from './Scores';
@@ -63,6 +63,8 @@ function Lobby({ app }: ScreenProps) {
             <Badge>{room.snippet} s snippets</Badge>
             <Badge>{GUESS_LABELS[room.guess ?? 'separate']}</Badge>
             {room.hosting === 'everyone' ? <Badge icon="users">Everyone hosts</Badge> : null}
+            {room.hostControls === 'on' ? <Badge icon="pause">Pause & skip</Badge> : null}
+            {canVoteSkip(room) ? <Badge>{SKIP_COMMAND} votes</Badge> : null}
           </div>
         </div>
         <div className="app-code-box">

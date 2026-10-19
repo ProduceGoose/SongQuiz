@@ -15,7 +15,10 @@ won and points since the room was opened, which the host can reset. Between game
 the room's playlist, rounds, snippet length (0.1 to 30 seconds; guessing always lasts at least
 20), what has to be guessed (title and artist apart, only one of them, or both for any points),
 the player limit and whether everyone may act as host, in the lobby or under a game's result;
-the room's name stays as it was opened.
+the room's name stays as it was opened. Host controls (hosts pause a round for everyone or
+skip a song with the playback buttons) are chosen when the room is created and can't change later. Rooms
+without them can let players vote instead: typing `/skip` in the chat counts a vote, and the song
+is skipped once half the players have voted.
 
 Built with Vite, React 18 and TypeScript. The server is a Cloudflare Worker with one
 Durable Object per room.

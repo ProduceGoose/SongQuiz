@@ -2,6 +2,7 @@
 // (the round while one is playing, otherwise the current screen's ScreenDef.status),
 // and shortcuts to the chat and the lobby.
 import { useState } from 'react';
+import { roundElapsed } from '../../game/preview';
 import { formatTime } from '../utils';
 import type { AppApi, ScreenDef } from '../../types';
 import { BarButton, StatusBar } from './StatusBar';
@@ -20,8 +21,9 @@ export interface AppStatusBarProps {
 function summary(app: AppApi, screen: ScreenDef): string {
   const { room, round } = app;
   if (room && round?.phase === 'playing') {
-    const left = Math.max(0, round.length - (Date.now() - round.startedAt) / 1000);
-    return `${room.players.length} players, round ${round.number} of ${round.total}, ${formatTime(Math.ceil(left))} left`;
+    const left = Math.max(0, round.length - roundElapsed(round));
+    const paused = round.pausedAt !== undefined ? ', paused' : '';
+    return `${room.players.length} players, round ${round.number} of ${round.total}, ${formatTime(Math.ceil(left))} left${paused}`;
   }
   return screen.status(app);
 }

@@ -57,6 +57,12 @@ export type Hosting = 'host' | 'everyone';
 /** After a reveal, the next round starts by itself or when a host presses Next round. */
 export type Advance = 'auto' | 'host';
 
+/** Hosts can pause the round for everyone and skip a song. Chosen when the room is created. */
+export type HostControls = 'on' | 'off';
+
+/** Players can type /skip to vote a song away. Never on together with host controls. */
+export type VoteSkip = 'on' | 'off';
+
 export interface Room {
   name: string;
   /** 4 letters or digits, e.g. "KX7Q". */
@@ -69,6 +75,8 @@ export interface Room {
   guess: GuessMode;
   hosting: Hosting;
   advance: Advance;
+  hostControls: HostControls;
+  voteSkip: VoteSkip;
   maxPlayers: number;
   players: RoomPlayer[];
 }
@@ -82,6 +90,8 @@ export interface RoomOptions {
   guess: GuessMode;
   hosting: Hosting;
   advance: Advance;
+  hostControls: HostControls;
+  voteSkip: VoteSkip;
   maxPlayers: string;
 }
 
@@ -103,8 +113,10 @@ export interface Round {
   track: Track;
   /** Cover of the playlist the track is from, shown at the reveal. */
   art: string;
-  /** Date.now() when the snippet started. */
+  /** Date.now() when the snippet started; moved on by the time spent paused. */
   startedAt: number;
+  /** Date.now() when a host paused the round; unset while it runs. See roundElapsed. */
+  pausedAt?: number;
   /** Guessing time in seconds; at least MIN_ROUND_SECONDS, longer if the snippet is. */
   length: number;
   /** How long the song plays while players guess, in seconds. */
@@ -116,6 +128,8 @@ export interface Round {
   solvedArtist: string[];
   /** "both" rounds: ids of the players who have named both, fastest first. */
   solvedBoth: string[];
+  /** Ids of the players who typed /skip this round. */
+  skipVotes: string[];
   /** playing: guesses count. reveal: the answer is shown until `nextAt`. */
   phase: 'playing' | 'reveal';
   /** Date.now() when the answer was shown. */
@@ -209,6 +223,10 @@ export interface AppApi {
   startGame(): void;
   /** Hosts only, while the room waits for them after a reveal: the next round, or the result after the last. */
   nextRound(): void;
+  /** Hosts only, in rooms with host controls, while a round plays: pauses or resumes it for everyone. */
+  pauseRound(paused: boolean): void;
+  /** Hosts only, in rooms with host controls, while a round plays: ends it now and shows the answer. */
+  skipRound(): void;
   /** The round's song in this browser. */
   snippet: Snippet;
 }

@@ -17,7 +17,7 @@ import { DurableObject } from 'cloudflare:workers';
 import { playlistById } from '../src/data/demo';
 import { checkGuess, type Named } from '../src/game/guess';
 import { gameOrder, lookupPreview, REVEAL_SECONDS, roundSeconds, snippetOffset } from '../src/game/preview';
-import { canHost, settingsFromOptions, waitsForHost } from '../src/game/rooms';
+import { canHost, canVoteSkip, controlsRound, isSkipVote, onHold, settingsFromOptions, votesToSkip, waitsForHost } from '../src/game/rooms';
 import { CODE_PATTERN, type ClientMessage, type ServerMessage, type WireChat, type WireRoom, type WireRound } from '../src/game/protocol';
 import { addGame, allSolved, award, emptySession, gameResult, type Scores } from '../src/game/scoring';
 import type { Room, Round, Session, Track } from '../src/types';
@@ -122,6 +122,15 @@ export class RoomObject extends DurableObject<Env> {
       case 'next':
         if (this.isHost(player) && waitsForHost(this.s.round)) await this.next();
         break;
+      case 'pause':
+        if (this.controls(player)) this.pause(player, !!msg.paused);
+        break;
+      case 'skip':
+        if (this.controls(player) && this.s.round?.phase === 'playing') {
+          this.event('{who} skipped the song', player);
+          await this.reveal();
+        }
+        break;
       case 'updateRoom':
         if (this.isHost(player)) this.updateRoom(ws, msg.options);
         break;
@@ -194,8 +203,23 @@ export class RoomObject extends DurableObject<Env> {
     if (this.s.round || this.starting) return note('The settings can change once the game is over.');
     if (!settings) return note('Those room settings aren’t valid.');
     if (settings.maxPlayers < this.s.players.length) return note(`There are already ${this.s.players.length} players in the room.`);
-    this.s.room = { ...room, ...settings, name: room.name };
+    this.s.room = { ...room, ...settings, name: room.name, hostControls: room.hostControls };
     this.broadcastRoom();
+  }
+
+  /** Stops the round's clock for everyone, or starts it again where it stopped. */
+  private pause(player: Player, paused: boolean) {
+    const r = this.s.round;
+    if (r?.phase !== 'playing' || paused === (r.pausedAt !== undefined)) return;
+    if (paused) {
+      r.pausedAt = Date.now();
+      this.event('{who} paused the round', player);
+    } else {
+      r.startedAt += Date.now() - r.pausedAt!;
+      delete r.pausedAt;
+      this.event('{who} resumed the round', player);
+    }
+    this.broadcastRound();
   }
 
   private async leave(player: Player) {
@@ -226,6 +250,7 @@ export class RoomObject extends DurableObject<Env> {
   // ---- Chat and guesses --------------------------------------------------------
 
   private async chat(ws: WebSocket, player: Player, text: string) {
+    if (isSkipVote(text)) return this.voteSkip(ws, player);
     const r = this.s.round;
     const named = r?.phase === 'playing' ? checkGuess(text, r.track) : null;
     if (named && (named.title || named.artist)) {
@@ -237,6 +262,24 @@ export class RoomObject extends DurableObject<Env> {
     }
     const guessing = r?.phase === 'playing' && !allSolved(r, [player.id]);
     this.post({ kind: guessing ? 'guess' : 'message', playerId: player.id, name: player.name, text });
+  }
+
+  /** A /skip from a player: once half the players have voted, the song ends and the answer shows. */
+  private async voteSkip(ws: WebSocket, player: Player) {
+    const r = this.s.round;
+    const note = (text: string) => this.send(ws, { type: 'chat', entry: { id: newId(), kind: 'event', text, time: Date.now() } });
+    if (!this.s.room || !canVoteSkip(this.s.room)) return note('Voting to skip is off in this room.');
+    if (r?.phase !== 'playing') return note('There’s no song to skip right now.');
+    const votes = r.skipVotes ?? [];
+    if (votes.includes(player.id)) return note('You already voted to skip this song.');
+    r.skipVotes = [...votes, player.id];
+    const needed = votesToSkip(this.connectedIds().size);
+    this.event(`{who} voted to skip · ${r.skipVotes.length} of ${needed}`, player);
+    this.broadcastRound();
+    if (r.skipVotes.length >= needed) {
+      this.event('Skipped by vote');
+      await this.reveal();
+    }
   }
 
   private post(entry: Omit<WireChat, 'id' | 'time'>) {
@@ -292,7 +335,7 @@ export class RoomObject extends DurableObject<Env> {
     this.s.round = {
       number: n, total: room.rounds, track, art: playlist.art,
       startedAt: Date.now(), phase: 'playing', length: roundSeconds(room.snippet), snippet: room.snippet,
-      guess: room.guess ?? 'separate', solvedTitle: [], solvedArtist: [], solvedBoth: [],
+      guess: room.guess ?? 'separate', solvedTitle: [], solvedArtist: [], solvedBoth: [], skipVotes: [],
       audio: hasAudio ? { src: this.audioPath(n), offset: snippetOffset(room.snippet) } : undefined
     };
     this.event(`Round ${n} of ${room.rounds} — name that tune`);
@@ -344,9 +387,9 @@ export class RoomObject extends DurableObject<Env> {
   async alarm(): Promise<void> {
     const r = this.s.round;
     const now = Date.now() + 100; // Alarms can fire a moment early.
-    if (r?.phase === 'playing' && now >= r.startedAt + r.length * 1000) await this.reveal();
+    if (r?.phase === 'playing' && r.pausedAt === undefined && now >= r.startedAt + r.length * 1000) await this.reveal();
     else if (r?.phase === 'reveal' && r.nextAt !== undefined && now >= r.nextAt) await this.next();
-    else if ((!r || waitsForHost(r)) && this.connectedIds().size === 0) {
+    else if ((!r || onHold(r)) && this.connectedIds().size === 0) {
       await this.ctx.storage.deleteAll();
       this.s = emptyState(this.s.code);
       return;
@@ -374,11 +417,11 @@ export class RoomObject extends DurableObject<Env> {
     const r = this.s.round;
     const connected = this.connectedIds(closing).size > 0;
     // A room waiting for a host counts as idle, so it's deleted when nobody comes back.
-    if (connected || (r && !waitsForHost(r))) this.s.lastActive = Date.now();
+    if (connected || (r && !onHold(r))) this.s.lastActive = Date.now();
     await this.ctx.storage.put('state', this.s);
 
     let at: number | null = null;
-    if (r?.phase === 'playing') at = r.startedAt + r.length * 1000;
+    if (r?.phase === 'playing' && r.pausedAt === undefined) at = r.startedAt + r.length * 1000;
     else if (r?.phase === 'reveal' && r.nextAt !== undefined) at = r.nextAt;
     else if (!connected) at = this.s.lastActive + IDLE_MS;
     if (at === null) await this.ctx.storage.deleteAlarm();
@@ -387,6 +430,10 @@ export class RoomObject extends DurableObject<Env> {
 
   private isHost(player: Player): boolean {
     return !!this.s.room && canHost(this.s.room, player.id);
+  }
+
+  private controls(player: Player): boolean {
+    return !!this.s.room && controlsRound(this.s.room, player.id);
   }
 
   private attachment(ws: WebSocket): Attachment | null {

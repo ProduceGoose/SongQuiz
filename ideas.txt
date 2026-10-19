@@ -3,7 +3,5 @@
 - Own Playlist creation
 - Bet System (Where you can bet points on other peoples failure)
 - Year Guessing
-- More Control of Room configs (like toggleble Artist and title guessing or that you have to guess both to get points)
-- Setting that the host has to confirm to start the next round
 - Host can Pause a song or skip (or setting that every player can pause, maybe setting that every player is host)
 - Gugerloman Mode where Gugerloman interupts games and makes wrong written guesses

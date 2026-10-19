@@ -57,7 +57,7 @@ export function randomCode(): string {
 export function demoRoom(myName: string): Room {
   return {
     name: 'Friday Night Room', code: DEMO_CODE, hostId: 'malik',
-    playlistId: 'synth-80s', rounds: 10, snippet: 20, guess: 'separate', hosting: 'host', advance: 'auto', maxPlayers: 8,
+    playlistId: 'synth-80s', rounds: 10, snippet: 20, guess: 'separate', hosting: 'host', advance: 'auto', hostControls: 'off', voteSkip: 'off', maxPlayers: 8,
     players: [
       { id: 'malik', name: 'Malik', ready: true },
       { id: 'priya', name: 'Priya', ready: true },

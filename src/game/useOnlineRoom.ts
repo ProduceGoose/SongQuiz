@@ -25,6 +25,8 @@ export interface OnlineRoom {
   sendChat(text: string): void;
   startGame(): void;
   nextRound(): void;
+  pauseRound(paused: boolean): void;
+  skipRound(): void;
   resetSession(): void;
   updateRoom(options: RoomOptions): void;
   setReady(ready: boolean): void;
@@ -182,6 +184,8 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
     sendChat: (text) => send({ type: 'chat', text }),
     startGame: () => send({ type: 'start' }),
     nextRound: () => send({ type: 'next' }),
+    pauseRound: (paused) => send({ type: 'pause', paused }),
+    skipRound: () => send({ type: 'skip' }),
     resetSession: () => send({ type: 'resetSession' }),
     updateRoom: (options) => send({ type: 'updateRoom', options }),
     setReady: (ready) => send({ type: 'ready', ready }),
@@ -206,8 +210,10 @@ function localRound(round: WireRound, you: string, offset: number): Round {
     solvedTitle: round.solvedTitle.map(id),
     solvedArtist: round.solvedArtist.map(id),
     solvedBoth: round.solvedBoth.map(id),
+    skipVotes: (round.skipVotes ?? []).map(id),
     // Server times to this browser's clock.
     startedAt: round.startedAt - offset,
+    pausedAt: round.pausedAt === undefined ? undefined : round.pausedAt - offset,
     revealedAt: round.revealedAt === undefined ? undefined : round.revealedAt - offset,
     nextAt: round.nextAt === undefined ? undefined : round.nextAt - offset
   };

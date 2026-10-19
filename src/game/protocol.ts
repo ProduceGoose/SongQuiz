@@ -35,6 +35,9 @@ export type ClientMessage =
   | { type: 'start' }
   /** Hosts only, while the room waits for them after a reveal. */
   | { type: 'next' }
+  /** Hosts only, in rooms with host controls, while a round plays. */
+  | { type: 'pause'; paused: boolean }
+  | { type: 'skip' }
   /** Host only, between games. */
   | { type: 'updateRoom'; options: RoomOptions }
   | { type: 'rename'; name: string }

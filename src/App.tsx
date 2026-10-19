@@ -115,7 +115,8 @@ export function App() {
   const app: AppApi = {
     route, room, settings, query, playlistView, setPlaylistView,
     online: online ? { code: online.code, status: net.status } : null,
-    chat: game.chat, round: game.round, scores: game.scores, sendChat: game.sendChat, startGame: game.startGame, nextRound: game.nextRound, snippet,
+    chat: game.chat, round: game.round, scores: game.scores, sendChat: game.sendChat, startGame: game.startGame, nextRound: game.nextRound,
+    pauseRound: game.pauseRound, skipRound: game.skipRound, snippet,
     session: room ? game.session : null, resetSession: game.resetSession,
 
     go(name: ScreenName, id?: string) {
@@ -179,7 +180,7 @@ export function App() {
         return;
       }
       const settings = settingsFromOptions(options);
-      if (demo && settings) setDemo({ ...demo, ...settings, name: demo.name });
+      if (demo && settings) setDemo({ ...demo, ...settings, name: demo.name, hostControls: demo.hostControls });
     },
 
     leaveRoom() {

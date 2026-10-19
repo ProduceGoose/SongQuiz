@@ -10,7 +10,7 @@ import { DEMO_CODE, demoChat, guessPhrases, playlistById, stumpedPhrases } from 
 import { ME, type Room, type Round, type Session, type Track } from '../types';
 import { checkGuess, type Named } from './guess';
 import { gameOrder, lookupPreview, REVEAL_SECONDS, roundSeconds, snippetOffset } from './preview';
-import { canHost, waitsForHost } from './rooms';
+import { canHost, canVoteSkip, controlsRound, isSkipVote, votesToSkip, waitsForHost } from './rooms';
 import { addGame, allSolved, award, emptySession, gameResult, type Scores } from './scoring';
 
 const REVEAL_MS = REVEAL_SECONDS * 1000;
@@ -46,6 +46,8 @@ export interface Game {
   sendChat(text: string): void;
   startGame(): void;
   nextRound(): void;
+  pauseRound(paused: boolean): void;
+  skipRound(): void;
   resetSession(): void;
 }
 
@@ -103,7 +105,7 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     const startedAt = Date.now();
     g.round = {
       number: n, total: room.rounds, track, art: playlist.art, startedAt, phase: 'playing',
-      length: roundSeconds(room.snippet), snippet: room.snippet, guess: room.guess, solvedTitle: [], solvedArtist: [], solvedBoth: []
+      length: roundSeconds(room.snippet), snippet: room.snippet, guess: room.guess, solvedTitle: [], solvedArtist: [], solvedBoth: [], skipVotes: []
     };
     const offset = snippetOffset(room.snippet);
     void preview(n).then((src) => {
@@ -196,6 +198,29 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     if (room && canHost(room, ME) && waitsForHost(g.round)) next();
   }
 
+  function pauseRound(paused: boolean) {
+    const { room } = latest.current;
+    const r = g.round;
+    if (!room || !controlsRound(room, ME) || r?.phase !== 'playing' || paused === (r.pausedAt !== undefined)) return;
+    if (paused) {
+      g.round = { ...r, pausedAt: Date.now() };
+      event('You paused the round');
+    } else {
+      // The clock and the simulated players carry on where they stopped.
+      const held = Date.now() - r.pausedAt!;
+      g.round = { ...r, startedAt: r.startedAt + held, pausedAt: undefined };
+      g.queue = g.queue.map((a) => ({ ...a, at: a.at + held }));
+      event('You resumed the round');
+    }
+  }
+
+  function skipRound() {
+    const { room } = latest.current;
+    if (!room || !controlsRound(room, ME) || g.round?.phase !== 'playing') return;
+    event('You skipped the song');
+    reveal();
+  }
+
   function resetSession() {
     const { room } = latest.current;
     if (!room || !canHost(room, ME)) return;
@@ -209,6 +234,21 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     const { room, myName } = latest.current;
     if (!room) return;
     const r = g.round;
+    if (isSkipVote(text)) {
+      if (!canVoteSkip(room)) event('Voting to skip is off in this room.');
+      else if (r?.phase !== 'playing') event('There’s no song to skip right now.');
+      else if (r.skipVotes.includes(ME)) event('You already voted to skip this song.');
+      else {
+        g.round = { ...r, skipVotes: [...r.skipVotes, ME] };
+        const needed = votesToSkip(room.players.length);
+        event(`You voted to skip · ${g.round.skipVotes.length} of ${needed}`);
+        if (g.round.skipVotes.length >= needed) {
+          event('Skipped by vote');
+          reveal();
+        }
+      }
+      return;
+    }
     const named = r?.phase === 'playing' ? checkGuess(text, r.track) : null;
     if (named && (named.title || named.artist)) {
       if (!score(ME, named)) event('Hidden, so you don’t give the answer away');
@@ -244,13 +284,14 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
   useEffect(() => {
     const id = window.setInterval(() => {
       const t = Date.now();
-      const due = g.queue.filter((a) => a.at <= t);
+      const paused = g.round?.pausedAt !== undefined;
+      const due = paused ? [] : g.queue.filter((a) => a.at <= t);
       if (due.length) {
         g.queue = g.queue.filter((a) => a.at > t);
         due.forEach((a) => a.run());
       }
       const r = g.round;
-      if (r?.phase === 'playing' && t >= r.startedAt + r.length * 1000) reveal();
+      if (r?.phase === 'playing' && !paused && t >= r.startedAt + r.length * 1000) reveal();
       else if (r?.phase === 'reveal' && r.nextAt !== undefined && t >= r.nextAt) next();
       if (g.round) rerender();
     }, 250);
@@ -272,5 +313,5 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     return () => window.clearTimeout(timer);
   }, [hostIsSimulated, ready, room?.code]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, sendChat, startGame, nextRound, resetSession };
+  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, sendChat, startGame, nextRound, pauseRound, skipRound, resetSession };
 }

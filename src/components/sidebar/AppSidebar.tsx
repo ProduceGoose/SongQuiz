@@ -2,7 +2,9 @@
 import { artworkUrl, playlistById, playlists } from '../../data/demo';
 import { isScreenName } from '../../screens';
 import type { AppApi, Room, Round } from '../../types';
+import { roundElapsed } from '../../game/preview';
 import { NowPlaying } from './NowPlaying';
+import { SourceList, type SourceSection } from './SourceList';
 import './Countdown.css';
 
 /** The countdown over the cover starts this many seconds before the round ends. */
@@ -10,12 +12,11 @@ const COUNTDOWN_SECONDS = 3;
 
 /** The seconds left in the round, from COUNTDOWN_SECONDS down; null before that. */
 function Countdown({ round }: { round: Round }) {
-  const left = Math.ceil(round.length - (Date.now() - round.startedAt) / 1000);
+  const left = Math.ceil(round.length - roundElapsed(round));
   if (left > COUNTDOWN_SECONDS || left < 1) return null;
   // The key restarts the pulse each second.
   return <span key={left} className="app-countdown" role="timer" aria-label={`${left} seconds left`}>{left}</span>;
 }
-import { SourceList, type SourceSection } from './SourceList';
 
 function sections(room: Room | null): SourceSection[] {
   const all: Array<SourceSection | null> = [

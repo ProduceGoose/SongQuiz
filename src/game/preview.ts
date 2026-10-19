@@ -12,6 +12,11 @@ export const MIN_ROUND_SECONDS = 20;
 /** A round's guessing time for a snippet length. */
 export const roundSeconds = (snippet: number) => Math.max(snippet, MIN_ROUND_SECONDS);
 
+/** Seconds of the round played so far; it stands still while the round is paused. */
+export function roundElapsed(round: { startedAt: number; pausedAt?: number }, now = Date.now()): number {
+  return ((round.pausedAt ?? now) - round.startedAt) / 1000;
+}
+
 /** Preview addresses on Apple's servers by Apple id, in one request; songs without one are left out. */
 export async function lookupPreviews(appleIds: number[]): Promise<Map<number, string>> {
   const found = new Map<number, string>();

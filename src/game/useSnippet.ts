@@ -11,7 +11,7 @@
 // click anywhere starts the song.
 import { useEffect, useRef, useState } from 'react';
 import type { Round, Snippet } from '../types';
-import { PREVIEW_SECONDS } from './preview';
+import { PREVIEW_SECONDS, roundElapsed } from './preview';
 
 /** Half a second of silence, played on the first click so the browser allows sound later. */
 const SILENCE = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
@@ -55,15 +55,15 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
   /** Plays from where the round is now. */
   function sync() {
     const r = latest.current;
-    if (!audio || !r?.audio || pausedByYou.current) return;
+    if (!audio || !r?.audio || pausedByYou.current || r.pausedAt !== undefined) return;
     const { offset } = r.audio;
     const short = r.snippet < r.length;
     if (short && r.phase === 'playing' && heard.current === r.number) return;
     const start = () => {
       // Measured after loading, so the time spent loading is skipped too. A short snippet plays
       // from its start; at the reveal it plays from there again.
-      const since = Date.now() - (r.phase === 'reveal' && short ? r.revealedAt ?? Date.now() : r.startedAt);
-      const at = short && r.phase === 'playing' ? offset : offset + since / 1000;
+      const since = r.phase === 'reveal' && short ? (Date.now() - (r.revealedAt ?? Date.now())) / 1000 : roundElapsed(r);
+      const at = short && r.phase === 'playing' ? offset : offset + since;
       if (at >= PREVIEW_SECONDS - 0.25) {
         audio.pause();
         return;
@@ -99,6 +99,19 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
     window.clearTimeout(stopTimer.current);
     if (revealing !== null) sync();
   }, [revealing]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A host paused the round for everyone, or resumed it.
+  const paused = round?.phase === 'playing' && round.pausedAt !== undefined;
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    window.clearTimeout(stopTimer.current);
+    if (paused) audio?.pause();
+    else sync();
+  }, [paused]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The game ended.
   const inGame = !!round;

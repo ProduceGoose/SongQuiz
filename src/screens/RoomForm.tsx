@@ -7,10 +7,10 @@ import { SegmentedControl } from '../components/controls/SegmentedControl';
 import { Field, Setting } from '../components/content/Form';
 import { Section, Sheet } from '../components/content/Layout';
 import { playlistById, playlists } from '../data/demo';
-import { ADVANCE_LABELS, MAX_PLAYER_OPTIONS, GUESS_LABELS, HOSTING_LABELS, optionsOf, ROUND_OPTIONS, SNIPPET_OPTIONS } from '../game/rooms';
+import { ADVANCE_LABELS, HOST_CONTROL_LABELS, SKIP_COMMAND, VOTE_SKIP_LABELS, MAX_PLAYER_OPTIONS, GUESS_LABELS, HOSTING_LABELS, optionsOf, ROUND_OPTIONS, SNIPPET_OPTIONS } from '../game/rooms';
 import { MIN_ROUND_SECONDS, REVEAL_SECONDS } from '../game/preview';
 import { GUESS_RULES } from '../game/scoring';
-import type { Advance, AppApi, GuessMode, Hosting, RoomOptions } from '../types';
+import type { Advance, AppApi, GuessMode, HostControls, Hosting, RoomOptions, VoteSkip } from '../types';
 
 const HOSTING_WARNING = 'Are you trusting your friends this much?';
 
@@ -26,8 +26,8 @@ interface RoomFormProps {
   options: RoomOptions;
   onChange: (options: RoomOptions) => void;
   nameError?: string | null;
-  /** Show the room name field. Default true. */
-  withName?: boolean;
+  /** A new room: shows the name and host controls, which can't change once the room is open. Default true. */
+  creating?: boolean;
   /** The playlist under the rules instead of beside them. */
   stacked?: boolean;
   /** Title of the rules sheet. Default "Rules". */
@@ -36,7 +36,7 @@ interface RoomFormProps {
   players?: number;
 }
 
-export function RoomForm({ options, onChange, nameError, withName = true, stacked, title = 'Rules', players }: RoomFormProps) {
+export function RoomForm({ options, onChange, nameError, creating = true, stacked, title = 'Rules', players }: RoomFormProps) {
   const playlist = playlistById(options.playlistId);
   const set = <K extends keyof RoomOptions>(key: K) => (value: RoomOptions[K]) => onChange({ ...options, [key]: value });
   const setHosting = (value: string) => {
@@ -46,7 +46,7 @@ export function RoomForm({ options, onChange, nameError, withName = true, stacke
   return (
     <div className={stacked ? 'app-columns is-stacked' : 'app-columns'}>
       <Sheet title={title}>
-        {withName ? <Field id="room-name" label="Room name" icon="broadcast" maxLength={32} value={options.name} error={nameError} onChange={set('name')} /> : null}
+        {creating ? <Field id="room-name" label="Room name" icon="broadcast" maxLength={32} value={options.name} error={nameError} onChange={set('name')} /> : null}
         <Setting label="Rounds">
           <SegmentedControl label="Rounds" options={ROUND_OPTIONS} value={options.rounds} onChange={set('rounds')} />
         </Setting>
@@ -80,6 +80,25 @@ export function RoomForm({ options, onChange, nameError, withName = true, stacke
             options={Object.entries(HOSTING_LABELS).map(([value, label]) => ({ value, label }))}
           />
         </Setting>
+        {creating ? (
+          <Setting
+            label="Host controls"
+            hint="Hosts can pause a round for everyone or skip a song, with the buttons at the top left. This can’t be changed once the room is open."
+          >
+            <SegmentedControl
+              label="Host controls" value={options.hostControls} onChange={(v) => set('hostControls')(v as HostControls)}
+              options={Object.entries(HOST_CONTROL_LABELS).map(([value, label]) => ({ value, label }))}
+            />
+          </Setting>
+        ) : null}
+        {options.hostControls !== 'on' ? (
+          <Setting label="Vote to skip" hint={`Players type ${SKIP_COMMAND} in the chat. The song is skipped once half of them have.`}>
+            <SegmentedControl
+              label="Vote to skip" value={options.voteSkip} onChange={(v) => set('voteSkip')(v as VoteSkip)}
+              options={Object.entries(VOTE_SKIP_LABELS).map(([value, label]) => ({ value, label }))}
+            />
+          </Setting>
+        ) : null}
       </Sheet>
 
       <Section title="Playlist" hint={`${playlist.title} · ${playlist.subtitle} · ${playlist.level}`}>
@@ -112,7 +131,7 @@ export function RoomSettings({ app }: { app: AppApi }) {
   return (
     <RoomForm
       title="Room settings" options={optionsOf(room)} onChange={change}
-      withName={false} stacked players={room.players.length}
+      creating={false} stacked players={room.players.length}
     />
   );
 }
