@@ -4,7 +4,7 @@
     "title": "80s Synth Hits",
     "era": "1980s",
     "level": "Easy",
-    "songs": 48,
+    "songs": 51,
     "description": "Big drums, bigger choruses. A safe opener for any group.",
     "tracks": [
       {"title":"Take On Me","artist":"a-ha","year":1985,"apple":{"id":380907765,"url":"https://music.apple.com/us/album/take-on-me/380907762?i=380907765","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music/c6/e1/c8/mzi.ixgzfcmc.jpg/{size}x{size}bb.jpg"}},
@@ -110,7 +110,6 @@
       {"title":"Since U Been Gone","artist":"Kelly Clarkson","year":2004,"apple":{"id":275765380,"url":"https://music.apple.com/us/album/since-u-been-gone/275765354?i=275765380","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/e3/7e/c5/e37ec5d7-725b-695c-333c-ee0deb5adcc6/dj.mveioodu.jpg/{size}x{size}bb.jpg"}},
       {"title":"Hips Don’t Lie","artist":"Shakira","year":2006,"apple":{"id":1817217411,"url":"https://music.apple.com/us/album/hips-dont-lie-featuring-wyclef-jean-en-espa%C3%B1ol/1817217057?i=1817217411","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0d/b5/8a/0db58a8b-7b17-dd53-3464-116a415d0f49/196872648836.jpg/{size}x{size}bb.jpg"}},
       {"title":"Umbrella","artist":"Rihanna","year":2007,"apple":{"id":1441154437,"url":"https://music.apple.com/us/album/umbrella-feat-ja%C3%BF-z/1441154435?i=1441154437","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/2b/c0/81/2bc081c8-25f0-ba43-d451-587a54613778/16UMGIM59202.rgb.jpg/{size}x{size}bb.jpg"}},
-      {"title":"Poker Face","artist":"Lady Gaga","year":2008},
       {"title":"Mr. Brightside","artist":"The Killers","year":2004,"apple":{"id":1440891171,"url":"https://music.apple.com/us/album/mr-brightside/1440891166?i=1440891171","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/11/64/9c/11649c80-2066-dba8-77a9-df7eecae26c1/17UM1IM06937.rgb.jpg/{size}x{size}bb.jpg"}}
     ]
   },
@@ -184,6 +183,20 @@
       {"title":"Pumped Up Kicks","artist":"Foster the People","year":2010,"apple":{"id":435761212,"url":"https://music.apple.com/us/album/pumped-up-kicks/435761204?i=435761212","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/ba/07/5b/ba075b3c-f0c4-b519-59f3-7ae74d43246b/dj.lajxsvkg.jpg/{size}x{size}bb.jpg"}},
       {"title":"Ho Hey","artist":"The Lumineers","year":2012,"apple":{"id":1754031516,"url":"https://music.apple.com/us/album/ho-hey/1754031514?i=1754031516","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/83/20/a9/8320a945-11ac-e7cd-29e7-d80782698f55/18515.jpg/{size}x{size}bb.jpg"}},
       {"title":"Do I Wanna Know?","artist":"Arctic Monkeys","year":2013,"apple":{"id":663097965,"url":"https://music.apple.com/us/album/do-i-wanna-know/663097964?i=663097965","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/69/9c/b5/699cb5d6-115c-ff73-9d26-e57ea4350d72/887828031795.png/{size}x{size}bb.jpg"}}
+    ]
+  },
+  {
+    "id": "demo",
+    "title": "Demo",
+    "era": "1976–1978",
+    "level": "Hard",
+    "songs": 4,
+    "description": "A Demo Playlist for testing purposes.",
+    "tracks": [
+      {"title":"I REMEMBER YOU","artist":"Masayoshi Takanaka","year":1977,"apple":{"id":1442808918,"url":"https://music.apple.com/us/album/i-remember-you/1442808423?i=1442808918","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/04/28/23/042823c6-6029-eca7-4307-8e43397d60e2/00602498909362.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"OH! TENGO SUERTE","artist":"Masayoshi Takanaka","year":1976,"apple":{"id":1443091712,"url":"https://music.apple.com/us/album/oh-tengo-suerte/1443091653?i=1443091712","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/ef/38/80/ef388041-7f6a-1be3-95f3-00489d8a795b/00602498909355.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"TROPIC BIRDS","artist":"Masayoshi Takanaka","year":1978,"apple":{"id":1443092202,"url":"https://music.apple.com/us/album/tropic-birds/1443091653?i=1443092202","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/ef/38/80/ef388041-7f6a-1be3-95f3-00489d8a795b/00602498909355.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"BLUE LAGOON","artist":"Masayoshi Takanaka","year":1978,"apple":{"id":1443105414,"url":"https://music.apple.com/us/album/blue-lagoon/1443105409?i=1443105414","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/a9/43/c0/a943c0c7-01e4-0a9e-007c-eb108962e243/00602498909416.rgb.jpg/{size}x{size}bb.jpg"}}
     ]
   }
 ]

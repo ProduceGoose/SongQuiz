@@ -96,8 +96,8 @@ function Lobby({ app }: ScreenProps) {
 
       {round ? (
         <Notice>
-          Round {round.number} of {round.total} is on. Type your guesses in the chat: wrong ones show up for everyone,
-          a right one stays hidden.
+          Round {round.number} of {round.total} is on. Name the title and the artist in the chat: the first three
+          to get each one score 3, 2 and 1 points. Wrong guesses show up for everyone, right ones stay hidden.
         </Notice>
       ) : isHost ? null : (
         <Notice>

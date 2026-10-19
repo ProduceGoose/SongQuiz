@@ -1,15 +1,16 @@
 // The demo room's chat and rounds, played offline: the other players are
-// simulated, posting a few guesses each round, and some of them get it right. Online rooms run
-// the same rules on the server (worker/RoomObject.ts).
+// simulated, posting a few guesses each round, and some of them get the title or the artist
+// right. Online rooms run the same rules on the server (worker/RoomObject.ts).
 //
 // Chat rule: while a round is playing, every message is a guess. Wrong guesses show up in the
-// chat; a correct one never does. The chat says "Priya guessed it" instead.
+// chat; a correct one never does. The chat says "Priya named the artist · +3" instead.
 import { useEffect, useReducer, useRef } from 'react';
 import type { ChatEntry } from '../components/chat/ChatMessage';
 import { DEMO_CODE, demoChat, guessPhrases, playlistById, stumpedPhrases } from '../data/demo';
-import { ME, type Room, type Round, type Track } from '../types';
-import { isCorrectGuess } from './guess';
+import { ME, type Room, type Round, type Session, type Track } from '../types';
+import { checkGuess, type Named } from './guess';
 import { gameOrder, lookupPreview, REVEAL_SECONDS, snippetOffset } from './preview';
+import { addGame, allSolved, award, emptySession, gameResult, type Scores } from './scoring';
 
 const REVEAL_MS = REVEAL_SECONDS * 1000;
 /** A simulated host starts this long after you are ready. */
@@ -24,6 +25,10 @@ interface Scheduled {
 interface GameState {
   chat: ChatEntry[];
   round: Round | null;
+  /** Points in the current or last game; null before the first. */
+  scores: Scores | null;
+  /** Wins and points since you joined the room. */
+  session: Session;
   /** The playlist's songs in this game's order. */
   order: Track[];
   /** Simulated players' messages, waiting for their time. */
@@ -35,8 +40,11 @@ interface GameState {
 export interface Game {
   chat: ChatEntry[];
   round: Round | null;
+  scores: Scores | null;
+  session: Session;
   sendChat(text: string): void;
   startGame(): void;
+  resetSession(): void;
 }
 
 let nextId = 0;
@@ -50,7 +58,7 @@ const between = (min: number, max: number) => min + Math.random() * Math.max(0, 
 export function useGame(room: Room | null, myName: string, onStart: () => void): Game {
   const [, rerender] = useReducer((n: number) => n + 1, 0);
   // Mutable game state; the timers below read and change it, then re-render.
-  const g = useRef<GameState>({ chat: [], round: null, order: [], queue: [], previews: new Map() }).current;
+  const g = useRef<GameState>({ chat: [], round: null, scores: null, session: emptySession(), order: [], queue: [], previews: new Map() }).current;
   const latest = useRef({ room, myName, onStart });
   latest.current = { room, myName, onStart };
 
@@ -80,6 +88,7 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     if (!room || g.round) return;
     g.order = gameOrder(playlistById(room.playlistId).tracks);
     g.previews.clear();
+    g.scores = Object.fromEntries(room.players.map((p) => [p.id, 0]));
     event(room.hostId === ME ? 'You started the game' : `${nameOf(room.hostId)} started the game`);
     beginRound(1);
   }
@@ -90,7 +99,7 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     const playlist = playlistById(room.playlistId);
     const track = g.order[(n - 1) % g.order.length]!;
     const startedAt = Date.now();
-    g.round = { number: n, total: room.rounds, track, art: playlist.art, startedAt, length: room.snippet, solved: [], phase: 'playing' };
+    g.round = { number: n, total: room.rounds, track, art: playlist.art, startedAt, length: room.snippet, solvedTitle: [], solvedArtist: [], phase: 'playing' };
     const offset = snippetOffset(room.snippet);
     void preview(n).then((src) => {
       if (src && g.round?.number === n) {
@@ -99,39 +108,50 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
       }
     });
     event(`Round ${n} of ${room.rounds} — name that tune`);
-    const decoys = playlist.tracks.filter((t) => !isCorrectGuess(t.title, track));
+    const wrong = (text: string) => { const c = checkGuess(text, track); return !c.title && !c.artist; };
+    const decoys = playlist.tracks.filter((t) => wrong(t.title) && wrong(t.artist));
     g.queue = room.players.filter((p) => p.id !== ME).flatMap((p) => simulatedGuesses(p.id, n, decoys));
   }
 
-  /** One to three messages from a simulated player; with a 60% chance the last one is right. */
+  /**
+   * A simulated player's messages: up to two wrong guesses, then the artist (70% chance) and the
+   * title (60% chance), sometimes both in one message.
+   */
   function simulatedGuesses(id: string, n: number, decoys: Track[]): Scheduled[] {
     const r = g.round!;
-    const knows = Math.random() < 0.6;
-    const tries = 1 + Math.floor(Math.random() * 3);
-    const times = Array.from({ length: tries }, () => r.startedAt + between(2, r.length - 1.5) * 1000).sort((a, b) => a - b);
+    const title = Math.random() < 0.6, artist = Math.random() < 0.7;
+    const right: Named[] = title && artist && Math.random() < 0.4
+      ? [{ title: true, artist: true }]
+      : [...(artist ? [{ title: false, artist: true }] : []), ...(title ? [{ title: true, artist: false }] : [])];
+    const misses = Math.floor(Math.random() * 3) + (right.length ? 0 : 1);
+    const times = Array.from({ length: misses + right.length }, () => r.startedAt + between(2, r.length - 1.5) * 1000).sort((a, b) => a - b);
     return times.map((at, i) => ({
       at,
       run: () => {
         const now = g.round;
-        if (!now || now.number !== n || now.phase !== 'playing' || now.solved.includes(id)) return;
-        if (knows && i === tries - 1) {
-          solve(id);
-        } else if (Math.random() < 0.2) {
+        if (!now || now.number !== n || now.phase !== 'playing') return;
+        if (i >= misses) {
+          score(id, right[i - misses]!);
+        } else if (Math.random() < 0.2 || !decoys.length) {
           post({ kind: 'message', author: nameOf(id), text: pick(stumpedPhrases) });
         } else {
-          const text = pick(guessPhrases).replace('{title}', pick(decoys).title);
+          const decoy = pick(decoys);
+          const text = pick(guessPhrases).replace('{title}', Math.random() < 0.3 ? decoy.artist : decoy.title);
           post({ kind: 'guess', author: nameOf(id), text: Math.random() < 0.4 ? text.toLowerCase() : text });
         }
       }
     }));
   }
 
-  function solve(id: string) {
-    const r = g.round!;
-    g.round = { ...r, solved: [...r.solved, id] };
-    event(id === ME ? 'You guessed it!' : `${nameOf(id)} guessed it`, 'correct');
-    const players = latest.current.room?.players.length ?? 0;
-    if (g.round.solved.length >= players) reveal();
+  /** Credits what the player named for the first time; false if it was nothing new. */
+  function score(id: string, named: Named): boolean {
+    const got = award(g.round!, id, named);
+    if (!got) return false;
+    g.round = got.round;
+    g.scores = { ...g.scores, [id]: (g.scores?.[id] ?? 0) + got.points };
+    event(got.text.replace('{who}', id === ME ? 'You' : nameOf(id)), 'correct');
+    if (allSolved(g.round, latest.current.room?.players.map((p) => p.id) ?? [])) reveal();
+    return true;
   }
 
   function reveal() {
@@ -148,7 +168,7 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
         }
       });
     }
-    if (!r.solved.length) event('Nobody got this one');
+    if (!r.solvedTitle.length && !r.solvedArtist.length) event('Nobody got this one');
   }
 
   function next() {
@@ -157,8 +177,17 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
       beginRound(r.number + 1);
     } else {
       g.round = null;
-      event(`Game over after ${r.total} rounds. Thanks for playing!`);
+      g.session = addGame(g.session, g.scores ?? {}, latest.current.room?.players.map((p) => p.id) ?? []);
+      const players = (latest.current.room?.players ?? []).map((p) => ({ id: p.id, name: p.id === ME ? 'You' : p.name }));
+      event(`Game over after ${r.total} rounds. ${gameResult(g.scores ?? {}, players).text}`, 'reveal');
     }
+  }
+
+  function resetSession() {
+    const { room } = latest.current;
+    if (room?.hostId !== ME) return;
+    g.session = emptySession();
+    event('You reset the session scores');
   }
 
   // ---- Chat ----
@@ -167,12 +196,12 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     const { room, myName } = latest.current;
     if (!room) return;
     const r = g.round;
-    if (r?.phase === 'playing' && isCorrectGuess(text, r.track)) {
-      if (r.solved.includes(ME)) event('Hidden, so you don’t give the answer away');
-      else solve(ME);
+    const named = r?.phase === 'playing' ? checkGuess(text, r.track) : null;
+    if (named && (named.title || named.artist)) {
+      if (!score(ME, named)) event('Hidden, so you don’t give the answer away');
       return;
     }
-    const guessing = r?.phase === 'playing' && !r.solved.includes(ME);
+    const guessing = r?.phase === 'playing' && !allSolved(r, [ME]);
     post({ kind: guessing ? 'guess' : 'message', author: myName, text, mine: true });
   }
 
@@ -181,6 +210,8 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
   // A new room starts a new chat.
   useEffect(() => {
     g.round = null;
+    g.scores = null;
+    g.session = emptySession();
     g.queue = [];
     g.chat = [];
     if (room) {
@@ -228,5 +259,5 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     return () => window.clearTimeout(timer);
   }, [hostIsSimulated, ready, room?.code]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { chat: g.chat, round: g.round, sendChat, startGame };
+  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, sendChat, startGame, resetSession };
 }

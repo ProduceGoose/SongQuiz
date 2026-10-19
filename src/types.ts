@@ -71,16 +71,15 @@ export interface RoomOptions {
   maxPlayers: string;
 }
 
-export interface PastGame {
-  id: string;
-  date: string;
-  room: string;
-  playlistId: string;
-  /** The entry with id "you" has no name; the current display name fills it in. */
-  players: Array<{ id: string; name?: string; score: number; streak?: number }>;
-}
-
 // ---- Game --------------------------------------------------------------------
+
+/** Totals for a room since it was opened (or since the host last reset them). */
+export interface Session {
+  /** Games played to the end. */
+  games: number;
+  /** Per player id; a game won by a tie counts as a win for each winner. */
+  players: Record<string, { wins: number; points: number }>;
+}
 
 export interface Round {
   /** 1-based. */
@@ -94,8 +93,10 @@ export interface Round {
   startedAt: number;
   /** Snippet length in seconds. */
   length: number;
-  /** Ids of the players who guessed it, fastest first. */
-  solved: string[];
+  /** Ids of the players who named the title, fastest first. */
+  solvedTitle: string[];
+  /** Ids of the players who named the artist, fastest first. */
+  solvedArtist: string[];
   /** playing: guesses count. reveal: the answer is shown until `nextAt`. */
   phase: 'playing' | 'reveal';
   nextAt?: number;
@@ -173,7 +174,13 @@ export interface AppApi {
   chat: ChatEntry[];
   /** The round being played or revealed; null between games. */
   round: Round | null;
-  /** Posts to the room chat. During a round it is also a guess; a correct one stays hidden. */
+  /** Points by player id in the room's current or last game; null before the first game. */
+  scores: Record<string, number> | null;
+  /** The room's wins and points since it was opened; null when you're not in a room. */
+  session: Session | null;
+  /** Host only: sets the session's wins and points back to 0. */
+  resetSession(): void;
+  /** Posts to the room chat. During a round it is also a guess; a correct title or artist stays hidden. */
   sendChat(text: string): void;
   startGame(): void;
   /** The round's song in this browser. */

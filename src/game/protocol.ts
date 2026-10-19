@@ -1,7 +1,8 @@
 // What the browser and a room's Durable Object (worker/RoomObject.ts) send each other over the
 // room's WebSocket, as JSON. Player ids here are the server's; the browser swaps its own id for
 // ME when it receives them, so the screens work the same online and in the demo room.
-import type { Room, RoomOptions, Round, Track } from '../types';
+import type { Room, RoomOptions, Round, Session, Track } from '../types';
+import type { Scores } from './scoring';
 
 /** A room as the server sends it. `connected` is false while a player's browser is away. */
 export type WireRoom = Omit<Room, 'players'> & {
@@ -33,13 +34,17 @@ export type ClientMessage =
   | { type: 'ready'; ready: boolean }
   | { type: 'start' }
   | { type: 'rename'; name: string }
+  /** Host only: the session's wins and points back to 0. */
+  | { type: 'resetSession' }
   | { type: 'leave' };
 
 export type ServerMessage =
   /** Sent after hello. `now` is the server's clock, to line up round timers. */
-  | { type: 'welcome'; you: string; room: WireRoom; round: WireRound | null; chat: WireChat[]; now: number }
+  | { type: 'welcome'; you: string; room: WireRoom; round: WireRound | null; scores: Scores | null; session: Session; chat: WireChat[]; now: number }
   | { type: 'room'; room: WireRoom }
-  | { type: 'round'; round: WireRound | null }
+  /** The round and the game's points, which change together. */
+  | { type: 'round'; round: WireRound | null; scores: Scores | null }
+  | { type: 'session'; session: Session }
   | { type: 'chat'; entry: WireChat }
   | { type: 'error'; code: 'not_found' | 'taken' | 'full' | 'bad_request'; message: string };
 

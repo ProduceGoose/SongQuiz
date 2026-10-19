@@ -14,6 +14,7 @@ import { useGame } from './game/useGame';
 import { useOnlineRoom, type OnlineTarget } from './game/useOnlineRoom';
 import { useSnippet } from './game/useSnippet';
 import { applyTheme, clearSettings, loadSettings, saveSettings } from './lib/settings';
+import { gameResult } from './game/scoring';
 import { isScreenName, screens } from './screens';
 import { ME, type AppApi, type LcdText, type Room, type Route, type ScreenName, type Settings } from './types';
 
@@ -94,7 +95,8 @@ export function App() {
   const app: AppApi = {
     route, room, settings, query, playlistView, setPlaylistView,
     online: online ? { code: online.code, status: net.status } : null,
-    chat: game.chat, round: game.round, sendChat: game.sendChat, startGame: game.startGame, snippet,
+    chat: game.chat, round: game.round, scores: game.scores, sendChat: game.sendChat, startGame: game.startGame, snippet,
+    session: room ? game.session : null, resetSession: game.resetSession,
 
     go(name: ScreenName, id?: string) {
       setRoute({ name, id });
@@ -178,6 +180,21 @@ export function App() {
       app.flash('Prototype reset', 'Back to the demo room and default settings');
     }
   };
+
+  // The scores come to the middle of the window when a game starts, and again for the result.
+  const roundNumber = game.round?.number;
+  const lastRound = useRef<number>();
+  useEffect(() => {
+    const was = lastRound.current;
+    lastRound.current = roundNumber;
+    if (roundNumber === 1) {
+      app.go('scores');
+    } else if (roundNumber === undefined && was !== undefined && room && game.scores) {
+      app.go('scores');
+      const players = room.players.map((p) => ({ id: p.id, name: p.id === ME ? 'You' : p.name }));
+      app.flash('Game over', gameResult(game.scores, players).text);
+    }
+  }, [roundNumber]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const Screen = screen.Component;
   return (

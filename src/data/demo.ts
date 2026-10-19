@@ -1,6 +1,6 @@
 // Demo content for the SongQuiz prototype. Every room, player and score here is example data.
 import { CODE_CHARS } from '../game/protocol';
-import { ME, type PastGame, type Playlist, type Room, type Settings, type Track } from '../types';
+import { ME, type Playlist, type Room, type Settings, type Track } from '../types';
 import playlistData from './playlists.json';
 
 // ---- Cover art -----------------------------------------------------------------
@@ -79,42 +79,5 @@ export const guessPhrases = ['{title}', '{title}?', 'is it {title}?', '{title}!!
 
 /** Chat the demo players send while they have no idea. */
 export const stumpedPhrases = ['no idea', 'I know this one…', 'so familiar', 'replay it!', 'argh, the intro'];
-
-// ---- Past games ----------------------------------------------------------------
-export const pastGames: PastGame[] = [
-  {
-    id: 'g-oct10', date: 'Oct 10', room: 'Friday Night Room', playlistId: 'synth-80s',
-    players: [
-      { id: 'malik', name: 'Malik', score: 5360, streak: 4 },
-      { id: ME, score: 4820, streak: 3 },
-      { id: 'priya', name: 'Priya', score: 4210, streak: 2 },
-      { id: 'jonas', name: 'Jonas', score: 3980, streak: 1 },
-      { id: 'sam', name: 'Sam', score: 3110, streak: 1 },
-      { id: 'noor', name: 'Noor', score: 2875 }
-    ]
-  },
-  {
-    id: 'g-oct03', date: 'Oct 3', room: 'Office Party', playlistId: 'y2k-pop',
-    players: [
-      { id: 'priya', name: 'Priya', score: 6120, streak: 5 },
-      { id: 'theo', name: 'Theo', score: 5480, streak: 3 },
-      { id: ME, score: 5010, streak: 2 },
-      { id: 'ava', name: 'Ava', score: 4400, streak: 2 },
-      { id: 'jonas', name: 'Jonas', score: 3920, streak: 1 },
-      { id: 'sam', name: 'Sam', score: 3305 },
-      { id: 'noor', name: 'Noor', score: 2980 },
-      { id: 'malik', name: 'Malik', score: 2410 }
-    ]
-  },
-  {
-    id: 'g-sep26', date: 'Sep 26', room: 'Road Trip', playlistId: 'stadium-rock',
-    players: [
-      { id: ME, score: 4650, streak: 4 },
-      { id: 'sam', name: 'Sam', score: 4100, streak: 2 },
-      { id: 'jonas', name: 'Jonas', score: 3770, streak: 2 },
-      { id: 'ava', name: 'Ava', score: 2890, streak: 1 }
-    ]
-  }
-];
 
 export const defaultSettings: Settings = { name: 'Lena', theme: 'system', volume: 70, covers: 'on' };

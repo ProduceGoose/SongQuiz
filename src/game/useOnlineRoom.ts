@@ -3,8 +3,9 @@
 // room uses, with your own player id swapped for ME, so the screens don't care which it is.
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import type { ChatEntry } from '../components/chat/ChatMessage';
-import { ME, type Room, type RoomOptions, type Round } from '../types';
+import { ME, type Room, type RoomOptions, type Round, type Session } from '../types';
 import type { ClientMessage, ServerMessage, WireChat, WireRoom, WireRound } from './protocol';
+import type { Scores } from './scoring';
 
 export interface OnlineTarget {
   code: string;
@@ -19,8 +20,11 @@ export interface OnlineRoom {
   room: Room | null;
   chat: ChatEntry[];
   round: Round | null;
+  scores: Scores | null;
+  session: Session | null;
   sendChat(text: string): void;
   startGame(): void;
+  resetSession(): void;
   setReady(ready: boolean): void;
   rename(name: string): void;
   /** Tells the server you left; the caller then drops the target. */
@@ -60,6 +64,8 @@ interface Snapshot {
   you: string;
   room: WireRoom;
   round: WireRound | null;
+  scores: Scores | null;
+  session: Session;
   chat: WireChat[];
   /** Server clock minus this browser's clock, in ms. */
   offset: number;
@@ -103,7 +109,7 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
           case 'welcome':
             retries = 0;
             setStatus('open');
-            setSnap({ you: msg.you, room: msg.room, round: msg.round, chat: msg.chat, offset: msg.now - Date.now() });
+            setSnap({ you: msg.you, room: msg.room, round: msg.round, scores: msg.scores, session: msg.session, chat: msg.chat, offset: msg.now - Date.now() });
             if (!joined) {
               joined = true;
               latest.current.callbacks.onJoined(localRoom(msg.room, msg.you));
@@ -113,7 +119,10 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
             setSnap((s) => s && { ...s, room: msg.room });
             break;
           case 'round':
-            setSnap((s) => s && { ...s, round: msg.round });
+            setSnap((s) => s && { ...s, round: msg.round, scores: msg.scores });
+            break;
+          case 'session':
+            setSnap((s) => s && { ...s, session: msg.session });
             break;
           case 'chat':
             setSnap((s) => s && { ...s, chat: [...s.chat, msg.entry].slice(-200) });
@@ -162,12 +171,15 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
 
   const room = useMemo(() => (snap ? localRoom(snap.room, snap.you) : null), [snap?.room, snap?.you]); // eslint-disable-line react-hooks/exhaustive-deps
   const round = useMemo(() => (snap?.round ? localRound(snap.round, snap.you, snap.offset) : null), [snap?.round]); // eslint-disable-line react-hooks/exhaustive-deps
+  const scores = useMemo(() => (snap?.scores ? localIds(snap.scores, snap.you) : null), [snap?.scores]); // eslint-disable-line react-hooks/exhaustive-deps
+  const session = useMemo(() => (snap ? { ...snap.session, players: localIds(snap.session.players, snap.you) } : null), [snap?.session]); // eslint-disable-line react-hooks/exhaustive-deps
   const chat = useMemo(() => (snap ? snap.chat.map((w) => localChat(w, snap.you, snap.room)) : []), [snap?.chat, snap?.room]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
-    status, room, chat, round,
+    status, room, chat, round, scores, session,
     sendChat: (text) => send({ type: 'chat', text }),
     startGame: () => send({ type: 'start' }),
+    resetSession: () => send({ type: 'resetSession' }),
     setReady: (ready) => send({ type: 'ready', ready }),
     rename: (name) => send({ type: 'rename', name }),
     leave: () => send({ type: 'leave' })
@@ -182,15 +194,22 @@ function localRoom(room: WireRoom, you: string): Room {
 }
 
 function localRound(round: WireRound, you: string, offset: number): Round {
+  const id = (p: string) => (p === you ? ME : p);
   return {
     ...round,
     track: round.track ?? UNKNOWN_TRACK,
     art: round.art ?? '',
-    solved: round.solved.map((p) => (p === you ? ME : p)),
+    solvedTitle: round.solvedTitle.map(id),
+    solvedArtist: round.solvedArtist.map(id),
     // Server times to this browser's clock.
     startedAt: round.startedAt - offset,
     nextAt: round.nextAt === undefined ? undefined : round.nextAt - offset
   };
+}
+
+/** A record by player id, with your id as ME. */
+function localIds<T>(byId: Record<string, T>, you: string): Record<string, T> {
+  return Object.fromEntries(Object.entries(byId).map(([p, v]) => [p === you ? ME : p, v]));
 }
 
 function localChat(w: WireChat, you: string, room: WireRoom): ChatEntry {

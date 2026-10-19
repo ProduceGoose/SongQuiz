@@ -13,18 +13,19 @@ export interface AppLcdProps {
 }
 
 function roundLcd(app: AppApi, round: Round): LcdDisplayProps {
-  const players = app.room?.players.length ?? 0;
   if (round.phase === 'playing') {
     const elapsed = Math.min(round.length, (Date.now() - round.startedAt) / 1000);
     return {
       title: `Round ${round.number} of ${round.total} — Name that tune`,
-      subtitle: app.snippet.blocked ? 'Click anywhere to hear the song' : `${round.solved.length} of ${players} players guessed it`,
+      subtitle: app.snippet.blocked
+        ? 'Click anywhere to hear the song'
+        : `${round.solvedTitle.length} named the title · ${round.solvedArtist.length} named the artist`,
       progress: elapsed / round.length,
       elapsed: Math.floor(elapsed),
       remaining: Math.ceil(round.length - elapsed)
     };
   }
-  const fastest = round.solved[0];
+  const fastest = round.solvedTitle[0] ?? round.solvedArtist[0];
   const who = fastest === undefined ? 'Nobody got it'
     : fastest === ME ? 'You were fastest'
     : `${app.room?.players.find((p) => p.id === fastest)?.name ?? 'Someone'} was fastest`;

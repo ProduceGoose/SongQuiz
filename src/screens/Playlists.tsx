@@ -4,26 +4,40 @@ import { AlbumTile } from '../components/albums/AlbumTile';
 import { Badge } from '../components/controls/Badge';
 import { Button } from '../components/controls/Button';
 import { Icon } from '../components/controls/Icon';
-import { ScreenHeader, Section } from '../components/content/Layout';
+import { Notice, ScreenHeader, Section } from '../components/content/Layout';
 import { Table, rowLink } from '../components/tables/Table';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { artworkUrl, playlistById, playlists } from '../data/demo';
 import { lookupPreviews } from '../game/preview';
-import type { Playlist, ScreenDef, ScreenProps, Track } from '../types';
+import type { AppApi, Playlist, ScreenDef, ScreenProps, Track } from '../types';
 import './Playlists.css';
 
-function matches(playlist: Playlist, query: string): boolean {
-  const haystack = [playlist.title, playlist.era, playlist.level, ...playlist.tracks.map((t) => `${t.title} ${t.artist}`)];
+/** How many of a playlist's songs its page shows, so it does not give away the whole quiz. */
+const SAMPLE_COUNT = 5;
+
+function samplesOf(playlist: Playlist): Track[] {
+  return playlist.tracks.slice(0, SAMPLE_COUNT);
+}
+
+/** During a round the songs stay hidden, so the playlist pages can't be used to look up the answer. */
+function songsHidden(app: AppApi): boolean {
+  return !!app.round;
+}
+
+function matches(playlist: Playlist, query: string, withSongs: boolean): boolean {
+  const songs = withSongs ? samplesOf(playlist).map((t) => `${t.title} ${t.artist}`) : [];
+  const haystack = [playlist.title, playlist.era, playlist.level, ...songs];
   return haystack.join(' ').toLowerCase().includes(query);
 }
 
-function filtered(query: string): Playlist[] {
-  const q = query.trim().toLowerCase();
-  return q ? playlists.filter((p) => matches(p, q)) : playlists;
+function filtered(app: AppApi): Playlist[] {
+  const q = app.query.trim().toLowerCase();
+  const withSongs = !songsHidden(app);
+  return q ? playlists.filter((p) => matches(p, q, withSongs)) : playlists;
 }
 
 function Playlists({ app }: ScreenProps) {
-  const list = filtered(app.query);
+  const list = filtered(app);
   const open = (p: Playlist) => () => app.go('playlist', p.id);
   const hint = app.query
     ? `${list.length} ${list.length === 1 ? 'playlist matches' : 'playlists match'} “${app.query}”`
@@ -33,7 +47,7 @@ function Playlists({ app }: ScreenProps) {
   if (!list.length) {
     body = (
       <div className="app-empty">
-        <p>No playlist has a title, song or artist matching “{app.query}”.</p>
+        <p>No playlist has a {songsHidden(app) ? 'title' : 'title, song or artist'} matching “{app.query}”.</p>
         <Button onClick={() => app.setQuery('')}>Clear search</Button>
       </div>
     );
@@ -114,9 +128,9 @@ function useSongPreviews(tracks: Track[], volume: number) {
 
 function PlaylistDetail({ app, id }: ScreenProps) {
   const p = playlistById(id);
-  const previews = useSongPreviews(p.tracks, app.settings.volume);
-  // No previews during a round: it would mix with the round's song.
-  const canPreview = !app.round;
+  const samples = useMemo(() => samplesOf(p), [p]);
+  const previews = useSongPreviews(samples, app.settings.volume);
+  const hidden = songsHidden(app);
   return (
     <div className="app-screen">
       <button type="button" className="app-back" onClick={() => app.go('playlists')}>
@@ -139,40 +153,46 @@ function PlaylistDetail({ app, id }: ScreenProps) {
         </div>
       </div>
 
-      <Section title="Sample songs" hint={`${p.tracks.length} of ${p.songs} songs. Players see titles only after each round.`}>
-        <Table
-          caption={'Sample songs in ' + p.title}
-          columns={[{ label: '#', className: 'sq-col-rank' }, { label: 'Title' }, { label: 'Artist' }, { label: 'Year', className: 'sq-col-num' }]}
-        >
-          {p.tracks.map((t, i) => {
-            const on = previews.playing === t.apple?.id;
-            const cover = artworkUrl(t, 64);
-            return (
-              <tr key={t.title}>
-                <td className="sq-col-rank">
-                  {canPreview && previews.has(t) ? (
-                    <button
-                      type="button" className={on ? 'app-preview-btn is-on' : 'app-preview-btn'} aria-pressed={on}
-                      aria-label={(on ? 'Stop preview of ' : 'Play preview of ') + t.title} title={on ? 'Stop' : 'Play preview'}
-                      onClick={() => previews.toggle(t)}
-                    >
-                      <Icon name={on ? 'pause' : 'play'} size={8} />
-                    </button>
-                  ) : i + 1}
-                </td>
-                <td>
-                  <span className="app-cell-art">
-                    {cover ? <img src={cover} alt="" loading="lazy" /> : null}
-                    {t.apple ? <a className="app-song-link" href={t.apple.url} target="_blank" rel="noopener noreferrer">{t.title}</a> : t.title}
-                  </span>
-                </td>
-                <td>{t.artist}</td>
-                <td className="sq-col-num">{t.year}</td>
-              </tr>
-            );
-          })}
-        </Table>
-        <p className="app-hint">Previews and covers from <a className="app-apple-link" href="https://music.apple.com" target="_blank" rel="noopener noreferrer">Apple Music</a>.</p>
+      <Section title="Sample songs" hint={hidden ? undefined : `${samples.length} of ${p.songs} songs. Players see titles only after each round.`}>
+        {hidden ? (
+          <Notice>The songs are hidden while a round is on. They come back when the game ends.</Notice>
+        ) : (
+          <>
+            <Table
+              caption={'Sample songs in ' + p.title}
+              columns={[{ label: '#', className: 'sq-col-rank' }, { label: 'Title' }, { label: 'Artist' }, { label: 'Year', className: 'sq-col-num' }]}
+            >
+              {samples.map((t, i) => {
+                const on = previews.playing === t.apple?.id;
+                const cover = artworkUrl(t, 64);
+                return (
+                  <tr key={t.title}>
+                    <td className="sq-col-rank">
+                      {previews.has(t) ? (
+                        <button
+                          type="button" className={on ? 'app-preview-btn is-on' : 'app-preview-btn'} aria-pressed={on}
+                          aria-label={(on ? 'Stop preview of ' : 'Play preview of ') + t.title} title={on ? 'Stop' : 'Play preview'}
+                          onClick={() => previews.toggle(t)}
+                        >
+                          <Icon name={on ? 'pause' : 'play'} size={8} />
+                        </button>
+                      ) : i + 1}
+                    </td>
+                    <td>
+                      <span className="app-cell-art">
+                        {cover ? <img src={cover} alt="" loading="lazy" /> : null}
+                        {t.apple ? <a className="app-song-link" href={t.apple.url} target="_blank" rel="noopener noreferrer">{t.title}</a> : t.title}
+                      </span>
+                    </td>
+                    <td>{t.artist}</td>
+                    <td className="sq-col-num">{t.year}</td>
+                  </tr>
+                );
+              })}
+            </Table>
+            <p className="app-hint">Previews and covers from <a className="app-apple-link" href="https://music.apple.com" target="_blank" rel="noopener noreferrer">Apple Music</a>.</p>
+          </>
+        )}
       </Section>
     </div>
   );
@@ -183,10 +203,10 @@ export const playlistsScreen: ScreenDef = {
   Component: Playlists,
   toolbarViews: true,
   lcd: (app) => app.query
-    ? { title: 'Searching playlists', subtitle: `${filtered(app.query).length} results for “${app.query}”` }
+    ? { title: 'Searching playlists', subtitle: `${filtered(app).length} results for “${app.query}”` }
     : { title: 'Playlists', subtitle: `${playlists.length} playlists · ${app.playlistView === 'list' ? 'list view' : 'cover view'}` },
   status: (app) => {
-    const list = filtered(app.query);
+    const list = filtered(app);
     const songs = list.reduce((n, p) => n + p.songs, 0);
     return `${list.length} playlists, ${songs.toLocaleString('en-US')} songs`;
   }
@@ -202,6 +222,6 @@ export const playlistScreen: ScreenDef = {
   },
   status: (app) => {
     const p = playlistById(app.route.id);
-    return `${p.songs} songs, ${p.tracks.length} samples shown`;
+    return songsHidden(app) ? `${p.songs} songs, hidden during the round` : `${p.songs} songs, ${samplesOf(p).length} samples shown`;
   }
 };

@@ -3,12 +3,14 @@
 A multiplayer song quiz to play with friends, styled like a late-2000s desktop jukebox.
 Create a room, share its 4-character code, and everyone who joins plays in the same room:
 they chat, and while a round plays every message is a guess. Wrong guesses show up for
-everyone; a correct one never does. Each round plays a snippet of the song's 30-second Apple
+everyone; a correct one never does. The title and the artist score on their own: the first three
+players to name each one get 3, 2 and 1 points, and the scores come up as each round starts. Each round plays a snippet of the song's 30-second Apple
 Music preview; at the reveal the song's cover and a link to it on Apple Music appear.
 
 The demo room (code KX7Q) works offline with simulated players: press "I'm ready" in its lobby
-and the host starts the game two seconds later. Playlists and past scores are example data
-from `src/data/demo.ts`.
+and the host starts the game two seconds later. Playlists are example data from
+`src/data/demo.ts`. The Scores screen shows the game in your room and the room's session: games
+won and points since the room was opened, which the host can reset.
 
 Built with Vite, React 18 and TypeScript. The server is a Cloudflare Worker with one
 Durable Object per room.
@@ -58,7 +60,8 @@ src/
   screens/                  one file per screen (+ its CSS); index.ts maps route names to screens
   game/                     useOnlineRoom: an online room over its WebSocket;
                             useGame: the demo room's chat, rounds and simulated players;
-                            guess: does a message name the song? (used by the server too);
+                            guess: does a message name the title or the artist? (used by the server too);
+                            scoring: points per round (3, 2, 1 for title and artist);
                             protocol: the messages between browser and server
   game/preview.ts           Apple previews: lookup by id, where a snippet starts, song order
   game/useSnippet.ts        plays the round's song in step with the round

@@ -2,11 +2,13 @@ import { Badge, type BadgeTone } from '../controls/Badge';
 import { cx } from '../utils';
 import './List.css';
 
-export type PlayerStatus = 'guessing' | 'locked' | 'correct' | 'wrong' | 'away';
+export type PlayerStatus = 'guessing' | 'locked' | 'title' | 'artist' | 'correct' | 'wrong' | 'away';
 
 const PLAYER_STATUS: Record<PlayerStatus, [BadgeTone, string]> = {
   guessing: ['neutral', 'Guessing'],
   locked: ['aqua', 'Locked in'],
+  title: ['aqua', 'Title'],
+  artist: ['aqua', 'Artist'],
   correct: ['correct', 'Correct'],
   wrong: ['wrong', 'Wrong'],
   away: ['neutral', 'Away']
@@ -40,6 +42,8 @@ export interface LeaderboardProps {
 export function Leaderboard({ players, highlight, caption, sort = true, locale = 'en-US', className }: LeaderboardProps) {
   const rows = players.slice();
   if (sort) rows.sort((a, b) => (b.score || 0) - (a.score || 0));
+  // The streak column only appears when someone has a streak value.
+  const streaks = rows.some((p) => p.streak !== undefined);
   const nf = new Intl.NumberFormat(locale);
   return (
     <table className={cx('sq-list', className)}>
@@ -49,7 +53,7 @@ export function Leaderboard({ players, highlight, caption, sort = true, locale =
           <th scope="col" className="sq-col-rank">#</th>
           <th scope="col">Player</th>
           <th scope="col" className="sq-col-status">Status</th>
-          <th scope="col" className="sq-col-num">Streak</th>
+          {streaks ? <th scope="col" className="sq-col-num">Streak</th> : null}
           <th scope="col" className="sq-col-num is-sorted" aria-sort={sort ? 'descending' : undefined}>Score</th>
         </tr>
       </thead>
@@ -61,7 +65,7 @@ export function Leaderboard({ players, highlight, caption, sort = true, locale =
               <td className="sq-col-rank">{i === 0 && p.score > 0 ? <Badge tone="gold">1</Badge> : i + 1}</td>
               <td className="sq-col-name">{p.name}{p.note ? <span className="sq-list-note">{' ' + p.note}</span> : null}</td>
               <td className="sq-col-status">{status ? <Badge tone={status[0]}>{status[1]}</Badge> : null}</td>
-              <td className="sq-col-num">{p.streak ? p.streak + '×' : '–'}</td>
+              {streaks ? <td className="sq-col-num">{p.streak ? p.streak + '×' : '–'}</td> : null}
               <td className="sq-col-num">
                 {p.delta ? <span className="sq-delta">{'+' + nf.format(p.delta)}</span> : null}
                 {nf.format(p.score || 0)}
