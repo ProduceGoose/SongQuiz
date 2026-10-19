@@ -46,6 +46,7 @@ export interface Game {
   sendChat(text: string): void;
   startGame(): void;
   nextRound(): void;
+  endGame(): void;
   pauseRound(paused: boolean): void;
   skipRound(): void;
   resetSession(): void;
@@ -198,6 +199,15 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     if (room && canHost(room, ME) && waitsForHost(g.round)) next();
   }
 
+  function endGame() {
+    const { room } = latest.current;
+    if (!room || !canHost(room, ME) || !g.round) return;
+    g.round = null;
+    g.scores = null;
+    g.queue = [];
+    event('You ended the game. Its points are gone.');
+  }
+
   function pauseRound(paused: boolean) {
     const { room } = latest.current;
     const r = g.round;
@@ -313,5 +323,5 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     return () => window.clearTimeout(timer);
   }, [hostIsSimulated, ready, room?.code]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, sendChat, startGame, nextRound, pauseRound, skipRound, resetSession };
+  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, sendChat, startGame, nextRound, endGame, pauseRound, skipRound, resetSession };
 }

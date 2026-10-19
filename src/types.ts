@@ -223,6 +223,8 @@ export interface AppApi {
   startGame(): void;
   /** Hosts only, while the room waits for them after a reveal: the next round, or the result after the last. */
   nextRound(): void;
+  /** Hosts only, during a game: stops it now; its points are dropped and it doesn't count for the session. */
+  endGame(): void;
   /** Hosts only, in rooms with host controls, while a round plays: pauses or resumes it for everyone. */
   pauseRound(paused: boolean): void;
   /** Hosts only, in rooms with host controls, while a round plays: ends it now and shows the answer. */

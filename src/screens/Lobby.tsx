@@ -8,7 +8,7 @@ import { ME, type AppApi, type Room, type ScreenDef, type ScreenProps } from '..
 import { canHost, canVoteSkip, GUESS_LABELS, SKIP_COMMAND, waitsForHost } from '../game/rooms';
 import { GUESS_RULES } from '../game/scoring';
 import { RoomSettings } from './RoomForm';
-import { NextRoundButton } from './Scores';
+import { EndGameButton, NextRoundButton } from './Scores';
 import './Lobby.css';
 
 const readyCount = (room: Room) => room.players.filter((p) => p.ready).length;
@@ -116,6 +116,7 @@ function Lobby({ app }: ScreenProps) {
       <div className="app-form-actions">
         <Button size="lg" onClick={app.leaveRoom}>Leave room</Button>
         <Button size="lg" icon={me?.ready ? null : 'check'} onClick={app.toggleReady}>{me?.ready ? 'I’m not ready' : 'I’m ready'}</Button>
+        <EndGameButton app={app} />
         {round && isHost && waitsForHost(round)
           ? <NextRoundButton app={app} />
           : round

@@ -115,7 +115,7 @@ export function App() {
   const app: AppApi = {
     route, room, settings, query, playlistView, setPlaylistView,
     online: online ? { code: online.code, status: net.status } : null,
-    chat: game.chat, round: game.round, scores: game.scores, sendChat: game.sendChat, startGame: game.startGame, nextRound: game.nextRound,
+    chat: game.chat, round: game.round, scores: game.scores, sendChat: game.sendChat, startGame: game.startGame, nextRound: game.nextRound, endGame: game.endGame,
     pauseRound: game.pauseRound, skipRound: game.skipRound, snippet,
     session: room ? game.session : null, resetSession: game.resetSession,
 
@@ -223,6 +223,10 @@ export function App() {
       app.go('scores');
       const players = room.players.map((p) => ({ id: p.id, name: p.id === ME ? 'You' : p.name }));
       app.flash('Game over', gameResult(game.scores, players).text);
+    } else if (roundNumber === undefined && was !== undefined && room) {
+      // A host ended the game early: there's no result to show.
+      app.go('lobby');
+      app.flash('The game was ended', 'Its points are gone');
     }
   }, [roundNumber]); // eslint-disable-line react-hooks/exhaustive-deps
 

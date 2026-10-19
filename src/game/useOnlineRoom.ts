@@ -25,6 +25,7 @@ export interface OnlineRoom {
   sendChat(text: string): void;
   startGame(): void;
   nextRound(): void;
+  endGame(): void;
   pauseRound(paused: boolean): void;
   skipRound(): void;
   resetSession(): void;
@@ -184,6 +185,7 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
     sendChat: (text) => send({ type: 'chat', text }),
     startGame: () => send({ type: 'start' }),
     nextRound: () => send({ type: 'next' }),
+    endGame: () => send({ type: 'end' }),
     pauseRound: (paused) => send({ type: 'pause', paused }),
     skipRound: () => send({ type: 'skip' }),
     resetSession: () => send({ type: 'resetSession' }),

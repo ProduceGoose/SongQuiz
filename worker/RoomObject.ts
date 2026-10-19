@@ -122,6 +122,9 @@ export class RoomObject extends DurableObject<Env> {
       case 'next':
         if (this.isHost(player) && waitsForHost(this.s.round)) await this.next();
         break;
+      case 'end':
+        if (this.isHost(player) && this.s.round && !this.starting) this.endGame(player);
+        break;
       case 'pause':
         if (this.controls(player)) this.pause(player, !!msg.paused);
         break;
@@ -205,6 +208,15 @@ export class RoomObject extends DurableObject<Env> {
     if (settings.maxPlayers < this.s.players.length) return note(`There are already ${this.s.players.length} players in the room.`);
     this.s.room = { ...room, ...settings, name: room.name, hostControls: room.hostControls };
     this.broadcastRoom();
+  }
+
+  /** Ends the game early: no result, and its points don't count for the session. */
+  private endGame(player: Player) {
+    this.s.round = null;
+    this.s.scores = null;
+    this.s.previews = {};
+    this.event('{who} ended the game. Its points are gone.', player);
+    this.broadcastRound();
   }
 
   /** Stops the round's clock for everyone, or starts it again where it stopped. */

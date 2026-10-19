@@ -43,11 +43,21 @@ export function NextRoundButton({ app }: { app: AppApi }) {
   );
 }
 
+const END_WARNING = 'Are you sure you want to end the game? All gathered points get lost.';
+
+/** For hosts during a game: ends it after asking. */
+export function EndGameButton({ app }: { app: AppApi }) {
+  const { room, round } = app;
+  if (!room || !round || !canHost(room, ME)) return null;
+  return <Button size="lg" icon="cross" onClick={() => { if (window.confirm(END_WARNING)) app.endGame(); }}>End game</Button>;
+}
+
 function GameStandings({ app }: { app: AppApi }) {
   const { room, round } = app;
   const title = round ? `Round ${round.number} of ${round.total}` : 'Final scores';
+  const actions = round ? <div className="app-actions"><EndGameButton app={app} /><NextRoundButton app={app} /></div> : null;
   return (
-    <Section action={<NextRoundButton app={app} />} title={title} hint={round ? `${room!.name} · ${GUESS_RULES[round.guess]}` : `${room!.name} · ${room!.rounds} rounds`}>
+    <Section action={actions} title={title} hint={round ? `${room!.name} · ${GUESS_RULES[round.guess]}` : `${room!.name} · ${room!.rounds} rounds`}>
       <div className="app-table">
         <Leaderboard players={standings(app)} highlight={ME} caption={'Scores in ' + room!.name} />
       </div>
