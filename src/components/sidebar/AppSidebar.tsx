@@ -1,8 +1,20 @@
 // The app's sidebar: navigation between screens, and the playlist up next in your room.
 import { artworkUrl, playlistById, playlists } from '../../data/demo';
 import { isScreenName } from '../../screens';
-import type { AppApi, Room } from '../../types';
+import type { AppApi, Room, Round } from '../../types';
 import { NowPlaying } from './NowPlaying';
+import './Countdown.css';
+
+/** The countdown over the cover starts this many seconds before the round ends. */
+const COUNTDOWN_SECONDS = 3;
+
+/** The seconds left in the round, from COUNTDOWN_SECONDS down; null before that. */
+function Countdown({ round }: { round: Round }) {
+  const left = Math.ceil(round.length - (Date.now() - round.startedAt) / 1000);
+  if (left > COUNTDOWN_SECONDS || left < 1) return null;
+  // The key restarts the pulse each second.
+  return <span key={left} className="app-countdown" role="timer" aria-label={`${left} seconds left`}>{left}</span>;
+}
 import { SourceList, type SourceSection } from './SourceList';
 
 function sections(room: Room | null): SourceSection[] {
@@ -33,7 +45,7 @@ export function AppSidebar({ app, selected }: { app: AppApi; selected: string })
     <>
       <SourceList sections={sections(room)} selected={selected} onSelect={(id) => { if (isScreenName(id)) app.go(id); }} />
       {round?.phase === 'playing'
-        ? <NowPlaying hidden title={`Round ${round.number} of ${round.total}`} subtitle="Mystery track" />
+        ? <NowPlaying hidden title={`Round ${round.number} of ${round.total}`} subtitle="Mystery track" overlay={<Countdown round={round} />} />
         : round?.phase === 'reveal'
         ? (
           <NowPlaying label="Last song" art={artworkUrl(round.track, 360) ?? round.art} title={round.track.title} subtitle={round.track.artist}>

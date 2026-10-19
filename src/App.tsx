@@ -21,11 +21,21 @@ import { ME, type AppApi, type LcdText, type Room, type Route, type ScreenName, 
 
 /** The online room this tab was in, so a reload rejoins it. */
 const SESSION_KEY = 'songquiz.room';
+/** The chat's width after you dragged it. */
+const CHAT_WIDTH_KEY = 'songquiz.chatWidth';
 
 /** A bare #name in the address opens that screen, e.g. index.html#playlists. */
 function initialRoute(): Route {
   const name = location.hash.slice(1);
   return isScreenName(name) && name !== 'playlist' ? { name } : { name: 'home' };
+}
+
+function savedChatWidth(): number | undefined {
+  try {
+    return Number(localStorage.getItem(CHAT_WIDTH_KEY)) || undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function savedOnlineRoom(): OnlineTarget | null {
@@ -47,6 +57,7 @@ export function App() {
   const [message, setMessage] = useState<LcdText | null>(null);
   const [navOpen, setNavOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatWidth, setChatWidth] = useState(savedChatWidth);
   const flashTimer = useRef<number>();
 
   const sim = useGame(demo, settings.name, () => {
@@ -76,6 +87,13 @@ export function App() {
 
   useEffect(() => applyTheme(settings.theme), [settings.theme]);
   useEffect(() => () => window.clearTimeout(flashTimer.current), []);
+  useEffect(() => {
+    try {
+      if (chatWidth) localStorage.setItem(CHAT_WIDTH_KEY, String(chatWidth));
+    } catch {
+      // Without storage the width just isn't remembered.
+    }
+  }, [chatWidth]);
   useEffect(() => {
     try {
       if (online) sessionStorage.setItem(SESSION_KEY, online.code);
@@ -205,6 +223,7 @@ export function App() {
       toolbar={<AppToolbar app={app} screen={screen} message={message} />}
       sidebar={<AppSidebar app={app} selected={screen.parent ?? route.name} />}
       panel={room ? <AppChat app={app} /> : null}
+      panelWidth={chatWidth} onPanelResize={setChatWidth}
       statusBar={
         <AppStatusBar
           app={app} screen={screen}

@@ -19,5 +19,9 @@ i.sq-dot { cursor: default; }
 .sq-window-sidebar { width: var(--sidebar-w); flex: none; display: flex; flex-direction: column; min-height: 0; background: var(--source-bg); border-right: 1px solid var(--chrome-edge); }
 .sq-window-sidebar > .sq-source { flex: 1; min-height: 0; }
 .sq-window-content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: auto; background: var(--grid-bg); color: var(--grid-ink); }
-.sq-window-panel { width: var(--panel-w); flex: none; display: flex; flex-direction: column; min-height: 0; border-left: 1px solid var(--chrome-edge); }
+.sq-window-panel { position: relative; width: var(--panel-w); flex: none; display: flex; flex-direction: column; min-height: 0; border-left: 1px solid var(--chrome-edge); }
 .sq-window-panel > * { flex: 1; min-height: 0; }
+/* Resize grip: a few px either side of the panel's left edge */
+.sq-window-panel > .sq-window-grip { position: absolute; z-index: 2; top: 0; bottom: 0; left: -4px; width: 8px; flex: none; cursor: col-resize; touch-action: none; }
+.sq-window-grip:hover, .sq-window-grip:active { background: linear-gradient(90deg, transparent 3px, var(--aqua) 3px 5px, transparent 5px); }
+.sq-window-grip:focus-visible { outline: none; background: linear-gradient(90deg, transparent 2px, var(--focus) 2px 6px, transparent 6px); }

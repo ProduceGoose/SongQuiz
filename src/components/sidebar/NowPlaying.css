@@ -5,7 +5,8 @@
   background: linear-gradient(var(--control-top), var(--control-bottom)); border-bottom: 1px solid var(--bezel);
   color: var(--ink); font-size: 11px; line-height: 14px; font-weight: 700; text-shadow: 0 1px 0 var(--engrave);
 }
-.sq-nowplaying-art { --sq-art: var(--sidebar-w); display: block; width: 100%; aspect-ratio: 1; background: var(--grid-bg); }
+.sq-nowplaying-art { --sq-art: var(--sidebar-w); position: relative; display: block; width: 100%; aspect-ratio: 1; background: var(--grid-bg); }
+.sq-nowplaying-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 .sq-nowplaying-art > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .sq-nowplaying-caption { padding: 6px 10px 8px; text-align: center; }
 .sq-nowplaying-title { font-size: 12px; line-height: 15px; font-weight: 700; color: var(--source-ink); }
