@@ -2,8 +2,10 @@
 // /api/* reaches this code (see run_worker_first in wrangler.jsonc).
 //
 //   /api/rooms/:code/ws          WebSocket to the room's Durable Object (RoomObject)
-//   /api/rooms/:code/audio/:n    round n's song preview, streamed from Apple under an address
-//                                that doesn't give the song away
+//   /api/rooms/:code/audio/:game/:n   round n's song preview, streamed from Apple under an
+//                                     address that doesn't give the song away. :game is new for
+//                                     every game, so a browser never plays a song it kept from an
+//                                     earlier game in the room.
 import { CODE_PATTERN } from '../src/game/protocol';
 import { RoomObject } from './RoomObject';
 
@@ -52,8 +54,8 @@ export default {
       return room.fetch(request);
     }
 
-    if (parts.length === 6 && parts[4] === 'audio' && /^\d{1,3}$/.test(parts[5]!) && request.method === 'GET') {
-      const previewUrl = await room.audioFor(Number(parts[5]));
+    if (parts.length === 7 && parts[4] === 'audio' && /^[0-9a-f]{1,16}$/.test(parts[5]!) && /^\d{1,3}$/.test(parts[6]!) && request.method === 'GET') {
+      const previewUrl = await room.audioFor(parts[5]!, Number(parts[6]));
       return previewUrl ? streamPreview(previewUrl, request) : notFound();
     }
 

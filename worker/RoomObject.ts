@@ -7,8 +7,10 @@
 // Object alarms.
 //
 // Each round's 30-second Apple Music preview is looked up when the round starts (or, for the
-// next round, during the reveal). Players get an anonymous address, /api/rooms/:code/audio/:round,
-// which worker/index.ts streams from Apple after asking audioFor() whether that round is current.
+// next round, during the reveal). Players get an anonymous address,
+// /api/rooms/:code/audio/:game/:round, which worker/index.ts streams from Apple after asking
+// audioFor() whether that round is current. The game id is new for every game: round 1 of the next
+// game has a different address, so browsers can't play the copy they kept of the last one.
 //
 // The object uses the WebSocket Hibernation API: between messages Cloudflare may evict it from
 // memory while the sockets stay open, so the state is saved to storage after every change and
@@ -17,6 +19,7 @@ import { DurableObject } from 'cloudflare:workers';
 import { playlistById } from '../src/data/demo';
 import { checkGuess, type Named } from '../src/game/guess';
 import { gameOrder, lookupPreview, REVEAL_SECONDS, roundSeconds, snippetOffset } from '../src/game/preview';
+import { NO_EFFECTS, roundEffects, SPEED_RATES } from '../src/game/effects';
 import { canHost, canVoteSkip, controlsRound, isSkipVote, onHold, settingsFromOptions, votesToSkip, waitsForHost } from '../src/game/rooms';
 import { CODE_PATTERN, type ClientMessage, type ServerMessage, type WireChat, type WireRoom, type WireRound } from '../src/game/protocol';
 import { addGame, allSolved, award, emptySession, gameResult, type Scores } from '../src/game/scoring';
@@ -46,6 +49,8 @@ interface State {
   scores: Scores | null;
   /** Wins and points since the room was opened. */
   session: Session;
+  /** The current or last game's id, in its audio addresses. */
+  game: string;
   /** The playlist's songs in this game's order. */
   order: Track[];
   /** Apple's preview address per round number, for the current and the next round. Never sent to players. */
@@ -57,7 +62,7 @@ interface Attachment {
   playerId: string;
 }
 
-const emptyState = (code = ''): State => ({ code, room: null, players: [], chat: [], round: null, scores: null, session: emptySession(), order: [], previews: {}, lastActive: Date.now() });
+const emptyState = (code = ''): State => ({ code, room: null, players: [], chat: [], round: null, scores: null, session: emptySession(), game: '', order: [], previews: {}, lastActive: Date.now() });
 const newId = () => crypto.randomUUID().slice(0, 8);
 const cleanName = (name: unknown, fallback: string) => (typeof name === 'string' ? name.trim().slice(0, 20) : '') || fallback;
 
@@ -312,6 +317,7 @@ export class RoomObject extends DurableObject<Env> {
     try {
       this.s.order = gameOrder(playlistById(this.s.room.playlistId).tracks);
       this.s.previews = {};
+      this.s.game = newId();
       this.s.scores = Object.fromEntries(this.s.players.map((p) => [p.id, 0]));
       this.event('{who} started the game', host);
       await this.beginRound(1);
@@ -335,7 +341,7 @@ export class RoomObject extends DurableObject<Env> {
   }
 
   private audioPath(n: number): string {
-    return `/api/rooms/${this.s.code}/audio/${n}`;
+    return `/api/rooms/${this.s.code}/audio/${this.s.game}/${n}`;
   }
 
   private async beginRound(n: number) {
@@ -343,12 +349,13 @@ export class RoomObject extends DurableObject<Env> {
     const playlist = playlistById(room.playlistId);
     const track = this.trackFor(n);
     const hasAudio = await this.preparePreview(n);
+    const effects = roundEffects(room.effects ?? NO_EFFECTS);
     for (const key of Object.keys(this.s.previews)) if (Number(key) < n) delete this.s.previews[Number(key)];
     this.s.round = {
       number: n, total: room.rounds, track, art: playlist.art,
       startedAt: Date.now(), phase: 'playing', length: roundSeconds(room.snippet), snippet: room.snippet,
-      guess: room.guess ?? 'separate', solvedTitle: [], solvedArtist: [], solvedBoth: [], skipVotes: [],
-      audio: hasAudio ? { src: this.audioPath(n), offset: snippetOffset(room.snippet) } : undefined
+      guess: room.guess ?? 'separate', effects, solvedTitle: [], solvedArtist: [], solvedBoth: [], skipVotes: [],
+      audio: hasAudio ? { src: this.audioPath(n), offset: snippetOffset(room.snippet * SPEED_RATES[effects.speed]) } : undefined
     };
     this.event(`Round ${n} of ${room.rounds} — name that tune`);
     this.broadcastRound();
@@ -415,9 +422,9 @@ export class RoomObject extends DurableObject<Env> {
    * Apple's preview address for round n, if players may load it now: the round being played or
    * revealed, or the next one during the reveal. Called by worker/index.ts (RPC).
    */
-  async audioFor(n: number): Promise<string | null> {
+  async audioFor(game: string, n: number): Promise<string | null> {
     const r = this.s.round;
-    if (!r || !(n === r.number || (r.phase === 'reveal' && n === r.number + 1))) return null;
+    if (!r || game !== this.s.game || !(n === r.number || (r.phase === 'reveal' && n === r.number + 1))) return null;
     return this.s.previews[n] ?? null;
   }
 

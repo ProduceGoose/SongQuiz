@@ -20,6 +20,11 @@ skip a song with the playback buttons) are chosen when the room is created and c
 without them can let players vote instead: typing `/skip` in the chat counts a vote, and the song
 is skipped once half the players have voted.
 
+For a harder game, rooms can add effects to the song while players guess (`src/game/effects.ts`,
+played by `src/game/audioEffects.ts` with the Web Audio API): fast or slow, muffled or telephone,
+and distortion. They stack across kinds, not within one, and "Random mix" gives every round its
+own mix. At the reveal the song plays clean.
+
 Built with Vite, React 18 and TypeScript. The server is a Cloudflare Worker with one
 Durable Object per room.
 
@@ -70,6 +75,7 @@ src/
                             useGame: the demo room's chat, rounds and simulated players;
                             guess: does a message name the title or the artist? (used by the server too);
                             scoring: points per round (3, 2, 1 for title and artist);
+                            effects / audioEffects: the song's audio effects and how they play;
                             protocol: the messages between browser and server
   game/preview.ts           Apple previews: lookup by id, where a snippet starts, song order
   game/useSnippet.ts        plays the round's song in step with the round
@@ -108,7 +114,7 @@ id, Apple Music link and cover next to it; it skips live, remix, karaoke and cov
 lists any song it can't match safely. Run it after adding songs.
 
 When a round starts, the room looks up the song's preview by id and picks a start point that
-leaves room for the round and the reveal. Players load it from `/api/rooms/:code/audio/:round`,
+leaves room for the round and the reveal. Players load it from `/api/rooms/:code/audio/:game/:round`,
 which the Worker streams from Apple without anything that names the song, and only while that
 round is on (or, during the reveal, the next one, so it can load ahead). Everyone hears the same
 moment: the browser starts at the start point plus the time since the round began.
