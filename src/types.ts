@@ -148,6 +148,8 @@ export interface Round {
   solvedArtist: string[];
   /** "both" rounds: ids of the players who have named both, fastest first. */
   solvedBoth: string[];
+  /** Ids of the players who named every artist of a song with several, for a bonus point (see ALL_ARTISTS_BONUS). */
+  solvedAllArtists: string[];
   /** Ids of the players who typed /skip this round. */
   skipVotes: string[];
   /** playing: guesses count. reveal: the answer is shown until `nextAt`. */

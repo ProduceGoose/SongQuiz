@@ -3,7 +3,7 @@ import { cx } from '../utils';
 import './Window.css';
 
 export interface WindowProps {
-  /** The room name, e.g. "SongQuiz — Friday Night Room". */
+  /** The room name, e.g. "iQuiz — Friday Night Room". */
   title?: ReactNode;
   /** Usually a Toolbar. */
   toolbar?: ReactNode;

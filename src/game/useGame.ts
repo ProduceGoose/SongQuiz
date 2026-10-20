@@ -108,7 +108,7 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     const effects = roundEffects(room.effects ?? NO_EFFECTS);
     g.round = {
       number: n, total: room.rounds, track, art: playlist.art, startedAt, phase: 'playing',
-      length: roundSeconds(room.snippet), snippet: room.snippet, guess: room.guess, effects, solvedTitle: [], solvedArtist: [], solvedBoth: [], skipVotes: []
+      length: roundSeconds(room.snippet), snippet: room.snippet, guess: room.guess, effects, solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: []
     };
     const offset = snippetOffset(room.snippet * SPEED_RATES[effects.speed]);
     void preview(n).then((src) => {
@@ -124,15 +124,17 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
   }
 
   /**
-   * A simulated player's messages: up to two wrong guesses, then the artist (70% chance) and the
-   * title (60% chance), sometimes both in one message.
+   * A simulated player's messages: up to two wrong guesses, then the artist (70% chance; every
+   * artist half the time, if the song has several) and the title (60% chance), sometimes both in
+   * one message.
    */
   function simulatedGuesses(id: string, n: number, decoys: Track[]): Scheduled[] {
     const r = g.round!;
     const title = Math.random() < 0.6, artist = Math.random() < 0.7;
+    const allArtists = artist && Math.random() < 0.5 && checkGuess(r.track.artist, r.track).allArtists;
     const right: Named[] = title && artist && Math.random() < 0.4
-      ? [{ title: true, artist: true }]
-      : [...(artist ? [{ title: false, artist: true }] : []), ...(title ? [{ title: true, artist: false }] : [])];
+      ? [{ title: true, artist: true, allArtists }]
+      : [...(artist ? [{ title: false, artist: true, allArtists }] : []), ...(title ? [{ title: true, artist: false, allArtists: false }] : [])];
     const misses = Math.floor(Math.random() * 3) + (right.length ? 0 : 1);
     const times = Array.from({ length: misses + right.length }, () => r.startedAt + between(2, r.length - 1.5) * 1000).sort((a, b) => a - b);
     return times.map((at, i) => ({

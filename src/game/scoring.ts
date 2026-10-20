@@ -1,7 +1,8 @@
 // Points. Each round, the first three players to name a part of the song get 3, 2 and 1 points.
 // Which parts count is the room's guess mode: the title and the artist on their own (so up to
-// 6 points a round), only one of them, or both together. Used by the demo room (useGame.ts) and
-// the server (worker/RoomObject.ts).
+// 6 points a round), only one of them, or both together. Naming every artist of a song with
+// several is worth a bonus point wherever the artist counts. Used by the demo room (useGame.ts)
+// and the server (worker/RoomObject.ts).
 import type { GuessMode, Round, Session } from '../types';
 import type { Named } from './guess';
 
@@ -15,27 +16,40 @@ export function pointsFor(place: number): number {
 /** Points per player id in a game; players without an entry have 0. */
 export type Scores = Record<string, number>;
 
+/** Extra points for naming every artist of a song that has several, on top of the artist's points. */
+export const ALL_ARTISTS_BONUS = 1;
+
 const points = POINTS.join(', ');
+const bonus = ` Name every artist of a song with several for +${ALL_ARTISTS_BONUS}.`;
 export const GUESS_RULES: Record<GuessMode, string> = {
-  separate: `The first three to name the title get ${points} points, and so do the first three to name the artist.`,
+  separate: `The first three to name the title get ${points} points, and so do the first three to name the artist.` + bonus,
   title: `Only the title counts: the first three to name it get ${points} points.`,
-  artist: `Only the artist counts: the first three to name them get ${points} points.`,
-  both: `Points only once you’ve named the title and the artist: ${points} for the first three.`
+  artist: `Only the artist counts: the first three to name them get ${points} points.` + bonus,
+  both: `Points only once you’ve named the title and the artist: ${points} for the first three.` + bonus
 };
 
-type Solved = Pick<Round, 'guess' | 'solvedTitle' | 'solvedArtist' | 'solvedBoth'>;
+type Solved = Pick<Round, 'guess' | 'solvedTitle' | 'solvedArtist' | 'solvedBoth' | 'solvedAllArtists'>;
 
 const needsTitle = (round: Pick<Round, 'guess'>) => round.guess !== 'artist';
 const needsArtist = (round: Pick<Round, 'guess'>) => round.guess !== 'title';
 const placePoints = (list: string[], id: string) => (list.includes(id) ? pointsFor(list.indexOf(id)) : 0);
+// Rounds saved before the bonus existed have no list.
+const allArtistsOf = (round: Pick<Round, 'solvedAllArtists'>) => round.solvedAllArtists ?? [];
+
+/** The bonus the player has won this round; in "both" rounds it counts once they've named both. */
+function bonusPoints(round: Solved, id: string): number {
+  if (!needsArtist(round) || !allArtistsOf(round).includes(id)) return 0;
+  return round.guess !== 'both' || round.solvedBoth.includes(id) ? ALL_ARTISTS_BONUS : 0;
+}
 
 /** The player's points from this round so far. */
 export function roundPoints(round: Solved, id: string): number {
+  const extra = bonusPoints(round, id);
   switch (round.guess) {
     case 'title': return placePoints(round.solvedTitle, id);
-    case 'artist': return placePoints(round.solvedArtist, id);
-    case 'both': return placePoints(round.solvedBoth, id);
-    default: return placePoints(round.solvedTitle, id) + placePoints(round.solvedArtist, id);
+    case 'artist': return placePoints(round.solvedArtist, id) + extra;
+    case 'both': return placePoints(round.solvedBoth, id) + extra;
+    default: return placePoints(round.solvedTitle, id) + placePoints(round.solvedArtist, id) + extra;
   }
 }
 
@@ -67,22 +81,27 @@ export function fastest(round: Solved): string | undefined {
 export function award(round: Round, id: string, named: Named): { round: Round; points: number; text: string } | null {
   const title = named.title && needsTitle(round) && !round.solvedTitle.includes(id);
   const artist = named.artist && needsArtist(round) && !round.solvedArtist.includes(id);
-  if (!title && !artist) return null;
+  // Naming them all can come after naming one: "drake", then "drake wizkid kyla".
+  const all = named.allArtists && needsArtist(round) && !allArtistsOf(round).includes(id);
+  if (!title && !artist && !all) return null;
   let next: Round = {
     ...round,
     solvedTitle: title ? [...round.solvedTitle, id] : round.solvedTitle,
-    solvedArtist: artist ? [...round.solvedArtist, id] : round.solvedArtist
+    solvedArtist: artist ? [...round.solvedArtist, id] : round.solvedArtist,
+    solvedAllArtists: all ? [...allArtistsOf(round), id] : allArtistsOf(round)
   };
-  const what = title && artist ? 'the title and the artist' : title ? 'the title' : 'the artist';
+  const what = [title && 'the title', (artist || all) && (all ? 'all the artists' : 'the artist')].filter(Boolean).join(' and ');
+  const said = (won: number) => (won ? ` · +${won}` : ' · no points left');
   if (round.guess === 'both') {
-    // Half of it scores nothing yet.
+    // Half of it scores nothing yet; a bonus waits until then.
     if (!hasSolved(next, id)) return { round: next, points: 0, text: `{who} named ${what}` };
-    const won = pointsFor(next.solvedBoth.length);
+    if (round.solvedBoth.includes(id)) return { round: next, points: ALL_ARTISTS_BONUS, text: `{who} named ${what}` + said(ALL_ARTISTS_BONUS) };
+    const won = pointsFor(next.solvedBoth.length) + (next.solvedAllArtists.includes(id) ? ALL_ARTISTS_BONUS : 0);
     next = { ...next, solvedBoth: [...next.solvedBoth, id] };
-    return { round: next, points: won, text: `{who} named both` + (won ? ` · +${won}` : ' · no points left') };
+    return { round: next, points: won, text: (all ? `{who} named both and all the artists` : `{who} named both`) + said(won) };
   }
-  const won = (title ? pointsFor(round.solvedTitle.length) : 0) + (artist ? pointsFor(round.solvedArtist.length) : 0);
-  return { round: next, points: won, text: `{who} named ${what}` + (won ? ` · +${won}` : ' · no points left') };
+  const won = (title ? pointsFor(round.solvedTitle.length) : 0) + (artist ? pointsFor(round.solvedArtist.length) : 0) + (all ? ALL_ARTISTS_BONUS : 0);
+  return { round: next, points: won, text: `{who} named ${what}` + said(won) };
 }
 
 export const pointsText = (n: number) => `${n} ${n === 1 ? 'point' : 'points'}`;

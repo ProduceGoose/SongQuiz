@@ -233,7 +233,7 @@ export function App() {
   const Screen = screen.Component;
   return (
     <Window
-      title={room ? 'SongQuiz — ' + room.name : 'SongQuiz'}
+      title={room ? 'iQuiz — ' + room.name : 'iQuiz'}
       className={[navOpen && 'app-nav-open', chatOpen && 'app-chat-open'].filter(Boolean).join(' ') || undefined}
       closeLabel="Leave room" onClose={app.leaveRoom}
       toolbar={<AppToolbar app={app} screen={screen} message={message} />}

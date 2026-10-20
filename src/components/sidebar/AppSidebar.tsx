@@ -21,7 +21,7 @@ function Countdown({ round }: { round: Round }) {
 function sections(room: Room | null): SourceSection[] {
   const all: Array<SourceSection | null> = [
     {
-      title: 'SongQuiz', items: [
+      title: 'iQuiz', items: [
         { id: 'home', label: 'Home', icon: 'music' },
         { id: 'join', label: 'Join a room', icon: 'broadcast' },
         { id: 'create', label: 'Create a room', icon: 'plus' }

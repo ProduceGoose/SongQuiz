@@ -28,7 +28,7 @@ function NoRoom({ app }: { app: AppApi }) {
 function Connecting({ app, code }: { app: AppApi; code: string }) {
   return (
     <div className="app-screen">
-      <ScreenHeader title={`Joining room ${code}…`} hint="Connecting to the SongQuiz server.">
+      <ScreenHeader title={`Joining room ${code}…`} hint="Connecting to the iQuiz server.">
         <Button size="lg" onClick={app.leaveRoom}>Cancel</Button>
       </ScreenHeader>
     </div>

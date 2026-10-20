@@ -354,7 +354,7 @@ export class RoomObject extends DurableObject<Env> {
     this.s.round = {
       number: n, total: room.rounds, track, art: playlist.art,
       startedAt: Date.now(), phase: 'playing', length: roundSeconds(room.snippet), snippet: room.snippet,
-      guess: room.guess ?? 'separate', effects, solvedTitle: [], solvedArtist: [], solvedBoth: [], skipVotes: [],
+      guess: room.guess ?? 'separate', effects, solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: [],
       audio: hasAudio ? { src: this.audioPath(n), offset: snippetOffset(room.snippet * SPEED_RATES[effects.speed]) } : undefined
     };
     this.event(`Round ${n} of ${room.rounds} — name that tune`);

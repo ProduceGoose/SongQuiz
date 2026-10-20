@@ -40,6 +40,6 @@ function Home({ app }: ScreenProps) {
 export const homeScreen: ScreenDef = {
   title: 'Home',
   Component: Home,
-  lcd: (app) => ({ title: 'SongQuiz', subtitle: app.room ? `In ${app.room.name} · code ${app.room.code}` : 'Not in a room yet' }),
+  lcd: (app) => ({ title: 'iQuiz', subtitle: app.room ? `In ${app.room.name} · code ${app.room.code}` : 'Not in a room yet' }),
   status: (app) => `${playlists.length} playlists, ` + (app.room ? `${app.room.players.length} players in your room` : 'not in a room')
 };

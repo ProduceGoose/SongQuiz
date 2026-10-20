@@ -145,7 +145,7 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
         if (stopped) return;
         retries++;
         if (retries > MAX_RETRIES) {
-          latest.current.callbacks.onFail({ code: 'offline', message: 'Can’t reach the SongQuiz server.' });
+          latest.current.callbacks.onFail({ code: 'offline', message: 'Can’t reach the iQuiz server.' });
           return;
         }
         setStatus('reconnecting');
@@ -213,6 +213,7 @@ function localRound(round: WireRound, you: string, offset: number): Round {
     solvedTitle: round.solvedTitle.map(id),
     solvedArtist: round.solvedArtist.map(id),
     solvedBoth: round.solvedBoth.map(id),
+    solvedAllArtists: (round.solvedAllArtists ?? []).map(id),
     effects: round.effects ?? NO_EFFECTS,
     skipVotes: (round.skipVotes ?? []).map(id),
     // Server times to this browser's clock.
