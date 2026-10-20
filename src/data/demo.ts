@@ -2,9 +2,17 @@
 import { CODE_CHARS } from '../game/protocol';
 import { ME, type Playlist, type Room, type Settings, type Track } from '../types';
 import playlistData from './playlists.json';
+import coverIds from './covers.json';
 
 // ---- Cover art -----------------------------------------------------------------
-// Flat geometric SVGs stand in for real album covers.
+// A playlist's cover is public/assets/covers/<id>.webp (made by `npm run covers`). Playlists without
+// one get a flat geometric SVG instead.
+const COVERS = new Set<string>(coverIds);
+
+function playlistArt(id: string, i: number): string {
+  // Relative, like every other asset URL (vite.config.ts sets base: './').
+  return COVERS.has(id) ? `assets/covers/${id}.webp` : coverArt(i);
+}
 const PALETTES = [
   ['#d9472b', '#f6d36b'], ['#1b3a5c', '#e9e2cf'], ['#2f7d5b', '#f1efe6'], ['#f2c14e', '#1c1c1c'],
   ['#7a2e8e', '#f4b6c2'], ['#e8e3d8', '#c0392b'], ['#0f4c81', '#ff8c42'], ['#3a3a3a', '#e5e5e5']
@@ -28,7 +36,28 @@ function coverArt(i: number): string {
 // (filled in by `npm run apple-music`).
 const PLAYLIST_DATA = playlistData as Array<Omit<Playlist, 'art' | 'subtitle'>>;
 
-export const playlists: Playlist[] = PLAYLIST_DATA.map((p, i) => ({ ...p, art: coverArt(i), subtitle: `${p.songs} songs` }));
+/**
+ * "Random": every song of every other playlist, built here rather than kept in playlists.json, so
+ * it follows the other playlists when songs are added or removed. A song in several playlists is
+ * in it once.
+ */
+function randomPlaylist(): Omit<Playlist, 'art' | 'subtitle'> {
+  const seen = new Set<string>();
+  const tracks = PLAYLIST_DATA.flatMap((p) => p.tracks).filter((t) => {
+    const key = t.apple ? `apple:${t.apple.id}` : `${t.title}|${t.artist}`.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const years = tracks.map((t) => t.year);
+  return {
+    id: 'random', title: 'Random', era: `${Math.min(...years)}–${Math.max(...years)}`, level: 'Medium',
+    songs: tracks.length, description: 'Every song from every playlist, all mixed together.', tracks
+  };
+}
+
+export const playlists: Playlist[] = [...PLAYLIST_DATA, randomPlaylist()]
+  .map((p, i) => ({ ...p, art: playlistArt(p.id, i), subtitle: `${p.songs} songs` }));
 
 /** A song's Apple Music cover at the given size in px, or undefined if it has none. */
 export function artworkUrl(track: Track, size: number): string | undefined {

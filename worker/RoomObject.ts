@@ -327,8 +327,8 @@ export class RoomObject extends DurableObject<Env> {
   /** Looks up round n's preview unless it already is; true if the song has one. */
   private async preparePreview(n: number): Promise<boolean> {
     if (!this.s.previews[n]) {
-      const id = this.trackFor(n).apple?.id;
-      const url = id ? await lookupPreview(id) : null;
+      const apple = this.trackFor(n).apple;
+      const url = apple ? await lookupPreview(apple) : null;
       if (url) this.s.previews[n] = url;
     }
     return !!this.s.previews[n];

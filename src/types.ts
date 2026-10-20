@@ -14,6 +14,8 @@ export interface Track {
     url: string;
     /** Cover image URL with {size} where the size in px goes; see artworkUrl in data/demo.ts. */
     artwork: string;
+    /** The Apple Music store the song is from when it isn't the US one, e.g. "de"; its preview is looked up there. */
+    store?: string;
   };
 }
 

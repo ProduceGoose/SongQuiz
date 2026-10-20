@@ -11,7 +11,8 @@
     "deploy": "npm run build && wrangler deploy",
     "typecheck": "tsc --noEmit && tsc --noEmit -p worker",
     "build:design-system": "vite build --config vite.design-system.config.ts",
-    "apple-music": "node scripts/apple-music.mjs"
+    "apple-music": "node scripts/apple-music.mjs",
+    "covers": "node scripts/covers.mjs"
   },
   "dependencies": {
     "react": "18.3.1",

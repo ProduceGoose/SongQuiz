@@ -92,8 +92,8 @@ function useSongPreviews(tracks: Track[], volume: number) {
 
   useEffect(() => {
     let current = true;
-    const ids = tracks.flatMap((t) => (t.apple ? [t.apple.id] : []));
-    void lookupPreviews(ids).then((found) => { if (current) setUrls(found); });
+    const songs = tracks.flatMap((t) => (t.apple ? [t.apple] : []));
+    void lookupPreviews(songs).then((found) => { if (current) setUrls(found); });
     return () => {
       current = false;
       audio.current?.pause();

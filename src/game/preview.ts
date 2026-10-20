@@ -1,6 +1,7 @@
-// Apple Music previews: 30 seconds of each song, looked up by its Apple id (Track.apple.id).
-// Used by the server for online rooms and by the browser for the demo room. The preview address
-// is looked up fresh each time, because Apple can change it.
+// Apple Music previews: 30 seconds of each song, looked up by its Apple id (Track.apple.id) in the
+// song's store: the US one, unless Track.apple.store names another (some German songs are only on
+// the German store). Used by the server for online rooms and by the browser for the demo room. The
+// preview address is looked up fresh each time, because Apple can change it.
 
 /** Length of every Apple preview. */
 export const PREVIEW_SECONDS = 30;
@@ -17,24 +18,36 @@ export function roundElapsed(round: { startedAt: number; pausedAt?: number }, no
   return ((round.pausedAt ?? now) - round.startedAt) / 1000;
 }
 
-/** Preview addresses on Apple's servers by Apple id, in one request; songs without one are left out. */
-export async function lookupPreviews(appleIds: number[]): Promise<Map<number, string>> {
+/** A song on Apple Music, as in Track.apple: its id, and its store when that isn't the US one. */
+export interface AppleSong {
+  id: number;
+  store?: string;
+}
+
+/** Preview addresses on Apple's servers by Apple id, one request per store; songs without one are left out. */
+export async function lookupPreviews(songs: AppleSong[]): Promise<Map<number, string>> {
   const found = new Map<number, string>();
-  if (!appleIds.length) return found;
-  try {
-    const res = await fetch(`https://itunes.apple.com/lookup?id=${appleIds.join(',')}`);
-    if (!res.ok) return found;
-    const json = (await res.json()) as { results?: Array<{ trackId?: number; previewUrl?: string }> };
-    for (const r of json.results ?? []) if (r.trackId && r.previewUrl) found.set(r.trackId, r.previewUrl);
-  } catch {
-    // Offline or blocked: no previews.
+  const byStore = new Map<string, number[]>();
+  for (const s of songs) {
+    const store = s.store ?? 'us';
+    byStore.set(store, [...(byStore.get(store) ?? []), s.id]);
   }
+  await Promise.all([...byStore].map(async ([store, ids]) => {
+    try {
+      const res = await fetch(`https://itunes.apple.com/lookup?${new URLSearchParams({ id: ids.join(','), country: store })}`);
+      if (!res.ok) return;
+      const json = (await res.json()) as { results?: Array<{ trackId?: number; previewUrl?: string }> };
+      for (const r of json.results ?? []) if (r.trackId && r.previewUrl) found.set(r.trackId, r.previewUrl);
+    } catch {
+      // Offline or blocked: no previews.
+    }
+  }));
   return found;
 }
 
 /** The song's preview address on Apple's servers, or null if it has none. */
-export async function lookupPreview(appleId: number): Promise<string | null> {
-  return (await lookupPreviews([appleId])).get(appleId) ?? null;
+export async function lookupPreview(song: AppleSong): Promise<string | null> {
+  return (await lookupPreviews([song])).get(song.id) ?? null;
 }
 
 /** The songs in random order, songs with an Apple preview first, so rounds without sound come last. */

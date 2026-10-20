@@ -2,52 +2,113 @@
 // its Apple id, Apple Music link and cover art next to it. The game looks up the 30-second preview
 // by that id when a round starts, so the saved data never goes stale.
 //
-//   npm run apple-music            look up songs that have no Apple data yet
-//   npm run apple-music -- --all   look up every song again
+// It searches the US store first, then the German one (STORES). A song only found in another
+// store gets that store saved with it ("store": "de"), so the game looks its preview up there.
 //
-// Apple allows about 20 searches a minute, so this waits 3.5 s between songs. Progress is saved
+//   npm run apple-music                           look up songs that have no Apple data yet
+//   npm run apple-music -- --all                  look up every song again
+//   npm run apple-music -- --playlist deutschrap  only one playlist (also works with --all)
+//
+// Apple's search leaves out every song marked explicit (most rap), so when it finds nothing the
+// script looks in the albums of the versions it did find (often an instrumental), then in each of
+// the song's artists' songs (up to 200 per artist). The same recording on a sampler ("Bravo Hits")
+// is only used when the artist's own release can't be found.
+//
+// Apple allows about 20 requests a minute, so this waits 3.5 s between them. Progress is saved
 // after each song; run it again to continue. Songs it can't match safely are listed at the end:
 // add their "apple" entry by hand, or fix the title or artist so the search finds them.
 import fs from 'node:fs';
 
 const FILE = new URL('../src/data/playlists.json', import.meta.url);
 const PAUSE_MS = 3500;
+/** Apple Music stores to search, in order. */
+const STORES = ['US', 'DE'];
 const all = process.argv.includes('--all');
+const only = process.argv.includes('--playlist') ? process.argv[process.argv.indexOf('--playlist') + 1] : null;
 
 /** Words that mark a version other than the original recording. */
-const NOT_ORIGINAL = /karaoke|tribute|made famous|in the style of|cover|instrumental|re-?recorded|lullaby|piano version|acoustic|\blive\b|remix|sped up|slowed/i;
+const NOT_ORIGINAL = /karaoke|tribute|made famous|in the style of|cover|instrumental|re-?recorded|lullaby|piano version|acoustic|\blive\b|remix|sped up|slowed|\bmixed\b|dj mix|a ?cappella|outtake|roughs|\bdemo\b|\bextended\b|\bdub\b/i;
 
 const normalize = (s) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
   .replace(/[’'`.]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim().replace(/^the /, '');
-const bareTitle = (title) => title.replace(/\([^)]*\)/g, '').trim();
+/** A title without bracketed parts ("(feat. X)", "[Remix]") or a " - Radio Edit"-style suffix. */
+const bareTitle = (title) => title.replace(/\([^)]*\)|\[[^\]]*\]/g, '').replace(/\s+-\s+.*$/, '').trim();
+/** Each artist of "A, B & C feat. D". */
+const artists = (artist) => artist.split(/,|&|\/|\bfeat\b/i).map((a) => a.trim()).filter(Boolean);
+const leadArtist = (artist) => artists(artist)[0];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+let lastRequest = 0;
+/** One iTunes API request, at most one every PAUSE_MS. */
+async function apple(path, params) {
+  await sleep(Math.max(0, lastRequest + PAUSE_MS - Date.now()));
+  lastRequest = Date.now();
+  const res = await fetch(`https://itunes.apple.com/${path}?${new URLSearchParams(params)}`);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return (await res.json()).results;
+}
+
+/** Every song of an artist in a store (explicit ones too), by artist name; [] when not found. */
+const artistSongs = new Map();
+async function songsOf(name, store) {
+  const key = `${store}:${normalize(name)}`;
+  if (!artistSongs.has(key)) {
+    const found = (await apple('search', { term: name, entity: 'musicArtist', limit: '10', country: store }))
+      .find((a) => normalize(a.artistName) === normalize(name));
+    artistSongs.set(key, found
+      ? (await apple('lookup', { id: found.artistId, entity: 'song', limit: '200', country: store })).filter((r) => r.wrapperType === 'track')
+      : []);
+  }
+  return artistSongs.get(key);
+}
+
+/** Whether `name` is a whole word or words of `text` ("cro" is in "cro and x", not in "vycro diva"). */
+const hasWords = (text, name) => ` ${text} `.includes(` ${name} `);
+/** A "Bravo Hits"-style sampler: the right recording, but with the sampler's cover. */
+// The German store names their artist "Verschiedene Interpret:innen".
+const isCompilation = (r) => /^(various artists|verschiedene interpret)/i.test(r.collectionArtistName ?? '');
+
+/** Whether an Apple result is this song by these artists, in any version (instrumental, remix…). */
+function sameSong(track, r) {
+  if (r.kind !== 'song') return false;
+  const rArtist = normalize(r.artistName);
+  // A name in another script (e.g. Japanese) normalizes to nothing, which every artist "includes".
+  if (!rArtist) return false;
+  // Several artists are written "A, B" here but "A & B" on Apple, so the first one has to match.
+  // Or Apple names just one of them; the whole name, so "Eazy" isn't taken for "G-Eazy".
+  if (!hasWords(rArtist, normalize(leadArtist(track.artist))) && !artists(track.artist).some((a) => normalize(a) === rArtist)) return false;
+  // A title that is only punctuation outside its brackets ("! (The Song Formerly Known As)") would be
+  // empty; then the whole title has to match.
+  const title = normalize(bareTitle(track.title)) || normalize(track.title);
+  // Exact, not a prefix: "Berlin lebt" is a different song from "Berlin lebt wie nie zuvor".
+  return normalize(bareTitle(r.trackName)) === title || normalize(r.trackName) === title;
+}
 
 /** The best Apple result for a song, or null when none is clearly the original. */
 function pick(track, results) {
-  const artist = normalize(track.artist);
-  const title = normalize(bareTitle(track.title));
+  // What the title says about the version ("Seeb Remix", "feat. Kai"): a result naming it is closer.
+  const parts = [...track.title.matchAll(/\(([^)]*)\)|\[([^\]]*)\]|\s-\s(.*)$/g)].map((m) => normalize(m[1] ?? m[2] ?? m[3])).filter(Boolean);
   let best = null;
   for (const r of results) {
-    if (r.kind !== 'song' || !r.previewUrl) continue;
-    const rArtist = normalize(r.artistName);
-    const rTitle = normalize(bareTitle(r.trackName));
-    if (!rArtist.includes(artist) && !artist.includes(rArtist)) continue;
-    if (!rTitle.startsWith(title)) continue;
+    if (!r.previewUrl || !sameSong(track, r)) continue;
     const extra = `${r.trackName} ${r.collectionName}`;
     if (NOT_ORIGINAL.test(extra) && !NOT_ORIGINAL.test(track.title)) continue;
     const year = Number(String(r.releaseDate).slice(0, 4));
-    const score = (normalize(r.trackName) === normalize(track.title) || rTitle === title ? 10 : 0) - Math.min(10, Math.abs(year - track.year));
+    const named = parts.filter((p) => hasWords(normalize(extra), p)).length;
+    const score = -Math.min(10, Math.abs(year - track.year)) - (isCompilation(r) ? 5 : 0) + 3 * named;
     if (!best || score > best.score) best = { score, r };
   }
-  if (!best) return null;
-  const { r } = best;
-  return {
-    id: r.trackId,
-    url: r.trackViewUrl.replace(/[?&]uo=\d+/, ''),
-    // Any size works: the app swaps {size} for e.g. 600 (see artworkUrl in src/data/demo.ts).
-    artwork: r.artworkUrl100.replace(/\/100x100bb\./, '/{size}x{size}bb.')
-  };
+  return best?.r ?? null;
 }
+
+/** The "apple" entry saved for a song. */
+const appleEntry = (r, store) => ({
+  id: r.trackId,
+  url: r.trackViewUrl.replace(/[?&]uo=\d+/, ''),
+  // Any size works: the app swaps {size} for e.g. 600 (see artworkUrl in src/data/demo.ts).
+  artwork: r.artworkUrl100.replace(/\/100x100bb\./, '/{size}x{size}bb.'),
+  ...(store !== 'US' && { store: store.toLowerCase() })
+});
 
 /** Same layout as the file was written in: one line per song. */
 function format(data) {
@@ -60,30 +121,45 @@ function format(data) {
 }
 
 const data = JSON.parse(fs.readFileSync(FILE, 'utf8'));
-const todo = data.flatMap((p) => p.tracks).filter((t) => all || !t.apple);
+if (only && !data.some((p) => p.id === only)) throw new Error(`No playlist with id "${only}"`);
+const todo = data.filter((p) => !only || p.id === only).flatMap((p) => p.tracks).filter((t) => all || !t.apple);
 const missed = [];
 console.log(`Looking up ${todo.length} songs…`);
 
 for (const [i, track] of todo.entries()) {
-  const term = `${track.artist} ${bareTitle(track.title)}`;
-  const url = `https://itunes.apple.com/search?${new URLSearchParams({ term, entity: 'song', limit: '50', country: 'US' })}`;
-  let found = null;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    found = pick(track, (await res.json()).results);
-  } catch (err) {
-    console.log(`  ! ${track.artist} – ${track.title}: ${err.message}`);
+  // Only the lead artist: with every featured artist in it, the search often finds nothing.
+  const term = `${leadArtist(track.artist)} ${bareTitle(track.title)}`;
+  // The first original found, from the cheapest source first. A compilation is kept only until
+  // the artist's own release turns up, in this store or the next.
+  let best = null;
+  stores: for (const store of STORES) {
+    try {
+      const results = await apple('search', { term, entity: 'song', limit: '50', country: store });
+      // Search leaves out explicit songs but not their instrumentals: the album of one has the original.
+      const albums = [...new Set(results.filter((r) => sameSong(track, r) && !isCompilation(r)).map((r) => r.collectionId))].slice(0, 10);
+      const sources = [
+        async () => results,
+        async () => albums.length ? apple('lookup', { id: albums.join(','), entity: 'song', country: store }) : [],
+        ...artists(track.artist).map((name) => () => songsOf(name, store))
+      ];
+      for (const source of sources) {
+        const r = pick(track, await source());
+        if (r && (!best || (isCompilation(best.r) && !isCompilation(r)))) best = { r, store };
+        if (best && !isCompilation(best.r)) break stores;
+      }
+    } catch (err) {
+      console.log(`  ! ${track.artist} – ${track.title} (${store}): ${err.message}`);
+    }
   }
+  const found = best && appleEntry(best.r, best.store);
   if (found) {
     track.apple = found;
     fs.writeFileSync(FILE, format(data));
-    console.log(`${i + 1}/${todo.length} ✓ ${track.artist} – ${track.title}`);
+    console.log(`${i + 1}/${todo.length} ✓ ${track.artist} – ${track.title}${found.store ? ` (${found.store} store)` : ''}`);
   } else {
     missed.push(track);
     console.log(`${i + 1}/${todo.length} ✗ ${track.artist} – ${track.title}`);
   }
-  if (i < todo.length - 1) await sleep(PAUSE_MS);
 }
 
 console.log(missed.length ? `\nNo safe match for:\n${missed.map((t) => `  ${t.artist} – ${t.title}`).join('\n')}` : '\nEvery song matched.');

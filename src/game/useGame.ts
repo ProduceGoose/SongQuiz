@@ -82,8 +82,8 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
   /** Round n's preview address from Apple, looked up once. */
   function preview(n: number): Promise<string | null> {
     if (!g.previews.has(n)) {
-      const id = g.order[(n - 1) % g.order.length]?.apple?.id;
-      g.previews.set(n, id ? lookupPreview(id) : Promise.resolve(null));
+      const apple = g.order[(n - 1) % g.order.length]?.apple;
+      g.previews.set(n, apple ? lookupPreview(apple) : Promise.resolve(null));
     }
     return g.previews.get(n)!;
   }
