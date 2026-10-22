@@ -2,22 +2,23 @@
 // Each window region has its own folder in ./components; each screen is in ./screens.
 //
 // You are in at most one room, and in none when the app opens. The demo room (code DEMO_CODE,
-// in data/demo.ts) runs offline with simulated players (game/useGame.ts); every other room is
-// online, on the server (game/useOnlineRoom.ts).
+// in data/demo.ts) runs offline with simulated players (game/useGame.ts), and so does a solo game
+// (SOLO_CODE) with only you; every other room is online, on the server (game/useOnlineRoom.ts).
 import { useEffect, useRef, useState } from 'react';
 import { AppChat } from './components/chat/AppChat';
 import { AppSidebar } from './components/sidebar/AppSidebar';
 import { AppStatusBar } from './components/statusbar/AppStatusBar';
 import { AppToolbar } from './components/toolbar/AppToolbar';
 import { Window } from './components/window/Window';
-import { DEMO_CODE, defaultSettings, demoRoom, randomCode } from './data/demo';
+import { DEMO_CODE, demoRoom, isSolo, randomCode, soloRoom } from './data/demo';
 import { useGame } from './game/useGame';
 import { useOnlineRoom, type OnlineTarget } from './game/useOnlineRoom';
 import { useSnippet } from './game/useSnippet';
-import { applyTheme, clearSettings, loadSettings, saveSettings } from './lib/settings';
+import { applyTheme, clearSettings, freshSettings, loadSettings, saveSettings } from './lib/settings';
 import { canHost, settingsFromOptions } from './game/rooms';
 import { gameResult } from './game/scoring';
 import { isScreenName, screens } from './screens';
+import { SlotMachine } from './screens/SlotMachine';
 import { ME, type AppApi, type LcdText, type Room, type Route, type ScreenName, type Settings } from './types';
 
 /** The online room this tab was in, so a reload rejoins it. */
@@ -118,6 +119,7 @@ export function App() {
     chat: game.chat, round: game.round, scores: game.scores, sendChat: game.sendChat, startGame: game.startGame, nextRound: game.nextRound, endGame: game.endGame,
     pauseRound: game.pauseRound, skipRound: game.skipRound, snippet,
     session: room ? game.session : null, resetSession: game.resetSession,
+    run: online ? null : sim.run, continueRun: sim.continueRun,
 
     go(name: ScreenName, id?: string) {
       setRoute({ name, id });
@@ -190,7 +192,16 @@ export function App() {
       }
       exitRoom();
       app.go('home');
-      app.flash('You left ' + room.name, 'Rejoin any time with code ' + room.code);
+      if (isSolo(room)) app.flash('You left your solo game', 'Start another one from Home');
+      else app.flash('You left ' + room.name, 'Rejoin any time with code ' + room.code);
+    },
+
+    playSolo(mode) {
+      exitRoom();
+      setDemo(soloRoom(settings.name, mode));
+      app.go('lobby');
+      if (mode === 'survival') app.flash('Survival', 'Three lives, every playlist from easy to hard');
+      else app.flash('Solo game', 'Just you and the music, nothing goes to the server');
     },
 
     toggleReady() {
@@ -202,7 +213,10 @@ export function App() {
 
     resetPrototype() {
       clearSettings();
-      setSettings({ ...defaultSettings });
+      // A new random name, saved so it stays after a reload.
+      const fresh = freshSettings();
+      saveSettings(fresh);
+      setSettings(fresh);
       exitRoom();
       setQueryState('');
       setPlaylistView('grid');
@@ -249,6 +263,7 @@ export function App() {
       }
     >
       <Screen key={route.name + ':' + (route.id ?? '')} app={app} id={route.id} />
+      {game.round?.phase === 'spin' && game.round.spin ? <SlotMachine round={game.round} onStart={app.continueRun} /> : null}
     </Window>
   );
 }

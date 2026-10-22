@@ -18,7 +18,9 @@
 import { DurableObject } from 'cloudflare:workers';
 import { playlistById } from '../src/data/demo';
 import { checkGuess, type Named } from '../src/game/guess';
-import { gameOrder, lookupPreview, REVEAL_SECONDS, roundSeconds, snippetOffset } from '../src/game/preview';
+import { gameOrder, lookupPreview, previewKey, REVEAL_SECONDS, roundSeconds, snippetOffset } from '../src/game/preview';
+// Saved by `npm run apple-music`: Apple refuses most lookups from Cloudflare (HTTP 403).
+import savedPreviews from '../src/data/previews.json';
 import { NO_EFFECTS, roundEffects, SPEED_RATES } from '../src/game/effects';
 import { canHost, canVoteSkip, controlsRound, isSkipVote, onHold, settingsFromOptions, votesToSkip, waitsForHost } from '../src/game/rooms';
 import { CODE_PATTERN, type ClientMessage, type ServerMessage, type WireChat, type WireRoom, type WireRound } from '../src/game/protocol';
@@ -330,11 +332,15 @@ export class RoomObject extends DurableObject<Env> {
     return this.s.order[(n - 1) % this.s.order.length]!;
   }
 
-  /** Looks up round n's preview unless it already is; true if the song has one. */
+  /**
+   * Finds round n's preview unless it already has it: the saved address, or else a lookup at
+   * Apple, which works only now and then from Cloudflare. True if the song has one.
+   */
   private async preparePreview(n: number): Promise<boolean> {
     if (!this.s.previews[n]) {
       const apple = this.trackFor(n).apple;
-      const url = apple ? await lookupPreview(apple) : null;
+      const saved = apple ? (savedPreviews as Record<string, string>)[previewKey(apple)] : undefined;
+      const url = saved ?? (apple ? await lookupPreview(apple) : null);
       if (url) this.s.previews[n] = url;
     }
     return !!this.s.previews[n];

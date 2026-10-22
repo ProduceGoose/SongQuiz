@@ -28,7 +28,10 @@ async function streamPreview(previewUrl: string, request: Request): Promise<Resp
     // Cloudflare keeps a copy, so the other players in the room don't each fetch it from Apple.
     cf: { cacheEverything: true, cacheTtl: 86400 }
   });
-  if (!upstream.ok) return new Response('Preview unavailable', { status: 502 });
+  if (!upstream.ok) {
+    console.warn(`Preview download failed: HTTP ${upstream.status} from ${new URL(previewUrl).host}`);
+    return new Response('Preview unavailable', { status: 502 });
+  }
   const headers = new Headers({ 'Cache-Control': 'private, max-age=600' });
   for (const name of AUDIO_HEADERS) {
     const value = upstream.headers.get(name);

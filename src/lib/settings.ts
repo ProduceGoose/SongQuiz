@@ -1,6 +1,6 @@
 // Settings persistence and theme switching. Storage is best effort: it can be
 // unavailable (private windows, blocked site data), and the app works without it.
-import { defaultSettings } from '../data/demo';
+import { defaultSettings, randomName } from '../data/demo';
 import type { Settings, Theme } from '../types';
 
 const STORAGE_KEY = 'songquiz.settings';
@@ -8,11 +8,22 @@ const STORAGE_KEY = 'songquiz.settings';
 // A theme the host page set before the app started; "System" restores it.
 const hostTheme = document.documentElement.getAttribute('data-theme');
 
+/** The default settings with a random name, for a visitor who has none saved yet. */
+export const freshSettings = (): Settings => ({ ...defaultSettings, name: randomName() });
+
+/**
+ * The saved settings. A first visit gets a random name, saved at once so it stays the same on
+ * the next visit; settings saved before then keep their name.
+ */
 export function loadSettings(): Settings {
   try {
-    return { ...defaultSettings, ...JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') };
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Partial<Settings>;
+    if (saved.name) return { ...defaultSettings, ...saved };
+    const settings = { ...defaultSettings, ...saved, name: randomName() };
+    saveSettings(settings);
+    return settings;
   } catch {
-    return { ...defaultSettings };
+    return freshSettings();
   }
 }
 

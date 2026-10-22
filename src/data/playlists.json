@@ -199,7 +199,7 @@
     "era": "2000s",
     "level": "Easy",
     "songs": 156,
-    "description": "Flip phones, frosted tips and every chorus you still know by heart.",
+    "description": "The Pop hits from the 2000s.",
     "tracks": [
       {"title":"Toxic","artist":"Britney Spears","year":2003,"apple":{"id":251948354,"url":"https://music.apple.com/us/album/toxic/251947909?i=251948354","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/38/8b/7a/388b7a8f-10ff-a4e0-7624-65e29ac6a793/828765374828.jpg/{size}x{size}bb.jpg"}},
       {"title":"Crazy in Love","artist":"Beyoncé","year":2003,"apple":{"id":262218448,"url":"https://music.apple.com/us/album/crazy-in-love/262218429?i=262218448","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/17/5d/37/175d3726-19c6-7d9a-2977-facb590b3656/888880063199.jpg/{size}x{size}bb.jpg"}},
@@ -362,10 +362,10 @@
   {
     "id": "2010s",
     "title": "2010s",
-    "era": "2004–2013",
+    "era": "2010s",
     "level": "Easy",
-    "songs": 385,
-    "description": "",
+    "songs": 415,
+    "description": "Propably the songs we know the most.",
     "tracks": [
       {"title":"Beauty And A Beat","artist":"Justin Bieber, Nicki Minaj","year":2012,"apple":{"id":1440805856,"url":"https://music.apple.com/us/album/beauty-and-a-beat-feat-nicki-minaj/1440804754?i=1440805856","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/bd/89/97/bd89971c-fc5a-47dd-5e90-a433d1b9e11f/12UMGIM31898.rgb.jpg/{size}x{size}bb.jpg"}},
       {"title":"Call Me Maybe","artist":"Carly Rae Jepsen","year":2011,"apple":{"id":1440874008,"url":"https://music.apple.com/us/album/call-me-maybe/1440873664?i=1440874008","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/14/54/19/145419b2-96f6-fc9e-3110-fbdc78022df6/12UMGIM48177.rgb.jpg/{size}x{size}bb.jpg"}},
@@ -751,7 +751,37 @@
       {"title":"Umbrella","artist":"Ember Island","year":2017,"apple":{"id":1769494571,"url":"https://music.apple.com/us/album/umbrella/1769494570?i=1769494571","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/ee/bc/65/eebc65f5-3461-f058-25c4-86e1c781685f/859722000344.png/{size}x{size}bb.jpg"}},
       {"title":"Roses (Imanbek Remix)","artist":"SAINt JHN, Imanbek","year":2019,"apple":{"id":1712389303,"url":"https://music.apple.com/us/album/roses-imanbek-remix/1712389301?i=1712389303","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/ee/5b/95/ee5b95e7-9640-8dae-41bc-a2310542335d/22CRGIM34100.rgb.jpg/{size}x{size}bb.jpg"}},
       {"title":"Opaul","artist":"Freddie Dredd","year":2018,"apple":{"id":1502133476,"url":"https://music.apple.com/us/album/opaul/1502133475?i=1502133476","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/1e/28/dc/1e28dcf1-0617-ea88-fc7a-6709482787d2/886448342847.jpg/{size}x{size}bb.jpg"}},
-      {"title":"Myself","artist":"Bazzi","year":2018,"apple":{"id":1369438949,"url":"https://music.apple.com/us/album/myself/1369438774?i=1369438949","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/7c/98/07/7c98072e-e826-d77c-e829-daa87f5706b9/075679874580.jpg/{size}x{size}bb.jpg"}}
+      {"title":"Myself","artist":"Bazzi","year":2018,"apple":{"id":1369438949,"url":"https://music.apple.com/us/album/myself/1369438774?i=1369438949","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/7c/98/07/7c98072e-e826-d77c-e829-daa87f5706b9/075679874580.jpg/{size}x{size}bb.jpg"}},
+      {"title":"HIGHEST IN THE ROOM","artist":"Travis Scott","year":2019,"apple":{"id":1482217453,"url":"https://music.apple.com/us/album/highest-in-the-room/1482217452?i=1482217453","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/d2/2d/6b/d22d6b0f-68dd-0eeb-92b4-9b6f4a43e85f/886448047452.jpg/{size}x{size}bb.jpg"}},
+      {"title":"10 Freaky Girls (with 21 Savage)","artist":"Metro Boomin, 21 Savage","year":2018,"apple":{"id":1441385312,"url":"https://music.apple.com/us/album/10-freaky-girls-feat-21-savage/1441385303?i=1441385312","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b1/e3/27/b1e3271b-b8cb-7d80-99e5-0ddd9d6e632e/00602577303210.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Space Cadet (feat. Gunna)","artist":"Metro Boomin, Gunna","year":2018,"apple":{"id":1441385311,"url":"https://music.apple.com/us/album/space-cadet-feat-gunna/1441385303?i=1441385311","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b1/e3/27/b1e3271b-b8cb-7d80-99e5-0ddd9d6e632e/00602577303210.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"NO BYSTANDERS","artist":"Travis Scott","year":2018,"apple":{"id":1421658128,"url":"https://music.apple.com/us/album/no-bystanders/1421658111?i=1421658128","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e7/49/8f/e7498f65-df8f-bead-d6e3-2a8d4d642a79/886447235317.jpg/{size}x{size}bb.jpg"}},
+      {"title":"ball w/o you","artist":"21 Savage","year":2018,"apple":{"id":1447452180,"url":"https://music.apple.com/us/album/ball-w-o-you/1447452167?i=1447452180","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Woah","artist":"Lil Baby","year":2019,"apple":{"id":1534811680,"url":"https://music.apple.com/us/album/woah/1534811491?i=1534811680","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/03/73/c3/0373c310-69ad-747f-ae78-14cf03b0464b/20UMGIM30254.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"5% TINT","artist":"Travis Scott","year":2018,"apple":{"id":1421658647,"url":"https://music.apple.com/us/album/5-tint/1421658111?i=1421658647","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e7/49/8f/e7498f65-df8f-bead-d6e3-2a8d4d642a79/886447235317.jpg/{size}x{size}bb.jpg"}},
+      {"title":"HOUSTONFORNICATION","artist":"Travis Scott","year":2018,"apple":{"id":1421658666,"url":"https://music.apple.com/us/album/houstonfornication/1421658111?i=1421658666","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e7/49/8f/e7498f65-df8f-bead-d6e3-2a8d4d642a79/886447235317.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Walk It Talk It","artist":"Migos, Drake","year":2018,"apple":{"id":1440914604,"url":"https://music.apple.com/us/album/walk-it-talk-it-feat-drake/1440914594?i=1440914604","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/ef/3a/a7/ef3aa7ad-cd69-2bb4-ce18-6c4de937a5e3/17UM1IM64709.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Bank Account","artist":"21 Savage","year":2017,"apple":{"id":1256644817,"url":"https://music.apple.com/us/album/bank-account/1256644768?i=1256644817","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music127/v4/5e/f5/9d/5ef59d0c-4a01-56c5-81c2-c2a2942f55f7/886446601298.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Plug Walk","artist":"Rich The Kid","year":2018,"apple":{"id":1416314836,"url":"https://music.apple.com/us/album/plug-walk/1416314564?i=1416314836","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/db/f9/9a/dbf99a33-3b6b-96f9-f8c0-fbc2cbcc2268/00602567941699.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"BOP","artist":"DaBaby","year":2019,"apple":{"id":1480802000,"url":"https://music.apple.com/us/album/bop/1480801991?i=1480802000","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/b6/dd/13/b6dd13a8-11b6-cc13-3e51-232128658360/19UMGIM86412.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Ransom","artist":"Lil Tecca","year":2019,"apple":{"id":1468508848,"url":"https://music.apple.com/us/album/ransom/1468508847?i=1468508848","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/02/88/84/02888430-47ff-d97d-418c-3211d7890741/19UMGIM54321.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"VALENTINO","artist":"24kGoldn","year":2019,"apple":{"id":1481391950,"url":"https://music.apple.com/us/album/valentino/1481391949?i=1481391950","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/99/11/f6/9911f6d6-c4a7-1c4f-cd85-90fed277a6f5/886448027218.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Panini","artist":"Lil Nas X","year":2019,"apple":{"id":1468166328,"url":"https://music.apple.com/us/album/panini/1468166325?i=1468166328","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/d4/c3/07d4c33e-b793-d78f-bb1b-52f1e224da88/886447788264.jpg/{size}x{size}bb.jpg"}},
+      {"title":"The London (feat. J. Cole & Travis Scott)","artist":"Young Thug, J. Cole, Travis Scott","year":2019,"apple":{"id":1477895708,"url":"https://music.apple.com/us/album/the-london-feat-j-cole-travis-scott/1477895569?i=1477895708","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/39/f9/4d/39f94db0-5d28-4247-9d7c-950cd33a36a0/075679837325.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Overdue (with Travis Scott)","artist":"Metro Boomin, Travis Scott","year":2018,"apple":{"id":1441385307,"url":"https://music.apple.com/us/album/overdue-feat-travis-scott/1441385303?i=1441385307","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b1/e3/27/b1e3271b-b8cb-7d80-99e5-0ddd9d6e632e/00602577303210.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"out for the night part 2","artist":"21 Savage","year":2018,"apple":{"id":1447717500,"url":"https://music.apple.com/us/album/out-for-the-night-part-2/1447717361?i=1447717500","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/1c/8a/50/1c8a507f-4f04-07e1-8c34-ce656a851625/886447502792.jpg/{size}x{size}bb.jpg"}},
+      {"title":"4L","artist":"21 Savage","year":2018,"apple":{"id":1447452185,"url":"https://music.apple.com/us/album/4l/1447452167?i=1447452185","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Sanguine Paradise","artist":"Lil Uzi Vert","year":2019,"apple":{"id":1459322719,"url":"https://music.apple.com/us/album/sanguine-paradise/1459322716?i=1459322719","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/85/3e/26/853e26f1-8347-24c9-d30c-6d94738be636/075679848413.jpg/{size}x{size}bb.jpg"}},
+      {"title":"The Race (Remix)","artist":"Tay-K, 21 Savage, Young Nudy","year":2017,"apple":{"id":1324759718,"url":"https://music.apple.com/us/album/the-race-feat-21-savage-young-nudy-remix/1324759046?i=1324759718","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/ef/89/9c/ef899ccc-bd0e-d94d-92f4-22eeb86a8ca9/886446887432.jpg/{size}x{size}bb.jpg"}},
+      {"title":"REEL IT IN","artist":"Aminé","year":2018,"apple":{"id":1423806275,"url":"https://music.apple.com/us/album/reel-it-in/1423805582?i=1423806275","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/e8/f9/da/e8f9daf1-1597-7896-ac21-412b2132ce9a/00602567976202.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"ZEZE (feat. Travis Scott & Offset)","artist":"Kodak Black, Offset, Travis Scott","year":2018,"apple":{"id":1438652331,"url":"https://music.apple.com/de/album/zeze-feat-travis-scott-offset/1438652330?i=1438652331","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/df/cd/09/dfcd091e-2441-6183-754f-de2b1c0fa8b1/075679860170.jpg/{size}x{size}bb.jpg","store":"de"}},
+      {"title":"Wake Up in the Sky","artist":"Gucci Mane, Bruno Mars, Kodak Black","year":2018,"apple":{"id":1445552128,"url":"https://music.apple.com/us/album/wake-up-in-the-sky/1445552111?i=1445552128","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/79/25/9a/79259a8e-b09e-cf09-e2d2-1159956cf303/075679856241.jpg/{size}x{size}bb.jpg"}},
+      {"title":"New Patek","artist":"Lil Uzi Vert","year":2018,"apple":{"id":1437022894,"url":"https://music.apple.com/us/album/new-patek/1437022892?i=1437022894","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/29/4a/50/294a508c-4c6d-b41b-c2f6-ace0da19adc0/075679861900.jpg/{size}x{size}bb.jpg"}},
+      {"title":"can't leave without it","artist":"21 Savage","year":2018,"apple":{"id":1447452177,"url":"https://music.apple.com/us/album/cant-leave-without-it/1447452167?i=1447452177","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"pad lock","artist":"21 Savage","year":2018,"apple":{"id":1447452182,"url":"https://music.apple.com/us/album/pad-lock/1447452167?i=1447452182","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"out for the night","artist":"21 Savage","year":2018,"apple":{"id":1447452172,"url":"https://music.apple.com/us/album/out-for-the-night/1447452167?i=1447452172","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"1.5","artist":"21 Savage","year":2018,"apple":{"id":1447452174,"url":"https://music.apple.com/us/album/1-5/1447452167?i=1447452174","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"7 rings","artist":"Ariana Grande","year":2019,"apple":{"id":1450334168,"url":"https://music.apple.com/us/album/7-rings/1450333975?i=1450334168","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/69/07/bb6907de-8ad4-970b-3311-121320e1bf9c/19UMGIM03691.rgb.jpg/{size}x{size}bb.jpg"}}
     ]
   },
   {
@@ -760,7 +790,7 @@
     "era": "2004–2013",
     "level": "Hard",
     "songs": 63,
-    "description": "Song to be independent to.",
+    "description": "Songs to be independent to.",
     "tracks": [
       {"title":"Take Me Out","artist":"Franz Ferdinand","year":2004,"apple":{"id":315844084,"url":"https://music.apple.com/us/album/take-me-out/315843479?i=315844084","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/83/c6/54/83c6541f-3b90-b46a-b46a-17bf8fd9af16/5034202113645.png/{size}x{size}bb.jpg"}},
       {"title":"Float On","artist":"Modest Mouse","year":2004,"apple":{"id":190780833,"url":"https://music.apple.com/us/album/float-on/190780827?i=190780833","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3a/15/73/3a1573f6-fd63-bd5d-3182-65399cbade55/mzi.kplxkuxw.jpg/{size}x{size}bb.jpg"}},
@@ -830,9 +860,9 @@
   {
     "id": "2020",
     "title": "2020s",
-    "era": "2020–2029",
+    "era": "2020s",
     "level": "Easy",
-    "songs": 202,
+    "songs": 214,
     "description": "The Newest Stuff you probably heard at least once.",
     "tracks": [
       {"title":"Espresso","artist":"Sabrina Carpenter","year":2024,"apple":{"id":1746801012,"url":"https://music.apple.com/us/album/espresso-on-vacation-version/1746800651?i=1746801012","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/57/e8/7b/57e87ba0-5057-9bb9-c247-ce7dbe426e89/24UMGIM55213.rgb.jpg/{size}x{size}bb.jpg"}},
@@ -1036,7 +1066,19 @@
       {"title":"Bored In The House","artist":"Tyga, Curtis Roach","year":2020,"apple":{"id":1504901780,"url":"https://music.apple.com/us/album/bored-in-the-house/1504901779?i=1504901780","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/84/2d/1a/842d1a0e-5220-070f-82c1-5d3f23d9d09a/886448384298.jpg/{size}x{size}bb.jpg"}},
       {"title":"Whoopty","artist":"CJ","year":2020,"apple":{"id":1553761345,"url":"https://music.apple.com/us/album/whoopty/1553761341?i=1553761345","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/81/41/8c/81418ca2-4ca1-eced-5d50-2eec74a4faab/093624881896.jpg/{size}x{size}bb.jpg"}},
       {"title":"Coming for You (Freestyle)","artist":"SwitchOTR","year":2021,"apple":{"id":1600076530,"url":"https://music.apple.com/us/album/coming-for-you-feat-a1-x-j1/1600076529?i=1600076530","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/ec/55/f6/ec55f66f-afd7-2576-67bc-85d206a5b0b9/886449808113.jpg/{size}x{size}bb.jpg"}},
-      {"title":"Mood (feat. iann dior)","artist":"24kGoldn, iann dior","year":2020,"apple":{"id":1559066401,"url":"https://music.apple.com/us/album/mood-feat-iann-dior/1559066377?i=1559066401","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/ac/fe/35/acfe3571-3872-92c6-e208-072fe362d7c3/886449095070.jpg/{size}x{size}bb.jpg"}}
+      {"title":"Mood (feat. iann dior)","artist":"24kGoldn, iann dior","year":2020,"apple":{"id":1559066401,"url":"https://music.apple.com/us/album/mood-feat-iann-dior/1559066377?i=1559066401","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/ac/fe/35/acfe3571-3872-92c6-e208-072fe362d7c3/886449095070.jpg/{size}x{size}bb.jpg"}},
+      {"title":"THE SCOTTS","artist":"THE SCOTTS, Travis Scott, Kid Cudi","year":2020,"apple":{"id":1509789615,"url":"https://music.apple.com/us/album/the-scotts/1509789614?i=1509789615","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/05/54/44/05544410-9588-3d78-6986-c951a30ae414/886448429968.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Miss The Rage (feat. Playboi Carti)","artist":"Trippie Redd, Playboi Carti","year":2021,"apple":{"id":1711601134,"url":"https://music.apple.com/us/album/miss-the-rage/1711600555?i=1711601134","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/f5/b1/06/f5b1063d-5d21-245f-e196-698e3d708ddb/842812156427.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Sky","artist":"Playboi Carti","year":2020,"apple":{"id":1546163990,"url":"https://music.apple.com/us/album/sky/1546163603?i=1546163990","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/ba/1e/05/ba1e058e-5637-e53c-563c-f5b9a1a6c344/20UM1IM18331.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Walk Em Down (feat. Roddy Ricch)","artist":"NLE Choppa, Roddy Ricch","year":2020,"apple":{"id":1525263228,"url":"https://music.apple.com/us/album/walk-em-down-feat-roddy-ricch/1525263223?i=1525263228","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/da/9f/a0/da9fa0c8-517f-5951-81e6-ba38ef37b408/093624890188.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Shotta Flow 5","artist":"NLE Choppa","year":2020,"apple":{"id":1525254140,"url":"https://music.apple.com/us/album/shotta-flow-5/1525254127?i=1525254140","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/cf/53/19/cf5319c3-60a6-3020-cbec-c75a4eda1281/093624890195.jpg/{size}x{size}bb.jpg"}},
+      {"title":"ROCKSTAR (feat. Roddy Ricch)","artist":"DaBaby, Roddy Ricch","year":2020,"apple":{"id":1508028869,"url":"https://music.apple.com/us/album/rockstar-feat-roddy-ricch/1508028565?i=1508028869","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/1b/63/04/1b630400-490e-245b-a26f-0120f6f253c8/20UMGIM28168.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Diva (feat. Lil Tecca)","artist":"The Kid LAROI, Lil Tecca","year":2020,"apple":{"id":1496390491,"url":"https://music.apple.com/us/album/diva-feat-lil-tecca/1496390488?i=1496390491","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/42/28/17/42281764-77bd-fb3d-1d3c-64c69c973d1f/886448251910.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Yessirskiii","artist":"Lil Uzi Vert, 21 Savage","year":2020,"apple":{"id":1502707635,"url":"https://music.apple.com/us/album/yessirskiii/1502707380?i=1502707635","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/d0/4b/e9/d04be964-5804-8625-81c1-dd8a68ff4dfc/075679820310.jpg/{size}x{size}bb.jpg"}},
+      {"title":"N95","artist":"Kendrick Lamar","year":2022,"apple":{"id":1626194607,"url":"https://music.apple.com/us/album/n95/1626194593?i=1626194607","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/eb/44/c9/eb44c9e1-401e-b118-6254-7b9a10888c39/22UMGIM52376.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Surround Sound (feat. 21 Savage & Baby Tate)","artist":"JID, 21 Savage, Baby Tate","year":2022,"apple":{"id":1603923459,"url":"https://music.apple.com/us/album/surround-sound-feat-21-savage-baby-tate/1603923225?i=1603923459","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/4d/c4/99/4dc499cb-96a9-134f-a0af-1690bd68fb64/21UM1IM55899.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Honest (feat. Don Toliver)","artist":"Justin Bieber, Don Toliver","year":2022,"apple":{"id":1620923762,"url":"https://music.apple.com/us/album/honest-feat-don-toliver/1620923758?i=1620923762","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/24/85/80/248580fb-1d8e-f80a-bf61-53233625f28f/22UMGIM45370.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"16","artist":"Baby Keem","year":2021,"apple":{"id":1587041590,"url":"https://music.apple.com/us/album/16/1587040935?i=1587041590","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/c5/28/0e/c5280eeb-0a5e-9906-3bcf-0cebfe06e318/886449597543.jpg/{size}x{size}bb.jpg"}}
     ]
   },
   {
@@ -1444,8 +1486,8 @@
     "id": "hiphopMix",
     "title": "Hip-Hop Mix",
     "era": "1976–1978",
-    "level": "Hard",
-    "songs": 100,
+    "level": "Medium",
+    "songs": 149,
     "description": "The Top Hip-Hop tracks in one Playlist.",
     "tracks": [
       {"title":"Alright","artist":"Kendrick Lamar","year":2015,"apple":{"id":1440871886,"url":"https://music.apple.com/us/album/alright/1440871877?i=1440871886","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/b5/a6/91/b5a69171-5232-3d5b-9c15-8963802f83dd/15UMGIM15814.rgb.jpg/{size}x{size}bb.jpg"}},
@@ -1547,7 +1589,56 @@
       {"title":"FDT","artist":"YG, Nipsey Hussle","year":2016,"apple":{"id":1442954373,"url":"https://music.apple.com/us/album/fdt-feat-nipsey-hussle/1442954219?i=1442954373","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/94/64/82/9464824d-54de-3d59-4ff7-0b2a4119b267/16UMGIM33903.rgb.jpg/{size}x{size}bb.jpg"}},
       {"title":"Yucky Blucky Fruitcake","artist":"Doechii","year":2020,"apple":{"id":1538788668,"url":"https://music.apple.com/us/album/yucky-blucky-fruitcake/1538788665?i=1538788668","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/d3/3a/e8/d33ae8c6-3804-3fe5-40c1-f7e6b5e77a6a/195039925087_cover.jpg/{size}x{size}bb.jpg"}},
       {"title":"Big Drip","artist":"Fivio Foreign","year":2019,"apple":{"id":1509515288,"url":"https://music.apple.com/us/album/big-drip/1509515043?i=1509515288","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/24/b5/26/24b52610-ba64-744e-cdc7-5b32217fa048/886448432609.jpg/{size}x{size}bb.jpg"}},
-      {"title":"Players","artist":"Coi Leray","year":2022,"apple":{"id":1663560769,"url":"https://music.apple.com/us/album/players/1663560517?i=1663560769","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/fe/3e/20/fe3e20a2-3809-ccd5-06cd-0f867b86c7d2/22UM1IM37105.rgb.jpg/{size}x{size}bb.jpg"}}
+      {"title":"Players","artist":"Coi Leray","year":2022,"apple":{"id":1663560769,"url":"https://music.apple.com/us/album/players/1663560517?i=1663560769","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/fe/3e/20/fe3e20a2-3809-ccd5-06cd-0f867b86c7d2/22UM1IM37105.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"No Role Modelz","artist":"J. Cole","year":2014,"apple":{"id":1600773036,"url":"https://music.apple.com/us/album/no-role-modelz/1600772499?i=1600773036","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/ee/28/67/ee286794-6c33-a8c2-5c37-c04f1cb5e8a6/21UM1IM54415.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"HIGHEST IN THE ROOM","artist":"Travis Scott","year":2019,"apple":{"id":1482217453,"url":"https://music.apple.com/us/album/highest-in-the-room/1482217452?i=1482217453","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/d2/2d/6b/d22d6b0f-68dd-0eeb-92b4-9b6f4a43e85f/886448047452.jpg/{size}x{size}bb.jpg"}},
+      {"title":"10 Freaky Girls (with 21 Savage)","artist":"Metro Boomin, 21 Savage","year":2018,"apple":{"id":1441385312,"url":"https://music.apple.com/us/album/10-freaky-girls-feat-21-savage/1441385303?i=1441385312","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b1/e3/27/b1e3271b-b8cb-7d80-99e5-0ddd9d6e632e/00602577303210.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Space Cadet (feat. Gunna)","artist":"Metro Boomin, Gunna","year":2018,"apple":{"id":1441385311,"url":"https://music.apple.com/us/album/space-cadet-feat-gunna/1441385303?i=1441385311","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b1/e3/27/b1e3271b-b8cb-7d80-99e5-0ddd9d6e632e/00602577303210.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"NO BYSTANDERS","artist":"Travis Scott","year":2018,"apple":{"id":1421658128,"url":"https://music.apple.com/us/album/no-bystanders/1421658111?i=1421658128","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e7/49/8f/e7498f65-df8f-bead-d6e3-2a8d4d642a79/886447235317.jpg/{size}x{size}bb.jpg"}},
+      {"title":"STARGAZING","artist":"Travis Scott","year":2018,"apple":{"id":1421658117,"url":"https://music.apple.com/us/album/stargazing/1421658111?i=1421658117","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e7/49/8f/e7498f65-df8f-bead-d6e3-2a8d4d642a79/886447235317.jpg/{size}x{size}bb.jpg"}},
+      {"title":"ball w/o you","artist":"21 Savage","year":2018,"apple":{"id":1447452180,"url":"https://music.apple.com/us/album/ball-w-o-you/1447452167?i=1447452180","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"THE SCOTTS","artist":"THE SCOTTS, Travis Scott, Kid Cudi","year":2020,"apple":{"id":1509789615,"url":"https://music.apple.com/us/album/the-scotts/1509789614?i=1509789615","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/05/54/44/05544410-9588-3d78-6986-c951a30ae414/886448429968.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Woah","artist":"Lil Baby","year":2019,"apple":{"id":1534811680,"url":"https://music.apple.com/us/album/woah/1534811491?i=1534811680","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/03/73/c3/0373c310-69ad-747f-ae78-14cf03b0464b/20UMGIM30254.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"5% TINT","artist":"Travis Scott","year":2018,"apple":{"id":1421658647,"url":"https://music.apple.com/us/album/5-tint/1421658111?i=1421658647","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e7/49/8f/e7498f65-df8f-bead-d6e3-2a8d4d642a79/886447235317.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Miss The Rage (feat. Playboi Carti)","artist":"Trippie Redd, Playboi Carti","year":2021,"apple":{"id":1711601134,"url":"https://music.apple.com/us/album/miss-the-rage/1711600555?i=1711601134","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/f5/b1/06/f5b1063d-5d21-245f-e196-698e3d708ddb/842812156427.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Sky","artist":"Playboi Carti","year":2020,"apple":{"id":1546163990,"url":"https://music.apple.com/us/album/sky/1546163603?i=1546163990","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/ba/1e/05/ba1e058e-5637-e53c-563c-f5b9a1a6c344/20UM1IM18331.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"HOUSTONFORNICATION","artist":"Travis Scott","year":2018,"apple":{"id":1421658666,"url":"https://music.apple.com/us/album/houstonfornication/1421658111?i=1421658666","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e7/49/8f/e7498f65-df8f-bead-d6e3-2a8d4d642a79/886447235317.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Walk It Talk It","artist":"Migos, Drake","year":2018,"apple":{"id":1440914604,"url":"https://music.apple.com/us/album/walk-it-talk-it-feat-drake/1440914594?i=1440914604","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/ef/3a/a7/ef3aa7ad-cd69-2bb4-ce18-6c4de937a5e3/17UM1IM64709.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Bank Account","artist":"21 Savage","year":2017,"apple":{"id":1256644817,"url":"https://music.apple.com/us/album/bank-account/1256644768?i=1256644817","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music127/v4/5e/f5/9d/5ef59d0c-4a01-56c5-81c2-c2a2942f55f7/886446601298.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Plug Walk","artist":"Rich The Kid","year":2018,"apple":{"id":1416314836,"url":"https://music.apple.com/us/album/plug-walk/1416314564?i=1416314836","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/db/f9/9a/dbf99a33-3b6b-96f9-f8c0-fbc2cbcc2268/00602567941699.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Walk Em Down (feat. Roddy Ricch)","artist":"NLE Choppa, Roddy Ricch","year":2020,"apple":{"id":1525263228,"url":"https://music.apple.com/us/album/walk-em-down-feat-roddy-ricch/1525263223?i=1525263228","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/da/9f/a0/da9fa0c8-517f-5951-81e6-ba38ef37b408/093624890188.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Shotta Flow 5","artist":"NLE Choppa","year":2020,"apple":{"id":1525254140,"url":"https://music.apple.com/us/album/shotta-flow-5/1525254127?i=1525254140","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/cf/53/19/cf5319c3-60a6-3020-cbec-c75a4eda1281/093624890195.jpg/{size}x{size}bb.jpg"}},
+      {"title":"ROCKSTAR (feat. Roddy Ricch)","artist":"DaBaby, Roddy Ricch","year":2020,"apple":{"id":1508028869,"url":"https://music.apple.com/us/album/rockstar-feat-roddy-ricch/1508028565?i=1508028869","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/1b/63/04/1b630400-490e-245b-a26f-0120f6f253c8/20UMGIM28168.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Diva (feat. Lil Tecca)","artist":"The Kid LAROI, Lil Tecca","year":2020,"apple":{"id":1496390491,"url":"https://music.apple.com/us/album/diva-feat-lil-tecca/1496390488?i=1496390491","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/42/28/17/42281764-77bd-fb3d-1d3c-64c69c973d1f/886448251910.jpg/{size}x{size}bb.jpg"}},
+      {"title":"BOP","artist":"DaBaby","year":2019,"apple":{"id":1480802000,"url":"https://music.apple.com/us/album/bop/1480801991?i=1480802000","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/b6/dd/13/b6dd13a8-11b6-cc13-3e51-232128658360/19UMGIM86412.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Ransom","artist":"Lil Tecca","year":2019,"apple":{"id":1468508848,"url":"https://music.apple.com/us/album/ransom/1468508847?i=1468508848","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/02/88/84/02888430-47ff-d97d-418c-3211d7890741/19UMGIM54321.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"VALENTINO","artist":"24kGoldn","year":2019,"apple":{"id":1481391950,"url":"https://music.apple.com/us/album/valentino/1481391949?i=1481391950","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/99/11/f6/9911f6d6-c4a7-1c4f-cd85-90fed277a6f5/886448027218.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Panini","artist":"Lil Nas X","year":2019,"apple":{"id":1468166328,"url":"https://music.apple.com/us/album/panini/1468166325?i=1468166328","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/d4/c3/07d4c33e-b793-d78f-bb1b-52f1e224da88/886447788264.jpg/{size}x{size}bb.jpg"}},
+      {"title":"The London (feat. J. Cole & Travis Scott)","artist":"Young Thug, J. Cole, Travis Scott","year":2019,"apple":{"id":1477895708,"url":"https://music.apple.com/us/album/the-london-feat-j-cole-travis-scott/1477895569?i=1477895708","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/39/f9/4d/39f94db0-5d28-4247-9d7c-950cd33a36a0/075679837325.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Overdue (with Travis Scott)","artist":"Metro Boomin, Travis Scott","year":2018,"apple":{"id":1441385307,"url":"https://music.apple.com/us/album/overdue-feat-travis-scott/1441385303?i=1441385307","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b1/e3/27/b1e3271b-b8cb-7d80-99e5-0ddd9d6e632e/00602577303210.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"out for the night part 2","artist":"21 Savage","year":2018,"apple":{"id":1447717500,"url":"https://music.apple.com/us/album/out-for-the-night-part-2/1447717361?i=1447717500","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/1c/8a/50/1c8a507f-4f04-07e1-8c34-ce656a851625/886447502792.jpg/{size}x{size}bb.jpg"}},
+      {"title":"4L","artist":"21 Savage","year":2018,"apple":{"id":1447452185,"url":"https://music.apple.com/us/album/4l/1447452167?i=1447452185","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Sanguine Paradise","artist":"Lil Uzi Vert","year":2019,"apple":{"id":1459322719,"url":"https://music.apple.com/us/album/sanguine-paradise/1459322716?i=1459322719","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/85/3e/26/853e26f1-8347-24c9-d30c-6d94738be636/075679848413.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Yessirskiii","artist":"Lil Uzi Vert, 21 Savage","year":2020,"apple":{"id":1502707635,"url":"https://music.apple.com/us/album/yessirskiii/1502707380?i=1502707635","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/d0/4b/e9/d04be964-5804-8625-81c1-dd8a68ff4dfc/075679820310.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Bandit (with YoungBoy Never Broke Again)","artist":"Juice WRLD, YoungBoy Never Broke Again","year":2019,"apple":{"id":1481647419,"url":"https://music.apple.com/us/album/bandit/1481647240?i=1481647419","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/a2/0a/ef/a20aef87-5300-3799-7843-dd06989602a4/19UMGIM88621.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"The Race (Remix)","artist":"Tay-K, 21 Savage, Young Nudy","year":2017,"apple":{"id":1324759718,"url":"https://music.apple.com/us/album/the-race-feat-21-savage-young-nudy-remix/1324759046?i=1324759718","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/ef/89/9c/ef899ccc-bd0e-d94d-92f4-22eeb86a8ca9/886446887432.jpg/{size}x{size}bb.jpg"}},
+      {"title":"REEL IT IN","artist":"Aminé","year":2018,"apple":{"id":1423806275,"url":"https://music.apple.com/us/album/reel-it-in/1423805582?i=1423806275","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/e8/f9/da/e8f9daf1-1597-7896-ac21-412b2132ce9a/00602567976202.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"ZEZE (feat. Travis Scott & Offset)","artist":"Kodak Black, Offset, Travis Scott","year":2018,"apple":{"id":1438652331,"url":"https://music.apple.com/de/album/zeze-feat-travis-scott-offset/1438652330?i=1438652331","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/df/cd/09/dfcd091e-2441-6183-754f-de2b1c0fa8b1/075679860170.jpg/{size}x{size}bb.jpg","store":"de"}},
+      {"title":"Wake Up in the Sky","artist":"Gucci Mane, Bruno Mars, Kodak Black","year":2018,"apple":{"id":1445552128,"url":"https://music.apple.com/us/album/wake-up-in-the-sky/1445552111?i=1445552128","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/79/25/9a/79259a8e-b09e-cf09-e2d2-1159956cf303/075679856241.jpg/{size}x{size}bb.jpg"}},
+      {"title":"New Patek","artist":"Lil Uzi Vert","year":2018,"apple":{"id":1437022894,"url":"https://music.apple.com/us/album/new-patek/1437022892?i=1437022894","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/29/4a/50/294a508c-4c6d-b41b-c2f6-ace0da19adc0/075679861900.jpg/{size}x{size}bb.jpg"}},
+      {"title":"can't leave without it","artist":"21 Savage","year":2018,"apple":{"id":1447452177,"url":"https://music.apple.com/us/album/cant-leave-without-it/1447452167?i=1447452177","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"pad lock","artist":"21 Savage","year":2018,"apple":{"id":1447452182,"url":"https://music.apple.com/us/album/pad-lock/1447452167?i=1447452182","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"out for the night","artist":"21 Savage","year":2018,"apple":{"id":1447452172,"url":"https://music.apple.com/us/album/out-for-the-night/1447452167?i=1447452172","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"1.5","artist":"21 Savage","year":2018,"apple":{"id":1447452174,"url":"https://music.apple.com/us/album/1-5/1447452167?i=1447452174","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/94/f7/0794f7c3-0042-6aa8-022e-ae008868eb75/886447365144.jpg/{size}x{size}bb.jpg"}},
+      {"title":"N95","artist":"Kendrick Lamar","year":2022,"apple":{"id":1626194607,"url":"https://music.apple.com/us/album/n95/1626194593?i=1626194607","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/eb/44/c9/eb44c9e1-401e-b118-6254-7b9a10888c39/22UMGIM52376.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Surround Sound (feat. 21 Savage & Baby Tate)","artist":"JID, 21 Savage, Baby Tate","year":2022,"apple":{"id":1603923459,"url":"https://music.apple.com/us/album/surround-sound-feat-21-savage-baby-tate/1603923225?i=1603923459","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/4d/c4/99/4dc499cb-96a9-134f-a0af-1690bd68fb64/21UM1IM55899.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Honest (feat. Don Toliver)","artist":"Justin Bieber, Don Toliver","year":2022,"apple":{"id":1620923762,"url":"https://music.apple.com/us/album/honest-feat-don-toliver/1620923758?i=1620923762","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/24/85/80/248580fb-1d8e-f80a-bf61-53233625f28f/22UMGIM45370.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"7 rings","artist":"Ariana Grande","year":2019,"apple":{"id":1450334168,"url":"https://music.apple.com/us/album/7-rings/1450333975?i=1450334168","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/69/07/bb6907de-8ad4-970b-3311-121320e1bf9c/19UMGIM03691.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"16","artist":"Baby Keem","year":2021,"apple":{"id":1587041590,"url":"https://music.apple.com/us/album/16/1587040935?i=1587041590","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/c5/28/0e/c5280eeb-0a5e-9906-3bcf-0cebfe06e318/886449597543.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Sunflower","artist":"Post Malone, Swae Lee","year":2018,"apple":{"id":1477887415,"url":"https://music.apple.com/us/album/sunflower-spider-man-into-the-spider-verse/1477886950?i=1477887415","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/6c/13/27/6c13279a-399b-2631-3cb2-6233a91d7a53/19UMGIM78325.rgb.jpg/{size}x{size}bb.jpg"}},
+      {"title":"HERZ","artist":"CRO, BUNT.","year":2024,"apple":{"id":1781721758,"url":"https://music.apple.com/us/album/herz/1781721755?i=1781721758","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/20/0a/f9/200af9d7-497b-ce20-17fd-2ca2d99f738a/196872698589.jpg/{size}x{size}bb.jpg"}},
+      {"title":"1994","artist":"RIN","year":2024,"apple":{"id":1767578347,"url":"https://music.apple.com/us/album/1994/1767578346?i=1767578347","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/54/69/ce/5469cefb-f6ce-55bf-61b3-a8688bfb90ed/196872447224.jpg/{size}x{size}bb.jpg"}},
+      {"title":"Dior 2001","artist":"RIN","year":2018,"apple":{"id":1473865026,"url":"https://music.apple.com/us/album/dior-2001/1473865023?i=1473865026","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/28/dd/16/28dd1679-3ccd-fe87-4efc-f9b26486736e/886447811375.jpg/{size}x{size}bb.jpg"}}
     ]
   },
   {
@@ -1555,7 +1646,7 @@
     "title": "Pop-Mix",
     "era": "1957–2025",
     "level": "Easy",
-    "songs": 159,
+    "songs": 160,
     "description": "The most popular Pop Songs.",
     "tracks": [
       {"title":"drivers license","artist":"Olivia Rodrigo","year":2021,"apple":{"id":1560735480,"url":"https://music.apple.com/us/album/drivers-license/1560734944?i=1560735480","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/02/ed/8c/02ed8cab-c089-2fdd-7ce6-ab334a9a4e19/21UMGIM26093.rgb.jpg/{size}x{size}bb.jpg"}},
@@ -1716,7 +1807,8 @@
       {"title":"Iris","artist":"The Goo Goo Dolls","year":1998,"apple":{"id":1109658204,"url":"https://music.apple.com/us/album/iris/1109658139?i=1109658204","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/2c/13/18/2c131801-00af-58b1-3cc2-13abf4ad5416/093624919162.jpg/{size}x{size}bb.jpg"}},
       {"title":"Get Lucky (Radio Edit) (feat. Pharrell Williams and Nile Rodgers)","artist":"Daft Punk, Pharrell Williams, Nile Rodgers","year":2013,"apple":{"id":636968288,"url":"https://music.apple.com/de/album/get-lucky-feat-pharrell-williams-radio-edit/636967993?i=636968288","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/1c/da/5a/1cda5a7d-90ad-8643-efb2-7641afb13418/886443973442.jpg/{size}x{size}bb.jpg","store":"de"}},
       {"title":"Uptown Funk","artist":"Mark Ronson, Bruno Mars","year":2014,"apple":{"id":943946671,"url":"https://music.apple.com/us/album/uptown-funk-feat-bruno-mars/943946661?i=943946671","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/7e/30/c5/7e30c572-aa47-5f7b-c6fd-42d50cd2c56d/886444959797.jpg/{size}x{size}bb.jpg"}},
-      {"title":"Always Be My Baby","artist":"Mariah Carey","year":1995,"apple":{"id":169962272,"url":"https://music.apple.com/us/album/always-be-my-baby/169962059?i=169962272","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/01/c7/07/01c70785-7c45-a82b-7d9a-49f521e4d373/074646670026.jpg/{size}x{size}bb.jpg"}}
+      {"title":"Always Be My Baby","artist":"Mariah Carey","year":1995,"apple":{"id":169962272,"url":"https://music.apple.com/us/album/always-be-my-baby/169962059?i=169962272","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/01/c7/07/01c70785-7c45-a82b-7d9a-49f521e4d373/074646670026.jpg/{size}x{size}bb.jpg"}},
+      {"title":"7 rings","artist":"Ariana Grande","year":2019,"apple":{"id":1450334168,"url":"https://music.apple.com/us/album/7-rings/1450333975?i=1450334168","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/69/07/bb6907de-8ad4-970b-3311-121320e1bf9c/19UMGIM03691.rgb.jpg/{size}x{size}bb.jpg"}}
     ]
   },
   {
@@ -1725,7 +1817,7 @@
     "era": "1964–2026",
     "level": "Hard",
     "songs": 121,
-    "description": "The Greates Rock Songs of all Time. But be careful, this Playlist is Rock Hard.",
+    "description": "The Greatest Rock Songs of all Time. But be careful, this Playlist is Rock Hard.",
     "tracks": [
       {"title":"Can’t Stop","artist":"Red Hot Chili Peppers","year":2002,"apple":{"id":945578427,"url":"https://music.apple.com/us/album/cant-stop/945578420?i=945578427","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/73/ec/27/73ec2771-a008-e55b-8ccd-faf6257d5cd0/093624932178.jpg/{size}x{size}bb.jpg"}},
       {"title":"Iris","artist":"The Goo Goo Dolls","year":1998,"apple":{"id":1109658204,"url":"https://music.apple.com/us/album/iris/1109658139?i=1109658204","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/2c/13/18/2c131801-00af-58b1-3cc2-13abf4ad5416/093624919162.jpg/{size}x{size}bb.jpg"}},
@@ -1855,7 +1947,7 @@
     "title": "Deutsch Rap",
     "era": "2010–2026",
     "level": "Hard",
-    "songs": 82,
+    "songs": 83,
     "description": "All the Deutschen Raps you need.",
     "tracks": [
       {"title":"Neymar","artist":"Capital Bra, Ufo361","year":2018,"apple":{"id":1492272244,"url":"https://music.apple.com/de/album/neymar-feat-ufo361/1492271958?i=1492272244","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/22/ed/46/22ed4648-bad3-85f4-4d00-ff34d56c4e0b/19UM1IM12739.rgb.jpg/{size}x{size}bb.jpg","store":"de"}},
@@ -1939,7 +2031,8 @@
       {"title":"1994","artist":"RIN","year":2024,"apple":{"id":1767578347,"url":"https://music.apple.com/us/album/1994/1767578346?i=1767578347","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/54/69/ce/5469cefb-f6ce-55bf-61b3-a8688bfb90ed/196872447224.jpg/{size}x{size}bb.jpg"}},
       {"title":"Easy","artist":"Cro","year":2012,"apple":{"id":1806153779,"url":"https://music.apple.com/us/album/easy/1806153776?i=1806153779","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/76/8d/c2/768dc2b1-120a-87b8-a803-c1dc06e35055/4018939224325.jpg/{size}x{size}bb.jpg"}},
       {"title":"Einmal um die Welt","artist":"Cro","year":2012,"apple":{"id":1806153913,"url":"https://music.apple.com/us/album/einmal-um-die-welt/1806153912?i=1806153913","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/32/d3/3e/32d33e35-05ce-f4c9-aa56-74f812de77aa/4018939234751.jpg/{size}x{size}bb.jpg"}},
-      {"title":"Was du Liebe nennst","artist":"Bausa","year":2017,"apple":{"id":1283042763,"url":"https://music.apple.com/us/album/was-du-liebe-nennst/1283041779?i=1283042763","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/78/b3/dd/78b3dd18-1363-33db-0a8c-809c9bee513c/190295732172.jpg/{size}x{size}bb.jpg"}}
+      {"title":"Was du Liebe nennst","artist":"Bausa","year":2017,"apple":{"id":1283042763,"url":"https://music.apple.com/us/album/was-du-liebe-nennst/1283041779?i=1283042763","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/78/b3/dd/78b3dd18-1363-33db-0a8c-809c9bee513c/190295732172.jpg/{size}x{size}bb.jpg"}},
+      {"title":"HERZ","artist":"CRO, BUNT.","year":2024,"apple":{"id":1781721758,"url":"https://music.apple.com/us/album/herz/1781721755?i=1781721758","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/20/0a/f9/200af9d7-497b-ce20-17fd-2ca2d99f738a/196872698589.jpg/{size}x{size}bb.jpg"}}
     ]
   },
   {
@@ -2340,7 +2433,7 @@
     "id": "memesongs",
     "title": "Meme Songs",
     "era": "1961–2025",
-    "level": "Medium",
+    "level": "Hard",
     "songs": 101,
     "description": "Songs that became a meme or accompany one.",
     "tracks": [
@@ -2450,9 +2543,9 @@
   {
     "id": "coronasongs",
     "title": "Corona Songs",
-    "era": "2002–2021",
+    "era": "2020-2023",
     "level": "Medium",
-    "songs": 63,
+    "songs": 64,
     "description": "The Songs you listened to while being hopefully not sick.",
     "tracks": [
       {"title":"Supalonely (feat. Gus Dapperton)","artist":"BENEE, Gus Dapperton","year":2019,"apple":{"id":1486925302,"url":"https://music.apple.com/us/album/supalonely-feat-gus-dapperton/1486925300?i=1486925302","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/4f/f1/07/4ff1072a-d58c-2b8c-8866-0ccceac192ee/19UMGIM99088.rgb.jpg/{size}x{size}bb.jpg"}},
@@ -2517,7 +2610,8 @@
       {"title":"Cool for the Summer","artist":"Demi Lovato","year":2015,"apple":{"id":1440649311,"url":"https://music.apple.com/us/album/cool-for-the-summer/1440649084?i=1440649311","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/ea/08/9e/ea089eb7-9e3c-a442-8656-7cac2da0309f/00050087335120.rgb.jpg/{size}x{size}bb.jpg"}},
       {"title":"Myself","artist":"Bazzi","year":2018,"apple":{"id":1369438949,"url":"https://music.apple.com/us/album/myself/1369438774?i=1369438949","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/7c/98/07/7c98072e-e826-d77c-e829-daa87f5706b9/075679874580.jpg/{size}x{size}bb.jpg"}},
       {"title":"A Thousand Miles","artist":"Vanessa Carlton","year":2002,"apple":{"id":1440865959,"url":"https://music.apple.com/us/album/a-thousand-miles/1440865939?i=1440865959","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/ca/a3/28/caa328ee-6aab-34cb-5ddd-30092599dfbd/06UMGIM22940.rgb.jpg/{size}x{size}bb.jpg"}},
-      {"title":"Mood (feat. iann dior)","artist":"24kGoldn, iann dior","year":2020,"apple":{"id":1559066401,"url":"https://music.apple.com/us/album/mood-feat-iann-dior/1559066377?i=1559066401","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/ac/fe/35/acfe3571-3872-92c6-e208-072fe362d7c3/886449095070.jpg/{size}x{size}bb.jpg"}}
+      {"title":"Mood (feat. iann dior)","artist":"24kGoldn, iann dior","year":2020,"apple":{"id":1559066401,"url":"https://music.apple.com/us/album/mood-feat-iann-dior/1559066377?i=1559066401","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/ac/fe/35/acfe3571-3872-92c6-e208-072fe362d7c3/886449095070.jpg/{size}x{size}bb.jpg"}},
+      {"title":"ROCKSTAR (feat. Roddy Ricch)","artist":"DaBaby, Roddy Ricch","year":2020,"apple":{"id":1508028869,"url":"https://music.apple.com/us/album/rockstar-feat-roddy-ricch/1508028565?i=1508028869","artwork":"https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/1b/63/04/1b630400-490e-245b-a26f-0120f6f253c8/20UMGIM28168.rgb.jpg/{size}x{size}bb.jpg"}}
     ]
   }
 ]

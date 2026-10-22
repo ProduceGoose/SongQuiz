@@ -8,11 +8,13 @@ import { lobbyScreen } from './Lobby';
 import { playlistScreen, playlistsScreen } from './Playlists';
 import { scoresScreen } from './Scores';
 import { settingsScreen } from './Settings';
+import { soloScreen } from './Solo';
 
 export const screens: Record<ScreenName, ScreenDef> = {
   home: homeScreen,
   join: joinScreen,
   create: createScreen,
+  solo: soloScreen,
   lobby: lobbyScreen,
   playlists: playlistsScreen,
   playlist: playlistScreen,

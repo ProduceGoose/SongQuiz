@@ -8,7 +8,8 @@ import { Button } from '../components/controls/Button';
 import { Icon } from '../components/controls/Icon';
 import { canHost, waitsForHost } from '../game/rooms';
 import { gameResult, GUESS_RULES, hasSolved, pointsText, roundPoints } from '../game/scoring';
-import { ME, type AppApi, type Round, type ScreenDef, type ScreenProps } from '../types';
+import { bestRun, hearts, PLAYLISTS_PER_LEVEL, runText } from '../game/survival';
+import { ME, type AppApi, type Round, type RunResult, type ScreenDef, type ScreenProps } from '../types';
 import { RoomSettings } from './RoomForm';
 
 function roundStatus(round: Round, id: string): PlayerStatus {
@@ -16,7 +17,7 @@ function roundStatus(round: Round, id: string): PlayerStatus {
   const title = round.solvedTitle.includes(id), artist = round.solvedArtist.includes(id);
   if (title) return 'title';
   if (artist) return 'artist';
-  return round.phase === 'playing' ? 'guessing' : 'wrong';
+  return round.phase === 'reveal' ? 'wrong' : 'guessing';
 }
 
 /** The players in your room with their points; during a round, what they named and won in it. */
@@ -54,7 +55,8 @@ export function EndGameButton({ app }: { app: AppApi }) {
 
 function GameStandings({ app }: { app: AppApi }) {
   const { room, round } = app;
-  const title = round ? `Round ${round.number} of ${round.total}` : 'Final scores';
+  const title = round?.run ? `${round.run.level} ${round.run.levelStage} of ${PLAYLISTS_PER_LEVEL} · song ${round.number} · ${hearts(round.run.lives)}`
+    : round ? `Round ${round.number} of ${round.total}` : 'Final scores';
   const actions = round ? <div className="app-actions"><EndGameButton app={app} /><NextRoundButton app={app} /></div> : null;
   return (
     <Section action={actions} title={title} hint={round ? `${room!.name} · ${GUESS_RULES[round.guess]}` : `${room!.name} · ${room!.rounds} rounds`}>
@@ -65,9 +67,27 @@ function GameStandings({ app }: { app: AppApi }) {
   );
 }
 
+/** The end of a survival run: how far it got, and the way to the next one. */
+function RunOver({ app, run }: { app: AppApi; run: RunResult }) {
+  const best = bestRun();
+  const title = run.outcome === 'cleared' ? 'You made it!' : 'Out of lives';
+  const how = run.outcome === 'cleared'
+    ? `Through all three levels with ${pointsText(run.points)}.`
+    : `${runText(run)}, ${pointsText(run.points)}.`;
+  const record = run.best ? 'A new best run!'
+    : best ? `Your best: ${runText(best)}, ${pointsText(best.points)}.` : '';
+  return (
+    <ScreenHeader title={<><Icon name="trophy" size={24} /> {title}</>} hint={`${how} ${record}`}>
+      <Button variant="primary" size="lg" icon="play" onClick={app.startGame}>Try again</Button>
+      <Button size="lg" onClick={() => app.go('solo')}>Other modes</Button>
+    </ScreenHeader>
+  );
+}
+
 /** The end of the game: who won, and the way to the next one. */
 function GameOver({ app }: { app: AppApi }) {
   const room = app.room!;
+  if (app.run && room.mode === 'survival') return <RunOver app={app} run={app.run} />;
   const players = room.players.map((p) => ({ id: p.id, name: p.id === ME ? 'You' : p.name }));
   const { winners, text } = gameResult(app.scores!, players);
   const title = !winners.length ? 'Game over' : winners.length > 1 ? 'It’s a tie!' : winners[0]!.id === ME ? 'You won!' : `${winners[0]!.name} won!`;
@@ -133,8 +153,8 @@ function Scores({ app }: ScreenProps) {
         />
       )}
       {gameOn ? <GameStandings app={app} /> : null}
-      {gameOn && !app.round && canHost(app.room, ME) ? <RoomSettings app={app} /> : null}
       <SessionStandings app={app} />
+      {gameOn && !app.round && canHost(app.room, ME) ? <RoomSettings app={app} /> : null}
     </div>
   );
 }

@@ -72,12 +72,38 @@ export interface AudioEffects {
   /** muffled: only the lows get through. telephone: only a narrow middle band. */
   tone: 'clean' | 'muffled' | 'telephone';
   distort: 'off' | 'on';
+  /** A big hall around the song. Optional: rooms and rounds saved before it existed lack it. */
+  reverb?: 'off' | 'on';
+  /** An echo that repeats a few times. Optional like reverb. */
+  delay?: 'off' | 'on';
 }
 
 /** A room's effects. With random on, each round gets its own mix and the others are ignored. */
 export interface RoomEffects extends AudioEffects {
   random: 'off' | 'on';
 }
+
+/** A survival run's levels, easiest first; each plays that third of its playlists' songs. */
+export type RunLevel = 'Easy' | 'Medium' | 'Hard';
+
+/** How far a survival run (game/survival.ts) got. */
+export interface RunResult {
+  /** out: no lives left. cleared: through the last playlist. */
+  outcome: 'out' | 'cleared';
+  /** Songs played, the one that cost the last life included. */
+  songs: number;
+  /** 1-based stage reached, of `stages`, and its level. */
+  stage: number;
+  stages: number;
+  level: RunLevel;
+  playlistTitle: string;
+  points: number;
+  /** Better than every run before on this device. */
+  best: boolean;
+}
+
+/** free: your own playlist and rules. survival: three lives through every playlist, easy to hard. */
+export type SoloMode = 'free' | 'survival';
 
 export interface Room {
   name: string;
@@ -96,6 +122,8 @@ export interface Room {
   effects: RoomEffects;
   maxPlayers: number;
   players: RoomPlayer[];
+  /** Solo games only: free play, or a survival run (game/survival.ts). Unset means free. */
+  mode?: SoloMode;
 }
 
 /** What the Create screen collects. Numbers stay strings while they are segment values. */
@@ -152,8 +180,30 @@ export interface Round {
   solvedAllArtists: string[];
   /** Ids of the players who typed /skip this round. */
   skipVotes: string[];
-  /** playing: guesses count. reveal: the answer is shown until `nextAt`. */
-  phase: 'playing' | 'reveal';
+  /** Survival runs: lives left and where in the run this round is. */
+  run?: {
+    lives: number;
+    /** 1-based, of `stages`. */
+    stage: number;
+    stages: number;
+    level: RunLevel;
+    /** 1-based place of the stage in its level, e.g. the 2nd of 3 Easy playlists. */
+    levelStage: number;
+    playlistId: string;
+    playlistTitle: string;
+  };
+  /**
+   * Survival, at a new playlist: the slot machine's covers (playlist ids, the pick last) and when
+   * the reel stops; then the player starts the playlist (AppApi.continueRun). A level's last
+   * playlist also spins its effects: effect names, the stage's last ("Fast, reverb"). Only during
+   * the "spin" phase.
+   */
+  spin?: { reel: string[]; until: number; effects?: string[] };
+  /**
+   * spin: survival's slot machine picks the next playlist; no song, no guesses yet. playing:
+   * guesses count. reveal: the answer is shown until `nextAt`.
+   */
+  phase: 'spin' | 'playing' | 'reveal';
   /** Date.now() when the answer was shown. */
   revealedAt?: number;
   /** When the next round starts; unset during a reveal that waits for a host (see waitsForHost). */
@@ -194,7 +244,7 @@ export interface Settings {
 
 // ---- Navigation --------------------------------------------------------------
 
-export type ScreenName = 'home' | 'join' | 'create' | 'lobby' | 'playlists' | 'playlist' | 'scores' | 'settings';
+export type ScreenName = 'home' | 'join' | 'create' | 'solo' | 'lobby' | 'playlists' | 'playlist' | 'scores' | 'settings';
 
 export interface Route {
   name: ScreenName;
@@ -226,6 +276,8 @@ export interface AppApi {
   /** Hosts only (see canHost), between games: changes the room's playlist and rules (not its name). */
   updateRoom(options: RoomOptions): void;
   leaveRoom(): void;
+  /** A game with only you, offline: no server, no room code. */
+  playSolo(mode: SoloMode): void;
   toggleReady(): void;
   resetPrototype(): void;
   /** Set while you're in, or joining, an online room; null in the demo room or no room. */
@@ -238,8 +290,12 @@ export interface AppApi {
   scores: Record<string, number> | null;
   /** The room's wins and points since it was opened; null when you're not in a room. */
   session: Session | null;
+  /** The last finished survival run in your solo game; null otherwise. */
+  run: RunResult | null;
   /** Host only: sets the session's wins and points back to 0. */
   resetSession(): void;
+  /** Survival: starts the playlist the slot machine stopped on. */
+  continueRun(): void;
   /** Posts to the room chat. During a round it is also a guess; a correct title or artist stays hidden. */
   sendChat(text: string): void;
   startGame(): void;

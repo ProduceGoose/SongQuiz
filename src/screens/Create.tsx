@@ -1,11 +1,12 @@
-// Create: pick the rules and a playlist, then open the room.
+// Create: name the room and choose what can't change later, then open it. The rules, effects and
+// playlist start with the defaults below; the host changes them in the room (see RoomForm.tsx).
 import { useState, type FormEvent } from 'react';
 import { Button } from '../components/controls/Button';
 import { ScreenHeader } from '../components/content/Layout';
 import { playlists } from '../data/demo';
 import { NO_EFFECTS } from '../game/effects';
 import type { RoomOptions, ScreenDef, ScreenProps } from '../types';
-import { NAME_MISSING, RoomForm } from './RoomForm';
+import { NAME_MISSING, RoomBasics } from './RoomForm';
 
 function Create({ app, id }: ScreenProps) {
   const [options, setOptions] = useState<RoomOptions>({
@@ -31,9 +32,9 @@ function Create({ app, id }: ScreenProps) {
 
   return (
     <form className="app-screen" onSubmit={submit} noValidate>
-      <ScreenHeader title="Create a room" hint="Choose the music and the rules. You get a code to share as soon as the room opens." />
+      <ScreenHeader title="Create a room" hint="Name it and open it. You get a code to share right away, and choose the music and the rules in the room." />
 
-      <RoomForm options={options} onChange={change} nameError={error} />
+      <RoomBasics options={options} onChange={change} nameError={error} />
 
       <div className="app-form-actions">
         <Button size="lg" onClick={() => app.go('home')}>Cancel</Button>
@@ -46,6 +47,6 @@ function Create({ app, id }: ScreenProps) {
 export const createScreen: ScreenDef = {
   title: 'Create a room',
   Component: Create,
-  lcd: () => ({ title: 'New room', subtitle: 'Pick the rules and a playlist' }),
+  lcd: () => ({ title: 'New room', subtitle: 'Name it and open it' }),
   status: () => `${playlists.length} playlists to choose from`
 };
