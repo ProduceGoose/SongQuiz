@@ -25,7 +25,12 @@ import { NO_EFFECTS, roundEffects, SPEED_RATES } from '../src/game/effects';
 import { canHost, canVoteSkip, controlsRound, isSkipVote, onHold, settingsFromOptions, votesToSkip, waitsForHost } from '../src/game/rooms';
 import { CODE_PATTERN, type ClientMessage, type ServerMessage, type WireChat, type WireRoom, type WireRound } from '../src/game/protocol';
 import { addGame, allSolved, award, emptySession, gameResult, type Scores } from '../src/game/scoring';
-import type { Room, Round, Session, Track } from '../src/types';
+import type { Room, Round, RunResult, Session, Track } from '../src/types';
+import {
+  COOP_SNIPPET, hearts, levelUpText, lifeLostText, missedRound, newRun, runEffects, runInfo, runOverText, runPlaylist, runResult, spinFor, stageAt,
+  SPIN_MS, stageStartText, type Run
+} from '../src/game/survival';
+import { newVote, randomSpin, VOTE_MS, VOTE_REVEAL_MS, voteResultText, voteWinner } from '../src/game/playlistPick';
 import type { Env } from './index';
 
 /** A room nobody is connected to is deleted after this long. */
@@ -57,6 +62,10 @@ interface State {
   order: Track[];
   /** Apple's preview address per round number, for the current and the next round. Never sent to players. */
   previews: Record<number, string>;
+  /** A Coop game's run (game/survival.ts); null in a casual game. */
+  coop: Run | null;
+  /** The last finished Coop run. */
+  result: RunResult | null;
   lastActive: number;
 }
 
@@ -64,7 +73,7 @@ interface Attachment {
   playerId: string;
 }
 
-const emptyState = (code = ''): State => ({ code, room: null, players: [], chat: [], round: null, scores: null, session: emptySession(), game: '', order: [], previews: {}, lastActive: Date.now() });
+const emptyState = (code = ''): State => ({ code, room: null, players: [], chat: [], round: null, scores: null, session: emptySession(), game: '', order: [], previews: {}, coop: null, result: null, lastActive: Date.now() });
 const newId = () => crypto.randomUUID().slice(0, 8);
 const cleanName = (name: unknown, fallback: string) => (typeof name === 'string' ? name.trim().slice(0, 20) : '') || fallback;
 
@@ -129,6 +138,20 @@ export class RoomObject extends DurableObject<Env> {
       case 'next':
         if (this.isHost(player) && waitsForHost(this.s.round)) await this.next();
         break;
+      case 'vote': {
+        const r = this.s.round;
+        if (r?.phase === 'vote' && typeof msg.playlistId === 'string' && r.vote!.options.includes(msg.playlistId) && Date.now() < r.vote!.until) {
+          r.vote!.votes[player.id] = msg.playlistId;
+          this.broadcastRound();
+        }
+        break;
+      }
+      case 'continue': {
+        // Half a second early is fine: the host's clock and the server's differ a little.
+        const r = this.s.round;
+        if (this.isHost(player) && r?.phase === 'spin' && Date.now() >= r.spin!.until - 500) await this.play(r.number);
+        break;
+      }
       case 'end':
         if (this.isHost(player) && this.s.round && !this.starting) this.endGame(player);
         break;
@@ -197,7 +220,7 @@ export class RoomObject extends DurableObject<Env> {
     }
 
     ws.serializeAttachment({ playerId: player.id } satisfies Attachment);
-    this.send(ws, { type: 'welcome', you: player.id, room: this.wireRoom(), round: this.wireRound(), scores: this.s.scores, session: this.wireSession(), chat: this.s.chat, now: Date.now() });
+    this.send(ws, { type: 'welcome', you: player.id, room: this.wireRoom(), round: this.wireRound(), scores: this.s.scores, run: this.s.result, session: this.wireSession(), chat: this.s.chat, now: Date.now() });
     this.broadcastRoom();
     await this.save();
   }
@@ -212,8 +235,8 @@ export class RoomObject extends DurableObject<Env> {
     const note = (text: string) => this.send(ws, { type: 'chat', entry: { id: newId(), kind: 'event', text, time: Date.now() } });
     if (this.s.round || this.starting) return note('The settings can change once the game is over.');
     if (!settings) return note('Those room settings aren’t valid.');
-    if (settings.maxPlayers < this.s.players.length) return note(`There are already ${this.s.players.length} players in the room.`);
-    this.s.room = { ...room, ...settings, name: room.name, hostControls: room.hostControls };
+    // The name, the host controls and the player limit stay as the room was opened.
+    this.s.room = { ...room, ...settings, name: room.name, hostControls: room.hostControls, maxPlayers: room.maxPlayers };
     this.broadcastRoom();
   }
 
@@ -317,12 +340,24 @@ export class RoomObject extends DurableObject<Env> {
     if (this.s.round || !this.s.room || this.starting) return;
     this.starting = true;
     try {
-      this.s.order = gameOrder(playlistById(this.s.room.playlistId).tracks);
+      if (this.s.room.mode === 'coop') {
+        const { order, ...run } = newRun();
+        this.s.coop = run;
+        this.s.order = order;
+      } else {
+        this.s.coop = null;
+        // The host's playlist; a vote or the slot machine replaces it (finishVote, spinRandom).
+        this.s.order = gameOrder(playlistById(this.s.room.playlistId).tracks);
+      }
+      this.s.result = null;
       this.s.previews = {};
       this.s.game = newId();
       this.s.scores = Object.fromEntries(this.s.players.map((p) => [p.id, 0]));
       this.event('{who} started the game', host);
-      await this.beginRound(1);
+      const pick = this.s.room.mode === 'coop' ? 'host' : this.s.room.pick ?? 'host';
+      if (pick === 'vote') this.startVote();
+      else if (pick === 'random') await this.spinRandom();
+      else await this.beginRound(1);
     } finally {
       this.starting = false;
     }
@@ -350,20 +385,94 @@ export class RoomObject extends DurableObject<Env> {
     return `/api/rooms/${this.s.code}/audio/${this.s.game}/${n}`;
   }
 
-  private async beginRound(n: number) {
+  /** A casual game's round 1 before its playlist is decided: no song yet. */
+  private pickingRound(phase: 'vote' | 'spin'): Round {
     const room = this.s.room!;
-    const playlist = playlistById(room.playlistId);
+    return {
+      number: 1, total: room.rounds, track: { title: '', artist: '', year: 0 }, art: '',
+      startedAt: Date.now(), phase, length: roundSeconds(room.snippet), snippet: room.snippet, guess: room.guess ?? 'separate',
+      effects: NO_EFFECTS, solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: []
+    };
+  }
+
+  /** Playlist voting: everyone votes among three playlists until the vote ends (finishVote, by alarm). */
+  private startVote() {
+    this.s.round = { ...this.pickingRound('vote'), vote: newVote() };
+    this.event(`Vote for the playlist · ${VOTE_MS / 1000} seconds`, undefined, 'reveal');
+    this.broadcastRound();
+  }
+
+  /** The vote's end: the most votes win. The win is shown for a moment, then round 1 starts (alarm). */
+  private async finishVote() {
+    const room = this.s.room!;
+    const vote = this.s.round!.vote!;
+    const { playlistId, votes } = voteWinner(vote);
+    vote.winner = playlistId;
+    vote.shownUntil = Date.now() + VOTE_REVEAL_MS;
+    room.playlistId = playlistId;
+    this.s.order = gameOrder(playlistById(playlistId).tracks);
+    this.broadcastRoom();
+    this.event(voteResultText(playlistById(playlistId).title, votes, Object.keys(vote.votes).length), undefined, 'correct');
+    this.broadcastRound();
+    // Round 1's song, looked up while the win shows.
+    await this.preparePreview(1);
+  }
+
+  /** A random playlist: the slot machine shows it, and a host starts round 1 (continue). */
+  private async spinRandom() {
+    const room = this.s.room!;
+    const { playlistId, spin } = randomSpin(Date.now(), SPIN_MS);
+    room.playlistId = playlistId;
+    this.s.order = gameOrder(playlistById(playlistId).tracks);
+    this.broadcastRoom();
+    this.s.round = { ...this.pickingRound('spin'), spin };
+    this.broadcastRound();
+    await this.preparePreview(1);
+  }
+
+  /** Round n; in Coop, a new playlist first gets the slot machine, and a host starts it (play). */
+  private async beginRound(n: number) {
+    if (this.s.coop && stageAt(this.s.coop, n).first) await this.spin(n);
+    else await this.play(n);
+  }
+
+  /** Coop's slot machine before a new playlist: no song and no guesses until a host starts it. */
+  private async spin(n: number) {
+    const run = this.s.coop!;
+    this.s.round = {
+      number: n, total: this.s.order.length, track: this.trackFor(n), art: runPlaylist(run, n).art,
+      startedAt: Date.now(), phase: 'spin', length: roundSeconds(COOP_SNIPPET), snippet: COOP_SNIPPET, guess: 'separate',
+      effects: NO_EFFECTS, solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: [],
+      run: runInfo(run, n), spin: spinFor(run, n)
+    };
+    const levelUp = levelUpText(run, n);
+    if (levelUp) this.event(levelUp, undefined, 'correct');
+    this.broadcastRound();
+    await this.preparePreview(n);
+  }
+
+  private async play(n: number) {
+    const room = this.s.room!;
+    const run = this.s.coop;
+    const playlist = run ? runPlaylist(run, n) : playlistById(room.playlistId);
     const track = this.trackFor(n);
     const hasAudio = await this.preparePreview(n);
-    const effects = roundEffects(room.effects ?? NO_EFFECTS);
+    const effects = run ? runEffects(run, n) : roundEffects(room.effects ?? NO_EFFECTS);
+    const snippet = run ? COOP_SNIPPET : room.snippet;
     for (const key of Object.keys(this.s.previews)) if (Number(key) < n) delete this.s.previews[Number(key)];
     this.s.round = {
-      number: n, total: room.rounds, track, art: playlist.art,
-      startedAt: Date.now(), phase: 'playing', length: roundSeconds(room.snippet), snippet: room.snippet,
-      guess: room.guess ?? 'separate', effects, solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: [],
-      audio: hasAudio ? { src: this.audioPath(n), offset: snippetOffset(room.snippet * SPEED_RATES[effects.speed]) } : undefined
+      number: n, total: run ? this.s.order.length : room.rounds, track, art: playlist.art,
+      startedAt: Date.now(), phase: 'playing', length: roundSeconds(snippet), snippet,
+      guess: run ? 'separate' : room.guess ?? 'separate', effects, solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: [],
+      audio: hasAudio ? { src: this.audioPath(n), offset: snippetOffset(snippet * SPEED_RATES[effects.speed]) } : undefined,
+      run: run ? runInfo(run, n) : undefined
     };
-    this.event(`Round ${n} of ${room.rounds} — name that tune`);
+    if (run) {
+      if (stageAt(run, n).first) this.event(stageStartText(run, n), undefined, 'reveal');
+      this.event(`Song ${n} — name that tune · ${hearts(run.lives)}`);
+    } else {
+      this.event(`Round ${n} of ${room.rounds} — name that tune`);
+    }
     this.broadcastRound();
   }
 
@@ -387,6 +496,11 @@ export class RoomObject extends DurableObject<Env> {
     if ((this.s.room?.advance ?? 'auto') === 'auto') r.nextAt = r.revealedAt + REVEAL_SECONDS * 1000;
     this.event(`It was “${r.track.title}” by ${r.track.artist}`, undefined, 'reveal');
     if (!r.solvedTitle.length && !r.solvedArtist.length) this.event('Nobody got this one');
+    if (this.s.coop && missedRound(r)) {
+      this.s.coop.lives -= 1;
+      r.run = { ...r.run!, lives: this.s.coop.lives };
+      this.event(lifeLostText(this.s.coop.lives), undefined, 'reveal');
+    }
     if (waitsForHost(r)) this.event(r.number < r.total ? 'Waiting for the host to start the next round' : 'Waiting for the host to show the result');
     this.broadcastRound();
     // Look up the next song now, so players can load it during the reveal.
@@ -398,7 +512,9 @@ export class RoomObject extends DurableObject<Env> {
 
   private async next() {
     const r = this.s.round!;
-    if (r.number < r.total) {
+    if (this.s.coop && (this.s.coop.lives <= 0 || r.number >= r.total)) {
+      this.finishRun(r);
+    } else if (r.number < r.total) {
       await this.beginRound(r.number + 1);
     } else {
       this.s.round = null;
@@ -409,11 +525,25 @@ export class RoomObject extends DurableObject<Env> {
     }
   }
 
+  /** The end of a Coop run: out of lives, or through the last playlist, with the team's points. */
+  private finishRun(r: Round) {
+    const ids = this.s.players.map((p) => p.id);
+    const result = runResult(this.s.coop!, r, ids.reduce((sum, id) => sum + (this.s.scores?.[id] ?? 0), 0));
+    this.s.result = { ...result, best: false };
+    this.s.round = null;
+    this.s.session = addGame(this.s.session, this.s.scores ?? {}, ids);
+    this.broadcastSession();
+    this.event(runOverText(result, ids.length > 1), undefined, 'reveal');
+    this.broadcastRound();
+  }
+
   async alarm(): Promise<void> {
     const r = this.s.round;
     const now = Date.now() + 100; // Alarms can fire a moment early.
     if (r?.phase === 'playing' && r.pausedAt === undefined && now >= r.startedAt + r.length * 1000) await this.reveal();
     else if (r?.phase === 'reveal' && r.nextAt !== undefined && now >= r.nextAt) await this.next();
+    else if (r?.phase === 'vote' && r.vote!.winner && now >= r.vote!.shownUntil!) await this.play(1);
+    else if (r?.phase === 'vote' && !r.vote!.winner && now >= r.vote!.until) await this.finishVote();
     else if ((!r || onHold(r)) && this.connectedIds().size === 0) {
       await this.ctx.storage.deleteAll();
       this.s = emptyState(this.s.code);
@@ -448,6 +578,7 @@ export class RoomObject extends DurableObject<Env> {
     let at: number | null = null;
     if (r?.phase === 'playing' && r.pausedAt === undefined) at = r.startedAt + r.length * 1000;
     else if (r?.phase === 'reveal' && r.nextAt !== undefined) at = r.nextAt;
+    else if (r?.phase === 'vote') at = r.vote!.shownUntil ?? r.vote!.until;
     else if (!connected) at = this.s.lastActive + IDLE_MS;
     if (at === null) await this.ctx.storage.deleteAlarm();
     else await this.ctx.storage.setAlarm(at);
@@ -531,7 +662,7 @@ export class RoomObject extends DurableObject<Env> {
   }
 
   private broadcastRound() {
-    this.broadcast({ type: 'round', round: this.wireRound(), scores: this.s.scores });
+    this.broadcast({ type: 'round', round: this.wireRound(), scores: this.s.scores, run: this.s.result });
   }
 
   private reject(ws: WebSocket, code: Extract<ServerMessage, { type: 'error' }>['code'], message: string) {

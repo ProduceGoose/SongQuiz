@@ -18,6 +18,7 @@ import { applyTheme, clearSettings, freshSettings, loadSettings, saveSettings } 
 import { canHost, settingsFromOptions } from './game/rooms';
 import { gameResult } from './game/scoring';
 import { isScreenName, screens } from './screens';
+import { PlaylistVote } from './screens/PlaylistVote';
 import { SlotMachine } from './screens/SlotMachine';
 import { ME, type AppApi, type LcdText, type Room, type Route, type ScreenName, type Settings } from './types';
 
@@ -64,7 +65,7 @@ export function App() {
 
   const sim = useGame(demo, settings.name, () => {
     setDemo((r) => r && { ...r, players: r.players.map((p) => ({ ...p, ready: true })) });
-  });
+  }, (playlistId) => setDemo((r) => r && { ...r, playlistId }));
   const net = useOnlineRoom(online, settings.name, {
     onJoined(room) {
       if (room.hostId === ME && online?.create) app.flash('Room open', `Share code ${room.code} with your friends`);
@@ -119,7 +120,8 @@ export function App() {
     chat: game.chat, round: game.round, scores: game.scores, sendChat: game.sendChat, startGame: game.startGame, nextRound: game.nextRound, endGame: game.endGame,
     pauseRound: game.pauseRound, skipRound: game.skipRound, snippet,
     session: room ? game.session : null, resetSession: game.resetSession,
-    run: online ? null : sim.run, continueRun: sim.continueRun,
+    run: online ? net.run : sim.run, continueRun: online ? net.continueRun : sim.continueRun,
+    votePlaylist: online ? net.votePlaylist : sim.votePlaylist,
 
     go(name: ScreenName, id?: string) {
       setRoute({ name, id });
@@ -182,7 +184,7 @@ export function App() {
         return;
       }
       const settings = settingsFromOptions(options);
-      if (demo && settings) setDemo({ ...demo, ...settings, name: demo.name, hostControls: demo.hostControls });
+      if (demo && settings) setDemo({ ...demo, ...settings, name: demo.name, hostControls: demo.hostControls, maxPlayers: demo.maxPlayers });
     },
 
     leaveRoom() {
@@ -200,7 +202,7 @@ export function App() {
       exitRoom();
       setDemo(soloRoom(settings.name, mode));
       app.go('lobby');
-      if (mode === 'survival') app.flash('Survival', 'Three lives, every playlist from easy to hard');
+      if (mode === 'coop') app.flash('Survival', 'Three lives, three levels of playlists');
       else app.flash('Solo game', 'Just you and the music, nothing goes to the server');
     },
 
@@ -263,7 +265,8 @@ export function App() {
       }
     >
       <Screen key={route.name + ':' + (route.id ?? '')} app={app} id={route.id} />
-      {game.round?.phase === 'spin' && game.round.spin ? <SlotMachine round={game.round} onStart={app.continueRun} /> : null}
+      {game.round?.phase === 'vote' && game.round.vote ? <PlaylistVote round={game.round} onVote={app.votePlaylist} players={room?.players.length ?? 1} /> : null}
+      {game.round?.phase === 'spin' && game.round.spin ? <SlotMachine round={game.round} onStart={app.continueRun} canStart={!!room && canHost(room, ME)} host={room?.players.find((p) => p.id === room.hostId)?.name} /> : null}
     </Window>
   );
 }

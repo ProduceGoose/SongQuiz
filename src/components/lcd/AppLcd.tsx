@@ -1,6 +1,7 @@
 // The LCD in the app's toolbar. In order of priority: a message flashed by an action (app.flash),
 // the round being played or revealed, or the two lines the current screen asks for (ScreenDef.lcd).
 import { Icon } from '../controls/Icon';
+import { playlistById } from '../../data/demo';
 import { formatTime } from '../utils';
 import { LcdDisplay, type LcdDisplayProps } from './LcdDisplay';
 import { canHost, votesToSkip } from '../../game/rooms';
@@ -36,8 +37,17 @@ export interface AppLcdProps {
 }
 
 function roundLcd(app: AppApi, round: Round): LcdDisplayProps {
-  if (round.phase === 'spin' && round.run) {
-    return { title: `${round.run.level} ${round.run.levelStage} of ${PLAYLISTS_PER_LEVEL} — picking a playlist…`, subtitle: hearts(round.run.lives) };
+  if (round.phase === 'vote' && round.vote?.winner) {
+    return { title: `${playlistById(round.vote.winner).title} won the vote`, subtitle: 'Round 1 starts in a moment' };
+  }
+  if (round.phase === 'vote' && round.vote) {
+    const left = Math.max(0, Math.ceil((round.vote.until - Date.now()) / 1000));
+    return { title: 'Vote for the playlist', subtitle: `${left} s left · ${Object.keys(round.vote.votes).length} of ${app.room?.players.length ?? 1} voted` };
+  }
+  if (round.phase === 'spin') {
+    return round.run
+      ? { title: `${round.run.level} ${round.run.levelStage} of ${PLAYLISTS_PER_LEVEL} — picking a playlist…`, subtitle: hearts(round.run.lives) }
+      : { title: 'Picking a random playlist…', subtitle: `${round.total} rounds` };
   }
   if (round.phase === 'playing') {
     const elapsed = Math.min(round.length, roundElapsed(round));

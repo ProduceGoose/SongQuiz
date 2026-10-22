@@ -102,8 +102,17 @@ export interface RunResult {
   best: boolean;
 }
 
-/** free: your own playlist and rules. survival: three lives through every playlist, easy to hard. */
-export type SoloMode = 'free' | 'survival';
+/**
+ * casual: your own playlist and rules, everyone for themselves. coop: a survival run with three
+ * shared lives through three levels of playlists (game/survival.ts); alone it's solo "Survival".
+ */
+export type GameMode = 'casual' | 'coop';
+
+/**
+ * How a casual game gets its playlist (game/playlistPick.ts). host: the one in the settings.
+ * vote: the players vote among three when the game starts. random: the slot machine picks one.
+ */
+export type PlaylistPick = 'host' | 'vote' | 'random';
 
 export interface Room {
   name: string;
@@ -122,8 +131,10 @@ export interface Room {
   effects: RoomEffects;
   maxPlayers: number;
   players: RoomPlayer[];
-  /** Solo games only: free play, or a survival run (game/survival.ts). Unset means free. */
-  mode?: SoloMode;
+  /** Unset (rooms opened before modes existed) means casual. */
+  mode?: GameMode;
+  /** Casual only. Unset (rooms opened before it existed) means host. */
+  pick?: PlaylistPick;
 }
 
 /** What the Create screen collects. Numbers stay strings while they are segment values. */
@@ -139,6 +150,8 @@ export interface RoomOptions {
   voteSkip: VoteSkip;
   effects: RoomEffects;
   maxPlayers: string;
+  mode: GameMode;
+  pick: PlaylistPick;
 }
 
 // ---- Game --------------------------------------------------------------------
@@ -200,10 +213,18 @@ export interface Round {
    */
   spin?: { reel: string[]; until: number; effects?: string[] };
   /**
-   * spin: survival's slot machine picks the next playlist; no song, no guesses yet. playing:
-   * guesses count. reveal: the answer is shown until `nextAt`.
+   * A casual game with playlist voting, before round 1: the playlists to vote on (ids), each
+   * player's vote (player id → playlist id) and when the vote ends. Once it has, `winner` is the
+   * playlist that won and `shownUntil` when round 1 starts; until then the win is shown. Only
+   * during the "vote" phase.
    */
-  phase: 'spin' | 'playing' | 'reveal';
+  vote?: { options: string[]; votes: Record<string, string>; until: number; winner?: string; shownUntil?: number };
+  /**
+   * vote: the players vote on the playlist before round 1 (casual, `vote`). spin: the slot machine
+   * picks the next playlist (Coop, or casual with a random playlist); no song, no guesses yet.
+   * playing: guesses count. reveal: the answer is shown until `nextAt`.
+   */
+  phase: 'vote' | 'spin' | 'playing' | 'reveal';
   /** Date.now() when the answer was shown. */
   revealedAt?: number;
   /** When the next round starts; unset during a reveal that waits for a host (see waitsForHost). */
@@ -277,7 +298,8 @@ export interface AppApi {
   updateRoom(options: RoomOptions): void;
   leaveRoom(): void;
   /** A game with only you, offline: no server, no room code. */
-  playSolo(mode: SoloMode): void;
+  /** casual is solo free play, coop the solo Survival run. */
+  playSolo(mode: GameMode): void;
   toggleReady(): void;
   resetPrototype(): void;
   /** Set while you're in, or joining, an online room; null in the demo room or no room. */
@@ -296,6 +318,8 @@ export interface AppApi {
   resetSession(): void;
   /** Survival: starts the playlist the slot machine stopped on. */
   continueRun(): void;
+  /** While the players vote on the playlist: yours, by playlist id; you can change it until the vote ends. */
+  votePlaylist(playlistId: string): void;
   /** Posts to the room chat. During a round it is also a guess; a correct title or artist stays hidden. */
   sendChat(text: string): void;
   startGame(): void;

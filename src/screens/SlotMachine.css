@@ -45,3 +45,46 @@
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center;
   color: var(--lcd-ink); font-size: 13px; font-weight: 700;
 }
+
+/* Playlist voting (PlaylistVote.tsx), in the slot machine's cabinet: three covers side by side. */
+.app-slot-machine.app-vote { width: min(460px, 100%); }
+.app-vote-time { font-weight: 700; font-variant-numeric: tabular-nums; }
+.app-vote-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; }
+.app-vote-option {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; padding: 8px;
+  border: 1px solid var(--chrome-edge); border-radius: var(--radius-xs); background: rgba(255, 255, 255, .35);
+  color: inherit; font: inherit; cursor: pointer; transition: box-shadow .15s, background .15s;
+}
+.app-vote-option:hover { background: rgba(255, 255, 255, .6); }
+.app-vote-option:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.app-vote-option.is-on { background: rgba(255, 255, 255, .7); box-shadow: 0 0 0 3px var(--aqua); }
+.app-vote-option > img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-xs); }
+.app-vote-title { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; font-weight: 700; }
+.app-vote-count { font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* The vote's result: the winner pops forward with a glow, the others step back. */
+.app-vote-option { position: relative; }
+.app-vote-option:disabled { cursor: default; }
+.app-vote.is-decided .app-vote-option:hover { background: rgba(255, 255, 255, .35); }
+.app-vote-option.is-out { animation: app-vote-out .4s ease-out forwards; }
+.app-vote-option.is-winner {
+  z-index: 1; background: rgba(255, 255, 255, .8);
+  animation: app-vote-win .7s cubic-bezier(.2, 1.6, .4, 1) forwards, app-vote-glow 1.2s ease-in-out .7s infinite alternate;
+}
+.app-vote-badge {
+  position: absolute; top: -10px; left: 50%; z-index: 1; padding: 1px 8px; border-radius: 999px;
+  background: var(--aqua); color: #fff; font-size: 11px; font-weight: 700; white-space: nowrap;
+  transform: translateX(-50%); animation: app-vote-badge .35s ease-out .35s both;
+}
+@keyframes app-vote-out { to { opacity: .35; transform: scale(.9); filter: grayscale(.8); } }
+@keyframes app-vote-win { 0% { transform: scale(1); } 60% { transform: scale(1.14); } 100% { transform: scale(1.08); } }
+@keyframes app-vote-glow {
+  from { box-shadow: 0 0 0 3px var(--aqua), 0 0 6px 2px var(--aqua); }
+  to { box-shadow: 0 0 0 3px var(--aqua), 0 0 18px 6px var(--aqua); }
+}
+@keyframes app-vote-badge { from { opacity: 0; transform: translate(-50%, 6px); } }
+@media (prefers-reduced-motion: reduce) {
+  .app-vote-option.is-out, .app-vote-option.is-winner, .app-vote-badge { animation: none; }
+  .app-vote-option.is-out { opacity: .35; }
+  .app-vote-option.is-winner { box-shadow: 0 0 0 3px var(--aqua); transform: scale(1.08); }
+}
