@@ -1,21 +1,26 @@
-// Survival, a solo mode: get as far as you can with three lives. A run has three levels, Easy,
-// Medium and Hard. Each level plays PLAYLISTS_PER_LEVEL playlists, picked at random (a slot machine
-// shows the pick), with SONGS_PER_STAGE songs from each. Every playlist is split by how popular its
-// songs are (src/data/popularity.json, from `npm run popularity`): its best-known third are its easy
-// songs, the least-known third its hard ones, and a level plays its own third. The run ends when the
-// lives are gone or after the last Hard playlist. A round costs a life when its time runs out and
-// you have named neither the title nor the artist. Played by game/useGame.ts.
-import { playlists } from '../data/demo';
+// Survival runs, the rules of Coop mode: get as far as you can with three lives, alone (the solo
+// "Survival" game, game/useGame.ts) or as a team in an online room (worker/RoomObject.ts). A run has
+// three levels, Easy, Medium and Hard. Each level plays PLAYLISTS_PER_LEVEL playlists, picked at
+// random (a slot machine shows the pick), with SONGS_PER_STAGE songs from each. Every playlist is
+// split by how popular its songs are (src/data/popularity.json, from `npm run popularity`): its
+// best-known third are its easy songs, the least-known third its hard ones, and a level plays its
+// own third. A level's last playlist adds effects (LEVEL_EFFECTS). A round costs a life when its
+// time runs out and nobody has named the title or the artist; the run ends when the lives are gone
+// or after the last Hard playlist. Used by the browser and the server alike.
+import { playlistById, playlists } from '../data/demo';
 import popularity from '../data/popularity.json';
-import type { AudioEffects, Playlist, RunLevel, RunResult, Track } from '../types';
-import { effectsText } from './effects';
+import type { AudioEffects, Playlist, RoomEffects, Round, RunLevel, RunResult, Track } from '../types';
+import { effectsText, NO_EFFECTS, roundEffects } from './effects';
+import { pointsText } from './scoring';
 
 export const LIVES = 3;
 export const LEVELS: RunLevel[] = ['Easy', 'Medium', 'Hard'];
 export const PLAYLISTS_PER_LEVEL = 3;
 export const SONGS_PER_STAGE = 5;
 export const STAGES = LEVELS.length * PLAYLISTS_PER_LEVEL;
-/** How long the slot machine's reel turns before it stops on the next playlist; then the player starts it. */
+/** Seconds of each song a run plays; Coop has no snippet setting. */
+export const COOP_SNIPPET = 20;
+/** How long the slot machine's reel turns before it stops on the next playlist; then a host starts it. */
 export const SPIN_MS = 2800;
 
 /**
@@ -37,6 +42,15 @@ const EFFECT_KINDS: Array<Array<Partial<AudioEffects>>> = [
 ];
 
 const pick = <T,>(list: T[]): T => list[Math.floor(Math.random() * list.length)]!;
+
+function shuffled<T>(list: T[]): T[] {
+  const out = list.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
+  return out;
+}
 
 /** `count` effects of different kinds, at random. */
 export function randomEffects(count: number): AudioEffects {
@@ -77,43 +91,41 @@ export function levelSongs(playlist: Playlist, level: RunLevel): Track[] {
   return tiers[LEVELS.indexOf(level)]!;
 }
 
-function shuffled<T>(list: T[]): T[] {
-  const out = list.slice();
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
-}
-
 export interface RunStage {
   level: RunLevel;
-  playlist: Playlist;
+  playlistId: string;
   /** The level's last playlist only (LEVEL_EFFECTS). */
   effects?: StageEffects;
 }
 
+/** A run in progress: its stages, each round's stage (0-based, by round number - 1) and the lives left. */
+export interface Run {
+  stages: RunStage[];
+  stageOf: number[];
+  lives: number;
+}
+
 /**
- * A run: STAGES different playlists in random order, PLAYLISTS_PER_LEVEL per level, and
- * SONGS_PER_STAGE songs for each from its level's third. No song comes twice, though playlists
- * share many; if a third runs short, the next easier or harder third fills in.
+ * A new run: STAGES different playlists in random order, PLAYLISTS_PER_LEVEL per level, and
+ * SONGS_PER_STAGE songs for each from its level's third, in `order`. No song comes twice, though
+ * playlists share many; if a third runs short, the next easier or harder third fills in.
  */
-export function survivalPlan(): { stages: RunStage[]; order: Array<{ track: Track; stage: number }> } {
+export function newRun(): Run & { order: Track[] } {
   const picks = shuffled(survivalPlaylists());
   const stages = LEVELS.flatMap((level, l) =>
     Array.from({ length: PLAYLISTS_PER_LEVEL }, (_, i): RunStage => {
-      const playlist = picks[(l * PLAYLISTS_PER_LEVEL + i) % picks.length]!;
-      if (i < PLAYLISTS_PER_LEVEL - 1) return { level, playlist };
+      const playlistId = picks[(l * PLAYLISTS_PER_LEVEL + i) % picks.length]!.id;
+      if (i < PLAYLISTS_PER_LEVEL - 1) return { level, playlistId };
       const fx = LEVEL_EFFECTS[level];
-      return { level, playlist, effects: fx === 'random' ? 'random' : randomEffects(fx) };
+      return { level, playlistId, effects: fx === 'random' ? 'random' : randomEffects(fx) };
     }));
   const used = new Set<number>();
-  const order = stages.flatMap(({ level, playlist }, stage) => {
+  const plan = stages.flatMap(({ level, playlistId }, stage) => {
     const l = LEVELS.indexOf(level);
     const fallback = [l, l - 1, l + 1, l - 2, l + 2].filter((i) => i >= 0 && i < LEVELS.length).map((i) => LEVELS[i]!);
     const picked: Track[] = [];
     for (const tier of fallback) {
-      for (const t of shuffled(levelSongs(playlist, tier))) {
+      for (const t of shuffled(levelSongs(playlistById(playlistId), tier))) {
         if (picked.length < SONGS_PER_STAGE && !used.has(t.apple!.id)) {
           picked.push(t);
           used.add(t.apple!.id);
@@ -122,7 +134,77 @@ export function survivalPlan(): { stages: RunStage[]; order: Array<{ track: Trac
     }
     return picked.map((track) => ({ track, stage }));
   });
-  return { stages, order };
+  return { stages, stageOf: plan.map((p) => p.stage), order: plan.map((p) => p.track), lives: LIVES };
+}
+
+// ---- A run's rounds, the same for both engines ----
+
+/** Round n's stage (0-based), and whether it's the first song of that playlist. */
+export function stageAt(run: Run, n: number): { stage: number; first: boolean } {
+  const stage = run.stageOf[n - 1]!;
+  return { stage, first: n === 1 || run.stageOf[n - 2] !== stage };
+}
+
+export const runPlaylist = (run: Run, n: number): Playlist => playlistById(run.stages[stageAt(run, n).stage]!.playlistId);
+
+/** What a round of the run shows about it: lives, level, stage and playlist. */
+export function runInfo(run: Run, n: number): NonNullable<Round['run']> {
+  const { stage } = stageAt(run, n);
+  const { level, playlistId } = run.stages[stage]!;
+  return {
+    lives: run.lives, stage: stage + 1, stages: run.stages.length, level,
+    levelStage: (stage % PLAYLISTS_PER_LEVEL) + 1, playlistId, playlistTitle: playlistById(playlistId).title
+  };
+}
+
+/** Round n's effects: its stage's (the same on every song, or a fresh random mix), else none. */
+export function runEffects(run: Run, n: number): AudioEffects {
+  const fx = run.stages[stageAt(run, n).stage]!.effects;
+  if (fx === 'random') return roundEffects({ ...NO_EFFECTS, random: 'on' } satisfies RoomEffects);
+  return fx ?? roundEffects(NO_EFFECTS);
+}
+
+/** The slot machine for round n, the first of its playlist. */
+export function spinFor(run: Run, n: number, now = Date.now()): NonNullable<Round['spin']> {
+  const stage = run.stages[stageAt(run, n).stage]!;
+  return { reel: spinReel(playlistById(stage.playlistId)), until: now + SPIN_MS, effects: stage.effects ? effectsReel(stage.effects) : undefined };
+}
+
+/** "Level up! …" when round n starts a new level, else null. */
+export function levelUpText(run: Run, n: number): string | null {
+  if (n === 1) return null;
+  const level = run.stages[stageAt(run, n).stage]!.level;
+  if (run.stages[run.stageOf[n - 2]!]!.level === level) return null;
+  return `Level up! Now the ${level.toLowerCase()} songs · ${hearts(run.lives)}`;
+}
+
+/** "Easy 3 of 3: Rock Mix · effects: Fast", for a playlist's first song. */
+export function stageStartText(run: Run, n: number): string {
+  const info = runInfo(run, n);
+  const fx = stageEffectsText(run.stages[info.stage - 1]!.effects);
+  return `${info.level} ${info.levelStage} of ${PLAYLISTS_PER_LEVEL}: ${info.playlistTitle}` + (fx ? ` · effects: ${fx}` : '');
+}
+
+/** The round cost a life: nobody named the title or the artist. */
+export const missedRound = (r: Pick<Round, 'solvedTitle' | 'solvedArtist'>) => !r.solvedTitle.length && !r.solvedArtist.length;
+
+export const lifeLostText = (lives: number) => (lives ? `A life lost · ${hearts(lives)}` : `No lives left · ${hearts(0)}`);
+
+/** The run's end after round r: out of lives, or through the last playlist. `points` are the team's. */
+export function runResult(run: Run, r: Round, points: number): Omit<RunResult, 'best'> {
+  const info = r.run!;
+  return {
+    outcome: run.lives > 0 ? 'cleared' : 'out',
+    songs: r.number, stage: info.stage, stages: info.stages, level: info.level, playlistTitle: info.playlistTitle, points
+  };
+}
+
+/** The chat line at a run's end; `team` for a Coop room. */
+export function runOverText(result: Omit<RunResult, 'best'>, team: boolean): string {
+  const who = team ? 'Your team' : 'You';
+  return result.outcome === 'cleared'
+    ? `${who} beat all three levels with ${pointsText(result.points)}!`
+    : `Out of lives after ${result.songs} songs, at ${result.level} (${result.playlistTitle}) with ${pointsText(result.points)}.`;
 }
 
 /** The slot machine's reel for a stage: random covers, ending on the picked playlist. */
@@ -138,34 +220,11 @@ export const hearts = (lives: number, of = LIVES) => '♥'.repeat(Math.max(0, li
 
 export const SURVIVAL_RULES = `${LIVES} lives, three levels: Easy, Medium and Hard. Each level spins up ${PLAYLISTS_PER_LEVEL} playlists with ${SONGS_PER_STAGE} of their easy, medium or hard songs, and its last playlist adds effects: one on Easy, two on Medium, a random mix on Hard. Name the title or the artist before the time runs out, or lose a life.`;
 
+export const COOP_RULES = `Everyone plays together with ${LIVES} shared lives through three levels: Easy, Medium and Hard. Each level spins up ${PLAYLISTS_PER_LEVEL} playlists with ${SONGS_PER_STAGE} of their easy, medium or hard songs, and its last playlist adds effects. A song costs a life when nobody names the title or the artist in time.`;
+
 /** "34 songs, up to Medium (Rock Mix)" or "all three levels". */
 export function runText(run: RunResult): string {
   if (run.outcome === 'cleared') return 'all three levels';
   // Best runs saved before levels existed have none.
   return `${run.songs} songs, up to ${run.level ?? `stage ${run.stage}`} (${run.playlistTitle})`;
-}
-
-const BEST_KEY = 'iquiz.survival.best';
-
-/** The best run on this device: the most songs, then the most points. Null if none or no storage. */
-export function bestRun(): RunResult | null {
-  try {
-    return JSON.parse(localStorage.getItem(BEST_KEY) ?? 'null') as RunResult | null;
-  } catch {
-    return null;
-  }
-}
-
-/** Saves the run if it beats the best one; true if it did. */
-export function recordRun(run: Omit<RunResult, 'best'>): boolean {
-  const best = bestRun();
-  const better = !best || run.songs > best.songs || (run.songs === best.songs && run.points > best.points);
-  if (better) {
-    try {
-      localStorage.setItem(BEST_KEY, JSON.stringify({ ...run, best: true }));
-    } catch {
-      // Not saved; the run still counts for this game.
-    }
-  }
-  return better;
 }

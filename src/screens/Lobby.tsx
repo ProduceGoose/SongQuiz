@@ -4,7 +4,7 @@ import { Button } from '../components/controls/Button';
 import { Notice, ScreenHeader, Section } from '../components/content/Layout';
 import { Table } from '../components/tables/Table';
 import { isSolo, playlistById } from '../data/demo';
-import { hearts, LIVES, PLAYLISTS_PER_LEVEL, SONGS_PER_STAGE, SURVIVAL_RULES } from '../game/survival';
+import { COOP_RULES, COOP_SNIPPET, hearts, LIVES, PLAYLISTS_PER_LEVEL, SONGS_PER_STAGE, SURVIVAL_RULES } from '../game/survival';
 import { ME, type AppApi, type Room, type ScreenDef, type ScreenProps } from '../types';
 import { canHost, canVoteSkip, GUESS_LABELS, SKIP_COMMAND, waitsForHost } from '../game/rooms';
 import { roomEffectsText } from '../game/effects';
@@ -46,8 +46,10 @@ function Lobby({ app }: ScreenProps) {
   const isHost = canHost(room, ME);
   // Alone and offline: no code to share, nobody else to wait for.
   const solo = isSolo(room);
-  // A survival run has fixed rules and its own playlists (game/survival.ts), so no settings.
-  const survival = solo && room.mode === 'survival';
+  // Coop plays a run (game/survival.ts) with its own playlists and rules. Alone it's solo
+  // Survival, which has no settings at all.
+  const coop = room.mode === 'coop';
+  const survival = solo && coop;
 
   function copyCode() {
     const failed = () => app.flash('Couldn’t copy the code', 'Tell your friends: ' + room!.code);
@@ -63,17 +65,18 @@ function Lobby({ app }: ScreenProps) {
       <div className="app-room-head">
         <div className="app-room-title">
           <h1 className="app-question">{room.name}</h1>
-          {survival ? (
+          {coop ? (
             <div className="app-meta">
+              {solo ? null : <Badge icon="users">Coop</Badge>}
               <Badge>{hearts(LIVES)} {LIVES} lives</Badge>
               <Badge>Easy, Medium, Hard</Badge>
               <Badge icon="playlist">{PLAYLISTS_PER_LEVEL} playlists per level</Badge>
               <Badge>{SONGS_PER_STAGE} songs each</Badge>
-              <Badge>{room.snippet} s snippets</Badge>
+              <Badge>{COOP_SNIPPET} s snippets</Badge>
             </div>
           ) : (
             <div className="app-meta">
-              <Badge icon="playlist">{playlist.title}</Badge>
+              <Badge icon="playlist">{room.pick === 'vote' ? 'Playlist by vote' : room.pick === 'random' ? 'Random playlist' : playlist.title}</Badge>
               <Badge>{room.rounds} rounds</Badge>
               <Badge>{room.snippet} s snippets</Badge>
               <Badge>{GUESS_LABELS[room.guess ?? 'separate']}</Badge>
@@ -93,6 +96,7 @@ function Lobby({ app }: ScreenProps) {
         )}
       </div>
 
+      {coop && !solo ? <Notice>{COOP_RULES}</Notice> : null}
       {survival ? (
         <Notice>{SURVIVAL_RULES} The run ends when your lives are gone, or with a win after the last playlist. Guesses go in the chat on the right.</Notice>
       ) : solo ? (
@@ -147,7 +151,7 @@ function Lobby({ app }: ScreenProps) {
           : round
           ? <Button variant="primary" size="lg" disabled>Game in progress</Button>
           : isHost
-          ? <Button variant="primary" size="lg" onClick={app.startGame}>{survival ? 'Start run' : 'Start game'}</Button>
+          ? <Button variant="primary" size="lg" onClick={app.startGame}>{coop ? 'Start run' : 'Start game'}</Button>
           : <Button variant="primary" size="lg" disabled>Waiting for {host?.name ?? 'the host'}</Button>}
       </div>
 
@@ -159,7 +163,7 @@ function Lobby({ app }: ScreenProps) {
 export const lobbyScreen: ScreenDef = {
   title: 'Lobby',
   Component: Lobby,
-  lcd: ({ room, online }) => room && isSolo(room) && room.mode === 'survival'
+  lcd: ({ room, online }) => room && isSolo(room) && room.mode === 'coop'
     ? { title: 'Survival', subtitle: `${hearts(LIVES)} · Easy, Medium, Hard` }
     : room && isSolo(room)
     ? { title: 'Solo', subtitle: `${room.rounds} rounds of ${playlistById(room.playlistId).title}` }

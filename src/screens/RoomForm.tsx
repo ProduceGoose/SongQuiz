@@ -6,12 +6,14 @@ import { AlbumTile } from '../components/albums/AlbumTile';
 import { SegmentedControl } from '../components/controls/SegmentedControl';
 import { Field, Setting } from '../components/content/Form';
 import { Section, Sheet } from '../components/content/Layout';
-import { isSolo, playlistById, playlists } from '../data/demo';
-import { ADVANCE_LABELS, HOST_CONTROL_LABELS, SKIP_COMMAND, VOTE_SKIP_LABELS, MAX_PLAYER_OPTIONS, GUESS_LABELS, HOSTING_LABELS, optionsOf, ROUND_OPTIONS, SNIPPET_OPTIONS } from '../game/rooms';
+import { isSolo, modeArt, playlistById, playlists } from '../data/demo';
+import { ADVANCE_LABELS, HOST_CONTROL_LABELS, MODE_LABELS, SKIP_COMMAND, VOTE_SKIP_LABELS, MAX_PLAYER_OPTIONS, GUESS_LABELS, HOSTING_LABELS, optionsOf, ROUND_OPTIONS, SNIPPET_OPTIONS } from '../game/rooms';
 import { MIN_ROUND_SECONDS, REVEAL_SECONDS } from '../game/preview';
 import { SPEED_LABELS, SPEED_RATES, SWITCH_LABELS, TONE_LABELS } from '../game/effects';
 import { GUESS_RULES } from '../game/scoring';
-import type { Advance, AppApi, GuessMode, HostControls, Hosting, RoomEffects, RoomOptions, VoteSkip } from '../types';
+import { COOP_RULES, LIVES } from '../game/survival';
+import { PICK_HINTS, PICK_LABELS } from '../game/playlistPick';
+import type { Advance, AppApi, GameMode, GuessMode, PlaylistPick, HostControls, Hosting, RoomEffects, RoomOptions, VoteSkip } from '../types';
 
 const HOSTING_WARNING = 'Are you trusting your friends this much?';
 
@@ -68,6 +70,9 @@ export function RoomBasics({ options, onChange, nameError }: RoomBasicsProps) {
   return (
     <Sheet title="Room">
       <Field id="room-name" label="Room name" icon="broadcast" maxLength={32} value={options.name} error={nameError} onChange={set('name')} />
+      <Setting label="Max players" hint="How many can join, you included. This can’t be changed once the room is open.">
+        <SegmentedControl label="Max players" options={MAX_PLAYER_OPTIONS} value={options.maxPlayers} onChange={set('maxPlayers')} />
+      </Setting>
       <Setting
         label="Host controls"
         hint="Hosts can pause a round for everyone or skip a song, with the buttons at the top left. This can’t be changed once the room is open."
@@ -78,7 +83,7 @@ export function RoomBasics({ options, onChange, nameError }: RoomBasicsProps) {
         />
       </Setting>
       <p className="app-help">
-        The playlist ({playlistById(options.playlistId).title}), the rules and the effects can be changed in the room once it’s open, before each game.
+        The game mode, the playlist ({playlistById(options.playlistId).title}), the rules and the effects can be changed in the room once it’s open, before each game.
       </p>
     </Sheet>
   );
@@ -91,85 +96,123 @@ interface RoomFormProps {
   stacked?: boolean;
   /** Title of the rules sheet. Default "Rules". */
   title?: string;
-  /** Players already in the room, shown next to the player limit. */
-  players?: number;
-  /** A solo game: leaves out what only matters with others (player limit, hosts, votes). */
+  /** A solo game: leaves out what only matters with others (hosts, votes). */
   solo?: boolean;
 }
 
-/** The rules, effects and playlist of an open room. */
-export function RoomForm({ options, onChange, stacked, title = 'Rules', players, solo }: RoomFormProps) {
+/** Under each mode's cover. */
+const MODE_SUBTITLES: Record<GameMode, string> = { casual: 'Everyone for themselves', coop: `Together, ${LIVES} lives` };
+/** The chosen mode's rules, over the covers. */
+const MODE_HINTS: Record<GameMode, string> = {
+  casual: 'Your playlist, your rules, and the most points win.',
+  coop: COOP_RULES
+};
+
+/**
+ * The mode, rules, effects and playlist of an open room. The mode has its own section of covers
+ * above the rest. Coop picks its own playlists and effects (game/survival.ts), so the settings
+ * below leave those out, with the rounds and the guess mode.
+ */
+export function RoomForm({ options, onChange, stacked, title = 'Rules', solo }: RoomFormProps) {
   const playlist = playlistById(options.playlistId);
+  const coop = options.mode === 'coop';
   const set = <K extends keyof RoomOptions>(key: K) => (value: RoomOptions[K]) => onChange({ ...options, [key]: value });
   const setHosting = (value: string) => {
     if (value === 'everyone' && !window.confirm(HOSTING_WARNING)) return;
     set('hosting')(value as Hosting);
   };
   return (
-    <div className={stacked ? 'app-columns is-stacked' : 'app-columns'}>
-      <div className="app-stack">
-        <Sheet title={title}>
-          <Setting label="Rounds">
-            <SegmentedControl label="Rounds" options={ROUND_OPTIONS} value={options.rounds} onChange={set('rounds')} />
-          </Setting>
-          <Setting label="Snippet length" hint={snippetHint(options.snippet)}>
-            <SegmentedControl label="Snippet length in seconds" value={options.snippet} onChange={set('snippet')} options={SNIPPET_OPTIONS} />
-          </Setting>
-          <Setting label="Guesses" hint={GUESS_RULES[options.guess]}>
-            <SegmentedControl
-              label="Guesses" value={options.guess} onChange={(v) => set('guess')(v as GuessMode)}
-              options={Object.entries(GUESS_LABELS).map(([value, label]) => ({ value, label }))}
-            />
-          </Setting>
-          {solo ? null : (
-            <Setting label="Max players" hint={players ? `${players} in the room now` : undefined}>
-              <SegmentedControl label="Max players" options={MAX_PLAYER_OPTIONS} value={options.maxPlayers} onChange={set('maxPlayers')} />
-            </Setting>
-          )}
-          <Setting
-            label="Next round"
-            hint={options.advance === 'host' ? 'Starts when a host presses Next round.' : `Starts ${REVEAL_SECONDS} s after the answer is shown.`}
-          >
-            <SegmentedControl
-              label="Next round" value={options.advance} onChange={(v) => set('advance')(v as Advance)}
-              options={Object.entries(ADVANCE_LABELS).map(([value, label]) => ({ value, label }))}
-            />
-          </Setting>
-          {solo ? null : (
+    <>
+      {solo ? null : (
+        <Section title="Game mode" hint={MODE_HINTS[options.mode]}>
+          <AlbumGrid label="Choose a game mode">
+            {(Object.keys(MODE_LABELS) as GameMode[]).map((mode) => (
+              <AlbumTile
+                key={mode} art={modeArt(mode)} title={MODE_LABELS[mode]} subtitle={MODE_SUBTITLES[mode]}
+                state={mode === options.mode ? 'selected' : 'idle'}
+                onClick={() => set('mode')(mode)}
+              />
+            ))}
+          </AlbumGrid>
+        </Section>
+      )}
+      <div className={stacked ? 'app-columns is-stacked' : 'app-columns'}>
+        <div className="app-stack">
+          <Sheet title={title}>
+            {coop ? null : (
+              <Setting label="Playlist selection" hint={PICK_HINTS[options.pick]}>
+                <SegmentedControl
+                  label="Playlist selection" value={options.pick} onChange={(v) => set('pick')(v as PlaylistPick)}
+                  options={Object.entries(PICK_LABELS).map(([value, label]) => ({ value, label }))}
+                />
+              </Setting>
+            )}
+            {coop ? null : (
+              <Setting label="Rounds">
+                <SegmentedControl label="Rounds" options={ROUND_OPTIONS} value={options.rounds} onChange={set('rounds')} />
+              </Setting>
+            )}
+            {coop ? null : (
+              <Setting label="Snippet length" hint={snippetHint(options.snippet)}>
+                <SegmentedControl label="Snippet length in seconds" value={options.snippet} onChange={set('snippet')} options={SNIPPET_OPTIONS} />
+              </Setting>
+            )}
+            {coop ? null : (
+              <Setting label="Guesses" hint={GUESS_RULES[options.guess]}>
+                <SegmentedControl
+                  label="Guesses" value={options.guess} onChange={(v) => set('guess')(v as GuessMode)}
+                  options={Object.entries(GUESS_LABELS).map(([value, label]) => ({ value, label }))}
+                />
+              </Setting>
+            )}
             <Setting
-              label="Hosts"
-              hint={options.hosting === 'everyone' ? 'Everyone can start games, change these settings and reset the scores.' : 'Who can start games and change these settings.'}
+              label="Next round"
+              hint={options.advance === 'host' ? 'Starts when a host presses Next round.' : `Starts ${REVEAL_SECONDS} s after the answer is shown.`}
             >
               <SegmentedControl
-                label="Hosts" value={options.hosting} onChange={setHosting}
-                options={Object.entries(HOSTING_LABELS).map(([value, label]) => ({ value, label }))}
+                label="Next round" value={options.advance} onChange={(v) => set('advance')(v as Advance)}
+                options={Object.entries(ADVANCE_LABELS).map(([value, label]) => ({ value, label }))}
               />
             </Setting>
-          )}
-          {options.hostControls !== 'on' && !solo ? (
-            <Setting label="Vote to skip" hint={`Players type ${SKIP_COMMAND} in the chat. The song is skipped once half of them have.`}>
-              <SegmentedControl
-                label="Vote to skip" value={options.voteSkip} onChange={(v) => set('voteSkip')(v as VoteSkip)}
-                options={Object.entries(VOTE_SKIP_LABELS).map(([value, label]) => ({ value, label }))}
-              />
-            </Setting>
-          ) : null}
-        </Sheet>
-        <EffectsSheet effects={options.effects} onChange={set('effects')} />
-      </div>
+            {solo ? null : (
+              <Setting
+                label="Hosts"
+                hint={options.hosting === 'everyone' ? 'Everyone can start games, change these settings and reset the scores.' : 'Who can start games and change these settings.'}
+              >
+                <SegmentedControl
+                  label="Hosts" value={options.hosting} onChange={setHosting}
+                  options={Object.entries(HOSTING_LABELS).map(([value, label]) => ({ value, label }))}
+                />
+              </Setting>
+            )}
+            {options.hostControls !== 'on' && !solo && !coop ? (
+              <Setting label="Vote to skip" hint={`Players type ${SKIP_COMMAND} in the chat. The song is skipped once half of them have.`}>
+                <SegmentedControl
+                  label="Vote to skip" value={options.voteSkip} onChange={(v) => set('voteSkip')(v as VoteSkip)}
+                  options={Object.entries(VOTE_SKIP_LABELS).map(([value, label]) => ({ value, label }))}
+                />
+              </Setting>
+            ) : null}
+          </Sheet>
+          {coop ? null : <EffectsSheet effects={options.effects} onChange={set('effects')} />}
+        </div>
 
-      <Section title="Playlist" hint={`${playlist.title} · ${playlist.subtitle} · ${playlist.level}`}>
-        <AlbumGrid label="Choose a playlist">
-          {playlists.map((p) => (
-            <AlbumTile
-              key={p.id} art={p.art} title={p.title} subtitle={p.subtitle}
-              state={p.id === options.playlistId ? 'selected' : 'idle'}
-              onClick={() => set('playlistId')(p.id)}
-            />
-          ))}
-        </AlbumGrid>
-      </Section>
-    </div>
+        {/* Coop and casual with a vote or the slot machine pick their own. */}
+        {coop || options.pick !== 'host' ? null : (
+          <Section title="Playlist" hint={`${playlist.title} · ${playlist.subtitle} · ${playlist.level}`}>
+            <AlbumGrid label="Choose a playlist">
+              {playlists.map((p) => (
+                <AlbumTile
+                  key={p.id} art={p.art} title={p.title} subtitle={p.subtitle}
+                  state={p.id === options.playlistId ? 'selected' : 'idle'}
+                  onClick={() => set('playlistId')(p.id)}
+                />
+              ))}
+            </AlbumGrid>
+          </Section>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -177,18 +220,10 @@ export function RoomForm({ options, onChange, stacked, title = 'Rules', players,
 export function RoomSettings({ app }: { app: AppApi }) {
   const room = app.room!;
 
-  function change(next: RoomOptions) {
-    if (Number(next.maxPlayers) < room.players.length) {
-      app.flash('Too many players for that limit', `${room.players.length} players are in ${room.name}`);
-    } else {
-      app.updateRoom(next);
-    }
-  }
-
   return (
     <RoomForm
-      title={isSolo(room) ? 'Game settings' : 'Room settings'} options={optionsOf(room)} onChange={change}
-      stacked players={room.players.length} solo={isSolo(room)}
+      title={isSolo(room) ? 'Game settings' : 'Room settings'} options={optionsOf(room)} onChange={app.updateRoom}
+      stacked solo={isSolo(room)}
     />
   );
 }

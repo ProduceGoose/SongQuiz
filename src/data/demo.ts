@@ -1,6 +1,6 @@
 // Demo content for the SongQuiz prototype. Every room, player and score here is example data.
 import { CODE_CHARS } from '../game/protocol';
-import { ME, type Playlist, type Room, type Settings, type SoloMode, type Track } from '../types';
+import { ME, type Playlist, type Room, type Settings, type GameMode, type Track } from '../types';
 import playlistData from './playlists.json';
 import coverIds from './covers.json';
 
@@ -12,6 +12,11 @@ const COVERS = new Set<string>(coverIds);
 function playlistArt(id: string, i: number): string {
   // Relative, like every other asset URL (vite.config.ts sets base: './').
   return COVERS.has(id) ? `assets/covers/${id}.webp` : coverArt(i);
+}
+
+/** A game mode's cover: public/assets/covers/mode-<mode>.webp once `npm run covers` has made it, else a generated one. */
+export function modeArt(mode: GameMode): string {
+  return playlistArt(`mode-${mode}`, mode === 'casual' ? 6 : 2);
 }
 const PALETTES = [
   ['#d9472b', '#f6d36b'], ['#1b3a5c', '#e9e2cf'], ['#2f7d5b', '#f1efe6'], ['#f2c14e', '#1c1c1c'],
@@ -88,8 +93,8 @@ export const isSolo = (room: Pick<Room, 'code'> | null | undefined) => room?.cod
  * Free play starts on Random with the usual rules, which you can change. A survival run has fixed
  * rules (game/survival.ts) and no pause or skip, since both would save a life.
  */
-export function soloRoom(myName: string, mode: SoloMode = 'free'): Room {
-  const survival = mode === 'survival';
+export function soloRoom(myName: string, mode: GameMode = 'casual'): Room {
+  const survival = mode === 'coop';
   return {
     name: survival ? 'Survival' : 'Solo', code: SOLO_CODE, hostId: ME, mode,
     playlistId: 'random', rounds: 10, snippet: 20, guess: 'separate', hosting: 'host', advance: 'auto', hostControls: survival ? 'off' : 'on', voteSkip: 'off',

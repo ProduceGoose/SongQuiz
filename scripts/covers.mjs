@@ -32,15 +32,25 @@ const COVERS = {
   2016: '2016Cover.png',
   memesongs: 'MemeCover.png',
   coronasongs: 'CoronaCover.png',
-  random: 'RandomCover.png'
+  random: 'RandomCover.png',
+  // The game modes' covers (modeArt in src/data/demo.ts), named "mode-" and the mode. They sit
+  // in public/assets itself, two folders up from the playlists'.
+  'mode-casual': '../../CasualCover.png',
+  'mode-coop': '../../CoopCover.png'
 };
 
 const LIST = new URL('../src/data/covers.json', import.meta.url);
 
 fs.mkdirSync(TARGET, { recursive: true });
+const made = [];
 for (const [id, file] of Object.entries(COVERS)) {
+  if (!fs.existsSync(new URL(file, SOURCE))) {
+    console.log(`${file} isn't there yet; ${id} keeps its generated cover.`);
+    continue;
+  }
   const out = new URL(`${id}.webp`, TARGET);
   await sharp(fs.readFileSync(new URL(file, SOURCE))).resize(SIZE, SIZE, { fit: 'cover' }).webp({ quality: 82 }).toFile(out.pathname.replace(/^\/(\w:)/, '$1'));
   console.log(`${file} → covers/${id}.webp (${Math.round(fs.statSync(out).size / 1024)} KB)`);
+  made.push(id);
 }
-fs.writeFileSync(LIST, JSON.stringify(Object.keys(COVERS), null, 2) + '\n');
+fs.writeFileSync(LIST, JSON.stringify(made, null, 2) + '\n');

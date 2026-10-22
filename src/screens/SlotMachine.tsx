@@ -1,7 +1,7 @@
-// Survival's slot machine: before each new playlist, a reel of playlist covers spins and stops on
-// the one the run picked (Round.spin, set by game/useGame.ts). On a level's last playlist a second
-// reel spins its effects. Once both have stopped, the player starts the playlist. It covers the
-// window until then.
+// The slot machine: before each new playlist of a Coop run, or a casual game's random one, a reel
+// of playlist covers spins and stops on the one picked (Round.spin, set by game/useGame.ts or the
+// server). On a run level's last playlist a second reel spins its effects. Once both have stopped,
+// the player starts the playlist (in a room, a host). It covers the window until then.
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Button } from '../components/controls/Button';
 import { playlistById } from '../data/demo';
@@ -27,9 +27,19 @@ function spinTo(el: HTMLElement | null, items: number, size: number, ms: number)
   el.style.transform = `translateY(${-(items - 1) * size}px)`;
 }
 
-export function SlotMachine({ round, onStart }: { round: Round; onStart: () => void }) {
+interface SlotMachineProps {
+  round: Round;
+  onStart: () => void;
+  /** You may start the playlist: in a Coop room only hosts can, alone you always can. */
+  canStart: boolean;
+  /** Who starts it otherwise. */
+  host?: string;
+}
+
+export function SlotMachine({ round, onStart, canStart, host }: SlotMachineProps) {
   const { reel, until, effects } = round.spin!;
-  const run = round.run!;
+  // A Coop run has a level and lives; a casual game's random playlist has neither.
+  const run = round.run;
   const covers = useRef<HTMLDivElement>(null);
   const names = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
@@ -48,7 +58,7 @@ export function SlotMachine({ round, onStart }: { round: Round; onStart: () => v
 
   // Enter or Space starts the playlist once the reels stop.
   useEffect(() => {
-    if (landed) box.current?.querySelector<HTMLButtonElement>('.sq-btn')?.focus();
+    if (landed && canStart) box.current?.querySelector<HTMLButtonElement>('.sq-btn')?.focus();
   }, [landed]);
 
   const picked = playlistById(reel[reel.length - 1]);
@@ -57,9 +67,18 @@ export function SlotMachine({ round, onStart }: { round: Round; onStart: () => v
     <div className="app-slot" role="dialog" aria-modal="true" aria-label="The next playlist">
       <div className="app-slot-machine" ref={box}>
         <div className="app-slot-head">
-          <span className="app-slot-level">{run.level}</span>
-          <span>Playlist {run.levelStage} of {PLAYLISTS_PER_LEVEL}</span>
-          <span className="app-slot-lives" aria-label={`${run.lives} lives left`}>{hearts(run.lives)}</span>
+          {run ? (
+            <>
+              <span className="app-slot-level">{run.level}</span>
+              <span>Playlist {run.levelStage} of {PLAYLISTS_PER_LEVEL}</span>
+              <span className="app-slot-lives" aria-label={`${run.lives} lives left`}>{hearts(run.lives)}</span>
+            </>
+          ) : (
+            <>
+              <span className="app-slot-level">Random playlist</span>
+              <span>{round.total} rounds</span>
+            </>
+          )}
         </div>
         <Reel strip={covers} className="app-slot-window" landed={landed}>
           {reel.map((id, i) => <img key={i} className="app-slot-tile" src={playlistById(id).art} alt="" />)}
@@ -72,15 +91,19 @@ export function SlotMachine({ round, onStart }: { round: Round; onStart: () => v
         <div className="app-slot-caption" aria-live="polite">
           {landed ? (
             <>
-              <strong>{picked.title}</strong> · its {run.level.toLowerCase()} songs
+              <strong>{picked.title}</strong>{run ? ` · its ${run.level.toLowerCase()} songs` : null}
               {effectText ? <><br />Effects: <strong>{effectText}</strong></> : null}
             </>
           ) : 'Spinning…'}
         </div>
         {/* Rendered all along so the dialog keeps its size; usable once the reels stop. */}
-        <Button variant="primary" size="lg" icon="play" disabled={!landed} onClick={onStart}>
-          Start
-        </Button>
+        {canStart ? (
+          <Button variant="primary" size="lg" icon="play" disabled={!landed} onClick={onStart}>
+            Start
+          </Button>
+        ) : (
+          <Button size="lg" disabled>Waiting for {host ?? 'the host'} to start</Button>
+        )}
       </div>
     </div>
   );

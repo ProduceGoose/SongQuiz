@@ -1,7 +1,7 @@
 // What the browser and a room's Durable Object (worker/RoomObject.ts) send each other over the
 // room's WebSocket, as JSON. Player ids here are the server's; the browser swaps its own id for
 // ME when it receives them, so the screens work the same online and in the demo room.
-import type { Room, RoomOptions, Round, Session, Track } from '../types';
+import type { Room, RoomOptions, Round, RunResult, Session, Track } from '../types';
 import type { Scores } from './scoring';
 
 /** A room as the server sends it. `connected` is false while a player's browser is away. */
@@ -35,6 +35,10 @@ export type ClientMessage =
   | { type: 'start' }
   /** Hosts only, while the room waits for them after a reveal. */
   | { type: 'next' }
+  /** Hosts only, in Coop: starts the playlist the slot machine stopped on. */
+  | { type: 'continue' }
+  /** Anyone, while the room votes on the playlist; a new vote replaces the old one. */
+  | { type: 'vote'; playlistId: string }
   /** Hosts only, during a game. */
   | { type: 'end' }
   /** Hosts only, in rooms with host controls, while a round plays. */
@@ -49,10 +53,10 @@ export type ClientMessage =
 
 export type ServerMessage =
   /** Sent after hello. `now` is the server's clock, to line up round timers. */
-  | { type: 'welcome'; you: string; room: WireRoom; round: WireRound | null; scores: Scores | null; session: Session; chat: WireChat[]; now: number }
+  | { type: 'welcome'; you: string; room: WireRoom; round: WireRound | null; scores: Scores | null; run: RunResult | null; session: Session; chat: WireChat[]; now: number }
   | { type: 'room'; room: WireRoom }
-  /** The round and the game's points, which change together. */
-  | { type: 'round'; round: WireRound | null; scores: Scores | null }
+  /** The round and the game's points, which change together, and in Coop the last finished run. */
+  | { type: 'round'; round: WireRound | null; scores: Scores | null; run: RunResult | null }
   | { type: 'session'; session: Session }
   | { type: 'chat'; entry: WireChat }
   | { type: 'error'; code: 'not_found' | 'taken' | 'full' | 'bad_request'; message: string };

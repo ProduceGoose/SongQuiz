@@ -12,7 +12,7 @@ function Create({ app, id }: ScreenProps) {
   const [options, setOptions] = useState<RoomOptions>({
     name: app.settings.name + '’s room',
     playlistId: id ?? 'synth-80s',
-    rounds: '10', snippet: '20', guess: 'separate', hosting: 'host', advance: 'auto', hostControls: 'off', voteSkip: 'off', effects: NO_EFFECTS, maxPlayers: '8'
+    rounds: '10', snippet: '20', guess: 'separate', hosting: 'host', advance: 'auto', hostControls: 'off', voteSkip: 'on', effects: NO_EFFECTS, maxPlayers: '8', mode: 'casual', pick: 'host'
   });
   const [error, setError] = useState<string | null>(null);
 

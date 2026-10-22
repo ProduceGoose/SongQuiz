@@ -45,7 +45,9 @@ export function AppSidebar({ app, selected }: { app: AppApi; selected: string })
   return (
     <>
       <SourceList sections={sections(room)} selected={selected} onSelect={(id) => { if (isScreenName(id)) app.go(id); }} />
-      {round?.phase === 'spin'
+      {round?.phase === 'vote'
+        ? <NowPlaying hidden title="Voting for a playlist…" subtitle={`${round.total} rounds`} />
+        : round?.phase === 'spin'
         ? <NowPlaying hidden title="Picking a playlist…" subtitle={round.run ? `${round.run.level} songs` : ''} />
         : round?.phase === 'playing'
         ? <NowPlaying hidden title={`Round ${round.number} of ${round.total}`} subtitle="Mystery track" overlay={<Countdown round={round} />} />

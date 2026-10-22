@@ -6,9 +6,11 @@ import { ScreenHeader, Section } from '../components/content/Layout';
 import { Table } from '../components/tables/Table';
 import { Button } from '../components/controls/Button';
 import { Icon } from '../components/controls/Icon';
+import { isSolo } from '../data/demo';
 import { canHost, waitsForHost } from '../game/rooms';
 import { gameResult, GUESS_RULES, hasSolved, pointsText, roundPoints } from '../game/scoring';
-import { bestRun, hearts, PLAYLISTS_PER_LEVEL, runText } from '../game/survival';
+import { bestRun } from '../game/bestRun';
+import { hearts, PLAYLISTS_PER_LEVEL, runText } from '../game/survival';
 import { ME, type AppApi, type Round, type RunResult, type ScreenDef, type ScreenProps } from '../types';
 import { RoomSettings } from './RoomForm';
 
@@ -67,19 +69,23 @@ function GameStandings({ app }: { app: AppApi }) {
   );
 }
 
-/** The end of a survival run: how far it got, and the way to the next one. */
+/** The end of a run: how far it got, and the way to the next one. Solo, with your best run; in a Coop room, the team's. */
 function RunOver({ app, run }: { app: AppApi; run: RunResult }) {
-  const best = bestRun();
-  const title = run.outcome === 'cleared' ? 'You made it!' : 'Out of lives';
+  const room = app.room!;
+  const solo = isSolo(room);
+  const best = solo ? bestRun() : null;
+  const title = run.outcome === 'cleared' ? (solo ? 'You made it!' : 'Your team made it!') : 'Out of lives';
   const how = run.outcome === 'cleared'
-    ? `Through all three levels with ${pointsText(run.points)}.`
-    : `${runText(run)}, ${pointsText(run.points)}.`;
+    ? `Through all three levels with ${pointsText(run.points)}${solo ? '' : ' together'}.`
+    : `${runText(run)}, ${pointsText(run.points)}${solo ? '' : ' together'}.`;
   const record = run.best ? 'A new best run!'
     : best ? `Your best: ${runText(best)}, ${pointsText(best.points)}.` : '';
   return (
-    <ScreenHeader title={<><Icon name="trophy" size={24} /> {title}</>} hint={`${how} ${record}`}>
-      <Button variant="primary" size="lg" icon="play" onClick={app.startGame}>Try again</Button>
-      <Button size="lg" onClick={() => app.go('solo')}>Other modes</Button>
+    <ScreenHeader title={<><Icon name="trophy" size={24} /> {title}</>} hint={`${how} ${record}`.trim()}>
+      {canHost(room, ME) ? <Button variant="primary" size="lg" icon="play" onClick={app.startGame}>Try again</Button> : null}
+      {solo
+        ? <Button size="lg" onClick={() => app.go('solo')}>Other modes</Button>
+        : <Button size="lg" onClick={() => app.go('lobby')}>Back to the lobby</Button>}
     </ScreenHeader>
   );
 }
@@ -87,7 +93,7 @@ function RunOver({ app, run }: { app: AppApi; run: RunResult }) {
 /** The end of the game: who won, and the way to the next one. */
 function GameOver({ app }: { app: AppApi }) {
   const room = app.room!;
-  if (app.run && room.mode === 'survival') return <RunOver app={app} run={app.run} />;
+  if (app.run && room.mode === 'coop') return <RunOver app={app} run={app.run} />;
   const players = room.players.map((p) => ({ id: p.id, name: p.id === ME ? 'You' : p.name }));
   const { winners, text } = gameResult(app.scores!, players);
   const title = !winners.length ? 'Game over' : winners.length > 1 ? 'It’s a tie!' : winners[0]!.id === ME ? 'You won!' : `${winners[0]!.name} won!`;

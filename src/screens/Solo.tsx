@@ -3,7 +3,8 @@
 // are offline.
 import { Button } from '../components/controls/Button';
 import { ScreenHeader, Sheet } from '../components/content/Layout';
-import { bestRun, LIVES, runText, SONGS_PER_STAGE, STAGES, SURVIVAL_RULES } from '../game/survival';
+import { bestRun } from '../game/bestRun';
+import { LIVES, runText, SONGS_PER_STAGE, STAGES, SURVIVAL_RULES } from '../game/survival';
 import { pointsText } from '../game/scoring';
 import type { ScreenDef, ScreenProps } from '../types';
 
@@ -17,7 +18,7 @@ function Solo({ app }: ScreenProps) {
         <Sheet title="Free play">
           <p className="app-help">Pick any playlist, the rules and the effects, and play as many rounds as you like. Pause or skip whenever you want.</p>
           <div className="app-actions">
-            <Button variant="primary" size="lg" icon="play" onClick={() => app.playSolo('free')}>Start free play</Button>
+            <Button variant="primary" size="lg" icon="play" onClick={() => app.playSolo('casual')}>Start free play</Button>
           </div>
         </Sheet>
 
@@ -32,7 +33,7 @@ function Solo({ app }: ScreenProps) {
             </p>
           ) : null}
           <div className="app-actions">
-            <Button variant="primary" size="lg" icon="play" onClick={() => app.playSolo('survival')}>Start survival · {'♥'.repeat(LIVES)}</Button>
+            <Button variant="primary" size="lg" icon="play" onClick={() => app.playSolo('coop')}>Start survival · {'♥'.repeat(LIVES)}</Button>
           </div>
         </Sheet>
       </div>

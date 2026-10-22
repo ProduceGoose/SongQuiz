@@ -3,7 +3,7 @@
 // room uses, with your own player id swapped for ME, so the screens don't care which it is.
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import type { ChatEntry } from '../components/chat/ChatMessage';
-import { ME, type Room, type RoomOptions, type Round, type Session } from '../types';
+import { ME, type Room, type RoomOptions, type Round, type RunResult, type Session } from '../types';
 import type { ClientMessage, ServerMessage, WireChat, WireRoom, WireRound } from './protocol';
 import { NO_EFFECTS } from './effects';
 import type { Scores } from './scoring';
@@ -23,6 +23,8 @@ export interface OnlineRoom {
   round: Round | null;
   scores: Scores | null;
   session: Session | null;
+  /** The room's last finished Coop run. */
+  run: RunResult | null;
   sendChat(text: string): void;
   startGame(): void;
   nextRound(): void;
@@ -30,6 +32,9 @@ export interface OnlineRoom {
   pauseRound(paused: boolean): void;
   skipRound(): void;
   resetSession(): void;
+  /** Hosts, in Coop: starts the playlist the slot machine stopped on. */
+  continueRun(): void;
+  votePlaylist(playlistId: string): void;
   updateRoom(options: RoomOptions): void;
   setReady(ready: boolean): void;
   rename(name: string): void;
@@ -71,6 +76,7 @@ interface Snapshot {
   room: WireRoom;
   round: WireRound | null;
   scores: Scores | null;
+  run: RunResult | null;
   session: Session;
   chat: WireChat[];
   /** Server clock minus this browser's clock, in ms. */
@@ -115,7 +121,7 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
           case 'welcome':
             retries = 0;
             setStatus('open');
-            setSnap({ you: msg.you, room: msg.room, round: msg.round, scores: msg.scores, session: msg.session, chat: msg.chat, offset: msg.now - Date.now() });
+            setSnap({ you: msg.you, room: msg.room, round: msg.round, scores: msg.scores, run: msg.run ?? null, session: msg.session, chat: msg.chat, offset: msg.now - Date.now() });
             if (!joined) {
               joined = true;
               latest.current.callbacks.onJoined(localRoom(msg.room, msg.you));
@@ -125,7 +131,7 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
             setSnap((s) => s && { ...s, room: msg.room });
             break;
           case 'round':
-            setSnap((s) => s && { ...s, round: msg.round, scores: msg.scores });
+            setSnap((s) => s && { ...s, round: msg.round, scores: msg.scores, run: msg.run ?? null });
             break;
           case 'session':
             setSnap((s) => s && { ...s, session: msg.session });
@@ -182,7 +188,7 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
   const chat = useMemo(() => (snap ? snap.chat.map((w) => localChat(w, snap.you, snap.room)) : []), [snap?.chat, snap?.room]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
-    status, room, chat, round, scores, session,
+    status, room, chat, round, scores, session, run: snap?.run ?? null,
     sendChat: (text) => send({ type: 'chat', text }),
     startGame: () => send({ type: 'start' }),
     nextRound: () => send({ type: 'next' }),
@@ -190,6 +196,8 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
     pauseRound: (paused) => send({ type: 'pause', paused }),
     skipRound: () => send({ type: 'skip' }),
     resetSession: () => send({ type: 'resetSession' }),
+    continueRun: () => send({ type: 'continue' }),
+    votePlaylist: (playlistId) => send({ type: 'vote', playlistId }),
     updateRoom: (options) => send({ type: 'updateRoom', options }),
     setReady: (ready) => send({ type: 'ready', ready }),
     rename: (name) => send({ type: 'rename', name }),
@@ -220,7 +228,13 @@ function localRound(round: WireRound, you: string, offset: number): Round {
     startedAt: round.startedAt - offset,
     pausedAt: round.pausedAt === undefined ? undefined : round.pausedAt - offset,
     revealedAt: round.revealedAt === undefined ? undefined : round.revealedAt - offset,
-    nextAt: round.nextAt === undefined ? undefined : round.nextAt - offset
+    nextAt: round.nextAt === undefined ? undefined : round.nextAt - offset,
+    spin: round.spin && { ...round.spin, until: round.spin.until - offset },
+    vote: round.vote && {
+      ...round.vote, until: round.vote.until - offset,
+      shownUntil: round.vote.shownUntil === undefined ? undefined : round.vote.shownUntil - offset,
+      votes: Object.fromEntries(Object.entries(round.vote.votes).map(([p, v]) => [id(p), v]))
+    }
   };
 }
 

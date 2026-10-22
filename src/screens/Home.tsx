@@ -18,7 +18,7 @@ function Home({ app }: ScreenProps) {
 
       {room && isSolo(room) ? (
         <Notice>
-          You’re playing {room.mode === 'survival' ? 'a survival run' : 'solo'}.{' '}
+          You’re playing {room.mode === 'coop' ? 'a survival run' : 'solo'}.{' '}
           <button type="button" className="app-link" onClick={() => app.go('lobby')}>Back to your game</button>
         </Notice>
       ) : room ? (

@@ -12,8 +12,13 @@ import { checkGuess, type Named } from './guess';
 import { NO_EFFECTS, roundEffects, SPEED_RATES } from './effects';
 import { gameOrder, lookupPreview, REVEAL_SECONDS, roundSeconds, snippetOffset } from './preview';
 import { canHost, canVoteSkip, controlsRound, isSkipVote, votesToSkip, waitsForHost } from './rooms';
-import { addGame, allSolved, award, emptySession, gameResult, pointsText, type Scores } from './scoring';
-import { effectsReel, hearts, LIVES, PLAYLISTS_PER_LEVEL, recordRun, SPIN_MS, spinReel, stageEffectsText, survivalPlan, type RunStage } from './survival';
+import { addGame, allSolved, award, emptySession, gameResult, type Scores } from './scoring';
+import { recordRun } from './bestRun';
+import { newVote, randomSpin, VOTE_MS, VOTE_REVEAL_MS, voteResultText, voteWinner } from './playlistPick';
+import {
+  COOP_SNIPPET, hearts, levelUpText, SPIN_MS, lifeLostText, missedRound, newRun, runEffects, runInfo, runOverText, runPlaylist, runResult, spinFor, stageAt,
+  stageStartText, type Run
+} from './survival';
 
 const REVEAL_MS = REVEAL_SECONDS * 1000;
 /** A simulated host starts this long after you are ready. */
@@ -38,14 +43,12 @@ interface GameState {
   queue: Scheduled[];
   /** Apple preview addresses by round number, looked up as rounds come up. */
   previews: Map<number, Promise<string | null>>;
-  /** The game is a survival run (game/survival.ts). */
-  survival: boolean;
-  /** Survival: the run's playlists with their levels, and each round's place among them (0-based, by round). */
-  stages: RunStage[];
-  stageOf: number[];
-  lives: number;
-  /** The last finished survival run. */
-  run: RunResult | null;
+  /** A Coop game's run (the solo Survival run, game/survival.ts); null in a casual game. */
+  coop: Run | null;
+  /** The last finished run. */
+  result: RunResult | null;
+  /** This casual game's playlist: the room's, or the one a vote or the slot machine picked. */
+  playlistId: string;
 }
 
 export interface Game {
@@ -61,8 +64,9 @@ export interface Game {
   pauseRound(paused: boolean): void;
   skipRound(): void;
   resetSession(): void;
-  /** Survival: starts the playlist the slot machine stopped on. */
+  /** Coop: starts the playlist the slot machine stopped on. */
   continueRun(): void;
+  votePlaylist(playlistId: string): void;
 }
 
 let nextId = 0;
@@ -72,15 +76,16 @@ const between = (min: number, max: number) => min + Math.random() * Math.max(0, 
 
 /**
  * @param onStart Called when a simulated host starts the game, so the app can mark everyone ready.
+ * @param onPlaylist Called when a vote or the slot machine picks the game's playlist, so the room shows it.
  */
-export function useGame(room: Room | null, myName: string, onStart: () => void): Game {
+export function useGame(room: Room | null, myName: string, onStart: () => void, onPlaylist?: (playlistId: string) => void): Game {
   const [, rerender] = useReducer((n: number) => n + 1, 0);
   // Mutable game state; the timers below read and change it, then re-render.
   const g = useRef<GameState>({ chat: [], round: null, scores: null, session: emptySession(), order: [], queue: [], previews: new Map(),
-    survival: false, stages: [], stageOf: [], lives: LIVES, run: null
+    coop: null, result: null, playlistId: ''
   }).current;
-  const latest = useRef({ room, myName, onStart });
-  latest.current = { room, myName, onStart };
+  const latest = useRef({ room, myName, onStart, onPlaylist });
+  latest.current = { room, myName, onStart, onPlaylist };
 
   const nameOf = (id: string) =>
     id === ME ? latest.current.myName : latest.current.room?.players.find((p) => p.id === id)?.name ?? 'Someone';
@@ -106,65 +111,114 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
   function startGame() {
     const { room } = latest.current;
     if (!room || g.round) return;
-    g.survival = room.mode === 'survival';
-    if (g.survival) {
-      const plan = survivalPlan();
-      g.stages = plan.stages;
-      g.order = plan.order.map((p) => p.track);
-      g.stageOf = plan.order.map((p) => p.stage);
-      g.lives = LIVES;
+    if (room.mode === 'coop') {
+      const { order, ...run } = newRun();
+      g.coop = run;
+      g.order = order;
     } else {
+      g.coop = null;
+      // The host's playlist; a vote or the slot machine replaces it (finishVote, spinRandom).
+      g.playlistId = room.playlistId;
       g.order = gameOrder(playlistById(room.playlistId).tracks);
     }
-    g.run = null;
+    g.result = null;
     g.previews.clear();
     g.scores = Object.fromEntries(room.players.map((p) => [p.id, 0]));
     event(room.hostId === ME ? 'You started the game' : `${nameOf(room.hostId)} started the game`);
-    beginRound(1);
+    const pick = room.mode === 'coop' ? 'host' : room.pick ?? 'host';
+    if (pick === 'vote') startVote();
+    else if (pick === 'random') spinRandom();
+    else beginRound(1);
   }
 
-  /** Survival: round n's stage, 0-based, and whether it's the first song of a new playlist. */
-  function stageAt(n: number) {
-    const stage = g.stageOf[n - 1]!;
-    return { stage, first: n === 1 || g.stageOf[n - 2] !== stage };
+  /** The game's playlist from now on, after a vote or the slot machine. */
+  function choosePlaylist(playlistId: string) {
+    g.playlistId = playlistId;
+    g.order = gameOrder(playlistById(playlistId).tracks);
+    g.previews.clear();
+    latest.current.onPlaylist?.(playlistId);
   }
 
-  /** Round n; in a survival run, a new playlist first gets the slot machine (see play). */
-  function beginRound(n: number) {
-    if (g.survival && stageAt(n).first) spin(n);
-    else play(n);
-  }
-
-  /** The round as it starts; survival rounds also carry the run's lives and stage. */
-  function newRound(n: number, phase: Round['phase']): Round {
+  /** A casual game's round 1 before its playlist is decided: no song yet. */
+  function pickingRound(phase: 'vote' | 'spin'): Round {
     const room = latest.current.room!;
-    // A survival run takes each round from its stage's playlist and lasts as long as its songs.
-    const stage = g.survival ? stageAt(n).stage : -1;
-    const run = g.survival ? g.stages[stage]! : null;
-    const playlist = run ? run.playlist : playlistById(room.playlistId);
     return {
-      number: n, total: g.survival ? g.order.length : room.rounds, track: g.order[(n - 1) % g.order.length]!, art: playlist.art,
+      number: 1, total: room.rounds, track: { title: '', artist: '', year: 0 }, art: '',
       startedAt: Date.now(), phase, length: roundSeconds(room.snippet), snippet: room.snippet, guess: room.guess,
-      // A survival stage with effects has them on every song (or a fresh random mix on each).
-      effects: run?.effects === 'random' ? roundEffects({ ...NO_EFFECTS, random: 'on' }) : run?.effects ?? roundEffects(room.effects ?? NO_EFFECTS),
-      solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: [],
-      run: run ? {
-        lives: g.lives, stage: stage + 1, stages: g.stages.length, level: run.level,
-        levelStage: (stage % PLAYLISTS_PER_LEVEL) + 1, playlistId: playlist.id, playlistTitle: playlist.title
-      } : undefined
+      effects: NO_EFFECTS, solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: []
     };
   }
 
-  /** Survival's slot machine before a new playlist: no song yet; play(n) follows when it stops. */
+  /** Playlist voting; simulated players vote at random moments, and the clock ends it (finishVote). */
+  function startVote() {
+    const room = latest.current.room!;
+    const vote = newVote();
+    g.round = { ...pickingRound('vote'), vote };
+    g.queue = room.players.filter((p) => p.id !== ME).map((p) => ({
+      at: Date.now() + between(1500, VOTE_MS - 1500),
+      run: () => {
+        const r = g.round;
+        if (r?.phase === 'vote') g.round = { ...r, vote: { ...r.vote!, votes: { ...r.vote!.votes, [p.id]: pick(r.vote!.options) } } };
+      }
+    }));
+    event(`Vote for the playlist · ${VOTE_MS / 1000} seconds`, 'reveal');
+  }
+
+  function votePlaylist(playlistId: string) {
+    const r = g.round;
+    if (r?.phase !== 'vote' || !r.vote!.options.includes(playlistId) || Date.now() >= r.vote!.until) return;
+    g.round = { ...r, vote: { ...r.vote!, votes: { ...r.vote!.votes, [ME]: playlistId } } };
+    rerender();
+  }
+
+  /** The vote's end: the most votes win. The win is shown for a moment, then round 1 starts (the clock). */
+  function finishVote() {
+    const r = g.round!;
+    const { playlistId, votes } = voteWinner(r.vote!);
+    g.round = { ...r, vote: { ...r.vote!, winner: playlistId, shownUntil: Date.now() + VOTE_REVEAL_MS } };
+    choosePlaylist(playlistId);
+    event(voteResultText(playlistById(playlistId).title, votes, Object.keys(r.vote!.votes).length), 'correct');
+    void preview(1);
+  }
+
+  /** A random playlist: the slot machine shows it, and you start round 1 (continueRun). */
+  function spinRandom() {
+    const { playlistId, spin } = randomSpin(Date.now(), SPIN_MS);
+    choosePlaylist(playlistId);
+    g.round = { ...pickingRound('spin'), spin };
+    void preview(1);
+  }
+
+  /** Round n; in a Coop run, a new playlist first gets the slot machine (see play). */
+  function beginRound(n: number) {
+    if (g.coop && stageAt(g.coop, n).first) spin(n);
+    else play(n);
+  }
+
+  /** The round as it starts; Coop rounds take their playlist, effects and lives from the run. */
+  function newRound(n: number, phase: Round['phase']): Round {
+    const room = latest.current.room!;
+    const run = g.coop;
+    return {
+      number: n, total: run ? g.order.length : room.rounds, track: g.order[(n - 1) % g.order.length]!,
+      art: (run ? runPlaylist(run, n) : playlistById(g.playlistId)).art,
+      startedAt: Date.now(), phase, length: roundSeconds(run ? COOP_SNIPPET : room.snippet), snippet: run ? COOP_SNIPPET : room.snippet,
+      guess: run ? 'separate' : room.guess,
+      effects: run ? runEffects(run, n) : roundEffects(room.effects ?? NO_EFFECTS),
+      solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: [],
+      run: run ? runInfo(run, n) : undefined
+    };
+  }
+
+  /** Coop's slot machine before a new playlist: no song yet; play(n) follows when you start it. */
   function spin(n: number) {
-    const r = newRound(n, 'spin');
-    const stage = g.stages[stageAt(n).stage]!;
-    g.round = { ...r, spin: { reel: spinReel(stage.playlist), until: Date.now() + SPIN_MS, effects: stage.effects ? effectsReel(stage.effects) : undefined } };
+    const run = g.coop!;
+    g.round = { ...newRound(n, 'spin'), spin: spinFor(run, n) };
     g.queue = [];
     // Looked up while the reel turns, so the song is ready when the player starts.
     void preview(n);
-    const previous = n > 1 ? g.stages[g.stageOf[n - 2]!]! : null;
-    if (previous && previous.level !== r.run!.level) event(`Level up! Now the ${r.run!.level.toLowerCase()} songs · ${hearts(g.lives)}`, 'correct');
+    const levelUp = levelUpText(run, n);
+    if (levelUp) event(levelUp, 'correct');
     rerender();
   }
 
@@ -179,9 +233,9 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     if (!room) return;
     const round = newRound(n, 'playing');
     const { track } = round;
-    const playlist = round.run ? g.stages[round.run.stage - 1]!.playlist : playlistById(room.playlistId);
+    const playlist = g.coop ? runPlaylist(g.coop, n) : playlistById(g.playlistId);
     g.round = round;
-    const offset = snippetOffset(room.snippet * SPEED_RATES[round.effects.speed]);
+    const offset = snippetOffset(round.snippet * SPEED_RATES[round.effects.speed]);
     void preview(n).then((src) => {
       // Only once it plays: a song on the slot machine's round would start too early.
       if (src && g.round?.number === n && g.round.phase !== 'spin') {
@@ -189,13 +243,9 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
         rerender();
       }
     });
-    if (round.run) {
-      const { level, levelStage } = round.run;
-      if (stageAt(n).first) {
-        const fx = stageEffectsText(g.stages[round.run.stage - 1]!.effects);
-        event(`${level} ${levelStage} of ${PLAYLISTS_PER_LEVEL}: ${playlist.title}` + (fx ? ` · effects: ${fx}` : ''), 'reveal');
-      }
-      event(`Song ${n} — name that tune · ${hearts(g.lives)}`);
+    if (g.coop) {
+      if (stageAt(g.coop, n).first) event(stageStartText(g.coop, n), 'reveal');
+      event(`Song ${n} — name that tune · ${hearts(g.coop.lives)}`);
     } else {
       event(`Round ${n} of ${room.rounds} — name that tune`);
     }
@@ -264,17 +314,17 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
       });
     }
     if (!r.solvedTitle.length && !r.solvedArtist.length) event('Nobody got this one');
-    if (g.survival && !r.solvedTitle.includes(ME) && !r.solvedArtist.includes(ME)) {
-      g.lives -= 1;
-      g.round = { ...g.round, run: { ...r.run!, lives: g.lives } };
-      event(g.lives ? `You lost a life · ${hearts(g.lives)}` : `No lives left · ${hearts(0)}`, 'reveal');
+    if (g.coop && missedRound(r)) {
+      g.coop.lives -= 1;
+      g.round = { ...g.round, run: { ...r.run!, lives: g.coop.lives } };
+      event(lifeLostText(g.coop.lives), 'reveal');
     }
     if (!auto) event(r.number < r.total ? 'Waiting for the host to start the next round' : 'Waiting for the host to show the result');
   }
 
   function next() {
     const r = g.round!;
-    if (g.survival && (g.lives <= 0 || r.number >= r.total)) {
+    if (g.coop && (g.coop.lives <= 0 || r.number >= r.total)) {
       finishRun(r);
     } else if (r.number < r.total) {
       beginRound(r.number + 1);
@@ -286,20 +336,15 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     }
   }
 
-  /** The end of a survival run: out of lives, or through the last playlist. */
+  /** The end of a run: out of lives, or through the last playlist. A solo run may be a new best. */
   function finishRun(r: Round) {
-    const points = g.scores?.[ME] ?? 0;
-    const result = {
-      outcome: g.lives > 0 ? 'cleared' as const : 'out' as const,
-      songs: r.number, stage: r.run!.stage, stages: r.run!.stages, level: r.run!.level, playlistTitle: r.run!.playlistTitle, points
-    };
-    g.run = { ...result, best: recordRun(result) };
+    const players = latest.current.room?.players.map((p) => p.id) ?? [ME];
+    const team = players.length > 1;
+    const result = runResult(g.coop!, r, players.reduce((sum, id) => sum + (g.scores?.[id] ?? 0), 0));
+    g.result = { ...result, best: !team && recordRun(result) };
     g.round = null;
-    g.session = addGame(g.session, g.scores ?? {}, [ME]);
-    event((result.outcome === 'cleared'
-      ? `You beat all three levels with ${pointsText(points)}!`
-      : `Out of lives after ${result.songs} songs, at ${result.level} (${result.playlistTitle}) with ${pointsText(points)}.`)
-      + (g.run.best ? ' A new best run!' : ''), 'reveal');
+    g.session = addGame(g.session, g.scores ?? {}, players);
+    event(runOverText(result, team) + (g.result.best ? ' A new best run!' : ''), 'reveal');
   }
 
   function nextRound() {
@@ -412,6 +457,8 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
       const r = g.round;
       // A spin waits for the player (continueRun) once its reel has stopped.
       if (r?.phase === 'playing' && !paused && t >= r.startedAt + r.length * 1000) reveal();
+      else if (r?.phase === 'vote' && r.vote!.winner && t >= r.vote!.shownUntil!) play(1);
+      else if (r?.phase === 'vote' && !r.vote!.winner && t >= r.vote!.until) finishVote();
       else if (r?.phase === 'reveal' && r.nextAt !== undefined && t >= r.nextAt) next();
       if (g.round) rerender();
     }, 250);
@@ -433,5 +480,5 @@ export function useGame(room: Room | null, myName: string, onStart: () => void):
     return () => window.clearTimeout(timer);
   }, [hostIsSimulated, ready, room?.code]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, run: g.run, sendChat, startGame, nextRound, endGame, pauseRound, skipRound, resetSession, continueRun };
+  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, run: g.result, sendChat, startGame, nextRound, endGame, pauseRound, skipRound, resetSession, continueRun, votePlaylist };
 }
