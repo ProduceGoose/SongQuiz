@@ -30,7 +30,7 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.app-shell > .sq-window { width: 100%; max-width: 1240px; height: 100%; }
+.app-shell > .sq-window { width: 100%; max-width: 1600px; height: 100%; }
 .sq-window-main { position: relative; }
 
 /* ---- Narrow screens -------------------------------------------------------- */

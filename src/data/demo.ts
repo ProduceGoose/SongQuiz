@@ -1,6 +1,6 @@
 // Demo content for the SongQuiz prototype. Every room, player and score here is example data.
 import { CODE_CHARS } from '../game/protocol';
-import { ME, type Playlist, type Room, type Settings, type Track } from '../types';
+import { ME, type Playlist, type Room, type Settings, type SoloMode, type Track } from '../types';
 import playlistData from './playlists.json';
 import coverIds from './covers.json';
 
@@ -76,6 +76,29 @@ export function playlistById(id: string | undefined): Playlist {
  */
 export const DEMO_CODE = 'SH1T';
 
+/**
+ * A solo game: a room with only you, offline like the demo room, so nothing goes to the server.
+ * Its code has a 0, which CODE_CHARS leaves out too, and it isn't shown anywhere either.
+ */
+export const SOLO_CODE = 'S0LO';
+
+export const isSolo = (room: Pick<Room, 'code'> | null | undefined) => room?.code === SOLO_CODE;
+
+/**
+ * Free play starts on Random with the usual rules, which you can change. A survival run has fixed
+ * rules (game/survival.ts) and no pause or skip, since both would save a life.
+ */
+export function soloRoom(myName: string, mode: SoloMode = 'free'): Room {
+  const survival = mode === 'survival';
+  return {
+    name: survival ? 'Survival' : 'Solo', code: SOLO_CODE, hostId: ME, mode,
+    playlistId: 'random', rounds: 10, snippet: 20, guess: 'separate', hosting: 'host', advance: 'auto', hostControls: survival ? 'off' : 'on', voteSkip: 'off',
+    // The limit is hidden in solo; it only has to be one the room form offers (see settingsFromOptions).
+    effects: { speed: 'normal', tone: 'clean', distort: 'off', reverb: 'off', delay: 'off', random: 'off' }, maxPlayers: 4,
+    players: [{ id: ME, name: myName, ready: true }]
+  };
+}
+
 /** A code for a new online room; never the demo room's, since CODE_CHARS has no 1. */
 export function randomCode(): string {
   let code = '';
@@ -87,13 +110,13 @@ export function demoRoom(myName: string): Room {
   return {
     name: 'Friday Night Room', code: DEMO_CODE, hostId: 'malik',
     playlistId: 'synth-80s', rounds: 10, snippet: 20, guess: 'separate', hosting: 'host', advance: 'auto', hostControls: 'off', voteSkip: 'off',
-    effects: { speed: 'normal', tone: 'clean', distort: 'off', random: 'off' }, maxPlayers: 8,
+    effects: { speed: 'normal', tone: 'clean', distort: 'off', reverb: 'off', delay: 'off', random: 'off' }, maxPlayers: 8,
     players: [
-      { id: 'malik', name: 'Malik', ready: true },
-      { id: 'priya', name: 'Priya', ready: true },
+      { id: 'malik', name: 'Hans', ready: true },
+      { id: 'priya', name: 'Grätel', ready: true },
       { id: ME, name: myName, ready: false },
-      { id: 'jonas', name: 'Jonas', ready: false },
-      { id: 'sam', name: 'Sam', ready: true }
+      { id: 'jonas', name: 'Kukuk', ready: false },
+      { id: 'sam', name: 'The Wise One', ready: true }
     ]
   };
 }
@@ -102,10 +125,10 @@ export function demoRoom(myName: string): Room {
 
 /** What the other players in the demo room said before you arrived. */
 export const demoChat: Array<{ playerId: string; text: string; secondsAgo: number }> = [
-  { playerId: 'malik', text: 'Welcome to Friday Night Room! We start as soon as everyone is ready.', secondsAgo: 170 },
-  { playerId: 'priya', text: '80s again? Fine by me, I know all of these.', secondsAgo: 95 },
-  { playerId: 'sam', text: 'Bold claim, Priya. Volume up, everyone.', secondsAgo: 60 },
-  { playerId: 'jonas', text: 'Grabbing a drink, back in a sec', secondsAgo: 25 }
+  { playerId: 'malik', text: 'Welcome to the Demo Room. Nothing is real here.', secondsAgo: 170 },
+  { playerId: 'priya', text: 'We are not real! But that doesn\'t bother you.', secondsAgo: 95 },
+  { playerId: 'sam', text: 'Its never about the game, its about perspective.', secondsAgo: 60 },
+  { playerId: 'jonas', text: 'Which you wont understand. So have fun!', secondsAgo: 25 }
 ];
 
 /** How the demo players phrase a guess; {title} is the song they guess. */
@@ -114,4 +137,13 @@ export const guessPhrases = ['{title}', '{title}?', 'is it {title}?', '{title}!!
 /** Chat the demo players send while they have no idea. */
 export const stumpedPhrases = ['no idea', 'I know this one…', 'so familiar', 'replay it!', 'argh, the intro'];
 
-export const defaultSettings: Settings = { name: 'Lena', theme: 'system', volume: 70, covers: 'on' };
+/** The names a first-time visitor can get, one at random (see randomName); they can change it in Settings. */
+export const DEFAULT_NAMES = [
+  'Pivo', 'PussySmok', 'ncl', 'pikapikatchu', 'buckleboy_mf', 'galaxyboy', 'venvixus', 'Macim',
+  'BibiGlocksberg', 'producegoose', 'Dewri', 'Stalxim', 'Pinksheep69', 'Traubenjäger'
+];
+
+export const randomName = () => DEFAULT_NAMES[Math.floor(Math.random() * DEFAULT_NAMES.length)]!;
+
+/** Every setting's default; a visitor without a saved name gets a randomName instead (lib/settings.ts). */
+export const defaultSettings: Settings = { name: '', theme: 'system', volume: 70, covers: 'on' };

@@ -1,0 +1,47 @@
+/* Survival's slot machine (SlotMachine.tsx): a brushed-metal cabinet over the window, with one
+   reel of playlist covers behind a dark glass like the LCD's. */
+.app-slot {
+  position: fixed; inset: 0; z-index: 50;
+  display: grid; place-items: center; padding: 16px;
+  background: rgba(0, 0, 0, .45);
+  animation: app-slot-in .2s ease-out;
+}
+.app-slot-machine {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  width: min(300px, 100%); padding: 16px 20px 18px;
+  border: 1px solid var(--chrome-edge); border-radius: var(--radius-md);
+  background: linear-gradient(var(--chrome-top), var(--chrome-bottom));
+  box-shadow: var(--shadow-window); color: var(--ink);
+}
+.app-slot-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; width: 100%; font-size: 12px; }
+.app-slot-level { font-weight: 700; font-size: 15px; }
+.app-slot-lives { color: var(--wrong, #d33); letter-spacing: 1px; }
+/* Shows one cover whole and a bit of its neighbours. */
+.app-slot-window {
+  position: relative; width: 152px; height: 128px; overflow: hidden;
+  border: 1px solid var(--lcd-bezel); border-radius: var(--radius-xs);
+  background: var(--lcd-bg); box-shadow: var(--shadow-lcd);
+  transition: box-shadow .3s;
+}
+.app-slot-window::after {
+  /* Glass: darker at the top and bottom edges, as if the reel curves away. */
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(rgba(0, 0, 0, .55), transparent 22%, transparent 78%, rgba(0, 0, 0, .55));
+}
+.app-slot-window.is-landed { box-shadow: var(--shadow-lcd), 0 0 0 3px var(--aqua); }
+.app-slot-strip { display: flex; flex-direction: column; align-items: center; will-change: transform; }
+.app-slot-tile { display: block; width: 112px; height: 112px; margin: 8px 0; object-fit: cover; border-radius: var(--radius-xs); }
+.app-slot-caption { min-height: 18px; font-size: 13px; text-align: center; }
+
+@keyframes app-slot-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .app-slot { animation: none; }
+}
+
+/* The effects reel: one effect name at a time, in the LCD's lettering. */
+.app-slot-window.is-effects { width: 220px; height: 28px; }
+.app-slot-effect {
+  display: block; width: 100%; height: 28px; line-height: 28px; padding: 0 8px; box-sizing: border-box;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center;
+  color: var(--lcd-ink); font-size: 13px; font-weight: 700;
+}

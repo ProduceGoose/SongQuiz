@@ -24,6 +24,9 @@ export interface AppleSong {
   store?: string;
 }
 
+/** A song's key in src/data/previews.json, e.g. "us:1440858688". */
+export const previewKey = (song: AppleSong) => `${song.store ?? 'us'}:${song.id}`;
+
 /** Preview addresses on Apple's servers by Apple id, one request per store; songs without one are left out. */
 export async function lookupPreviews(songs: AppleSong[]): Promise<Map<number, string>> {
   const found = new Map<number, string>();
@@ -34,12 +37,20 @@ export async function lookupPreviews(songs: AppleSong[]): Promise<Map<number, st
   }
   await Promise.all([...byStore].map(async ([store, ids]) => {
     try {
-      const res = await fetch(`https://itunes.apple.com/lookup?${new URLSearchParams({ id: ids.join(','), country: store })}`);
-      if (!res.ok) return;
+      const res = await fetch(`https://itunes.apple.com/lookup?${new URLSearchParams({ id: ids.join(','), country: store })}`, {
+        // The server (a Cloudflare Worker) sends no User-Agent of its own; Apple may refuse requests
+        // without one. Browsers send their own, and an extra header would cost them a CORS preflight.
+        headers: 'window' in globalThis ? {} : { 'User-Agent': 'iQuiz (song quiz; +https://music.apple.com)' }
+      });
+      if (!res.ok) {
+        console.warn(`Apple lookup failed: HTTP ${res.status} for ${ids.length} song(s) in the ${store} store`);
+        return;
+      }
       const json = (await res.json()) as { results?: Array<{ trackId?: number; previewUrl?: string }> };
       for (const r of json.results ?? []) if (r.trackId && r.previewUrl) found.set(r.trackId, r.previewUrl);
-    } catch {
+    } catch (err) {
       // Offline or blocked: no previews.
+      console.warn(`Apple lookup failed in the ${store} store:`, err);
     }
   }));
   return found;

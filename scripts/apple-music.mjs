@@ -1,13 +1,18 @@
 // Finds every song in src/data/playlists.json on Apple Music (via the iTunes Search API) and saves
-// its Apple id, Apple Music link and cover art next to it. The game looks up the 30-second preview
-// by that id when a round starts, so the saved data never goes stale.
+// its Apple id, Apple Music link and cover art next to it.
 //
 // It searches the US store first, then the German one (STORES). A song only found in another
 // store gets that store saved with it ("store": "de"), so the game looks its preview up there.
 //
+// At the end it saves every song's 30-second preview address in src/data/previews.json, which only
+// the server reads: Apple refuses most lookups from Cloudflare's servers (HTTP 403), so online rooms
+// play these instead of looking each song up during the game. Apple rarely moves a preview; run
+// this again (--previews is enough) if songs in online rooms go silent.
+//
 //   npm run apple-music                           look up songs that have no Apple data yet
 //   npm run apple-music -- --all                  look up every song again
 //   npm run apple-music -- --playlist deutschrap  only one playlist (also works with --all)
+//   npm run apple-music -- --previews             only refresh src/data/previews.json
 //
 // Apple's search leaves out every song marked explicit (most rap), so when it finds nothing the
 // script looks in the albums of the versions it did find (often an instrumental), then in each of
@@ -20,11 +25,13 @@
 import fs from 'node:fs';
 
 const FILE = new URL('../src/data/playlists.json', import.meta.url);
+const PREVIEWS = new URL('../src/data/previews.json', import.meta.url);
 const PAUSE_MS = 3500;
 /** Apple Music stores to search, in order. */
 const STORES = ['US', 'DE'];
 const all = process.argv.includes('--all');
 const only = process.argv.includes('--playlist') ? process.argv[process.argv.indexOf('--playlist') + 1] : null;
+const previewsOnly = process.argv.includes('--previews');
 
 /** Words that mark a version other than the original recording. */
 const NOT_ORIGINAL = /karaoke|tribute|made famous|in the style of|cover|instrumental|re-?recorded|lullaby|piano version|acoustic|\blive\b|remix|sped up|slowed|\bmixed\b|dj mix|a ?cappella|outtake|roughs|\bdemo\b|\bextended\b|\bdub\b/i;
@@ -122,7 +129,7 @@ function format(data) {
 
 const data = JSON.parse(fs.readFileSync(FILE, 'utf8'));
 if (only && !data.some((p) => p.id === only)) throw new Error(`No playlist with id "${only}"`);
-const todo = data.filter((p) => !only || p.id === only).flatMap((p) => p.tracks).filter((t) => all || !t.apple);
+const todo = previewsOnly ? [] : data.filter((p) => !only || p.id === only).flatMap((p) => p.tracks).filter((t) => all || !t.apple);
 const missed = [];
 console.log(`Looking up ${todo.length} songs…`);
 
@@ -162,4 +169,25 @@ for (const [i, track] of todo.entries()) {
   }
 }
 
-console.log(missed.length ? `\nNo safe match for:\n${missed.map((t) => `  ${t.artist} – ${t.title}`).join('\n')}` : '\nEvery song matched.');
+if (!previewsOnly) console.log(missed.length ? `\nNo safe match for:\n${missed.map((t) => `  ${t.artist} – ${t.title}`).join('\n')}` : '\nEvery song matched.');
+
+// ---- Preview addresses for the server ----
+// Keyed "store:id" (see previewKey in src/game/preview.ts), looked up 150 songs per request.
+const songs = new Map(data.flatMap((p) => p.tracks).filter((t) => t.apple).map((t) => [`${t.apple.store ?? 'us'}:${t.apple.id}`, t]));
+const previews = {};
+const byStore = {};
+for (const key of songs.keys()) {
+  const [store, id] = key.split(':');
+  (byStore[store] ??= []).push(id);
+}
+console.log(`\nSaving preview addresses for ${songs.size} songs…`);
+for (const [store, ids] of Object.entries(byStore)) {
+  for (let i = 0; i < ids.length; i += 150) {
+    for (const r of await apple('lookup', { id: ids.slice(i, i + 150).join(','), country: store })) {
+      if (r.wrapperType === 'track' && r.previewUrl) previews[`${store}:${r.trackId}`] = r.previewUrl;
+    }
+  }
+}
+const without = [...songs].filter(([key]) => !previews[key]).map(([, t]) => `  ${t.artist} – ${t.title}`);
+fs.writeFileSync(PREVIEWS, JSON.stringify(previews, null, 0).replace(/,"/g, ',\n"') + '\n');
+console.log(`Saved ${Object.keys(previews).length} to src/data/previews.json.` + (without.length ? ` No preview on Apple for:\n${without.join('\n')}` : ''));

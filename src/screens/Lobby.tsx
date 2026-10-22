@@ -3,7 +3,8 @@ import { Badge } from '../components/controls/Badge';
 import { Button } from '../components/controls/Button';
 import { Notice, ScreenHeader, Section } from '../components/content/Layout';
 import { Table } from '../components/tables/Table';
-import { playlistById } from '../data/demo';
+import { isSolo, playlistById } from '../data/demo';
+import { hearts, LIVES, PLAYLISTS_PER_LEVEL, SONGS_PER_STAGE, SURVIVAL_RULES } from '../game/survival';
 import { ME, type AppApi, type Room, type ScreenDef, type ScreenProps } from '../types';
 import { canHost, canVoteSkip, GUESS_LABELS, SKIP_COMMAND, waitsForHost } from '../game/rooms';
 import { roomEffectsText } from '../game/effects';
@@ -43,6 +44,10 @@ function Lobby({ app }: ScreenProps) {
   const me = room.players.find((p) => p.id === ME);
   const host = room.players.find((p) => p.id === room.hostId);
   const isHost = canHost(room, ME);
+  // Alone and offline: no code to share, nobody else to wait for.
+  const solo = isSolo(room);
+  // A survival run has fixed rules and its own playlists (game/survival.ts), so no settings.
+  const survival = solo && room.mode === 'survival';
 
   function copyCode() {
     const failed = () => app.flash('Couldn’t copy the code', 'Tell your friends: ' + room!.code);
@@ -58,48 +63,66 @@ function Lobby({ app }: ScreenProps) {
       <div className="app-room-head">
         <div className="app-room-title">
           <h1 className="app-question">{room.name}</h1>
-          <div className="app-meta">
-            <Badge icon="playlist">{playlist.title}</Badge>
-            <Badge>{room.rounds} rounds</Badge>
-            <Badge>{room.snippet} s snippets</Badge>
-            <Badge>{GUESS_LABELS[room.guess ?? 'separate']}</Badge>
-            {room.hosting === 'everyone' ? <Badge icon="users">Everyone hosts</Badge> : null}
-            {room.hostControls === 'on' ? <Badge icon="pause">Pause & skip</Badge> : null}
-            {canVoteSkip(room) ? <Badge>{SKIP_COMMAND} votes</Badge> : null}
-            {roomEffectsText(room.effects) ? <Badge>{roomEffectsText(room.effects)}</Badge> : null}
+          {survival ? (
+            <div className="app-meta">
+              <Badge>{hearts(LIVES)} {LIVES} lives</Badge>
+              <Badge>Easy, Medium, Hard</Badge>
+              <Badge icon="playlist">{PLAYLISTS_PER_LEVEL} playlists per level</Badge>
+              <Badge>{SONGS_PER_STAGE} songs each</Badge>
+              <Badge>{room.snippet} s snippets</Badge>
+            </div>
+          ) : (
+            <div className="app-meta">
+              <Badge icon="playlist">{playlist.title}</Badge>
+              <Badge>{room.rounds} rounds</Badge>
+              <Badge>{room.snippet} s snippets</Badge>
+              <Badge>{GUESS_LABELS[room.guess ?? 'separate']}</Badge>
+              {room.hosting === 'everyone' ? <Badge icon="users">Everyone hosts</Badge> : null}
+              {room.hostControls === 'on' ? <Badge icon="pause">Pause & skip</Badge> : null}
+              {canVoteSkip(room) ? <Badge>{SKIP_COMMAND} votes</Badge> : null}
+              {roomEffectsText(room.effects) ? <Badge>{roomEffectsText(room.effects)}</Badge> : null}
+            </div>
+          )}
+        </div>
+        {solo ? null : (
+          <div className="app-code-box">
+            <span className="app-code-label">Room code</span>
+            <span className="app-code">{room.code}</span>
+            <Button onClick={copyCode}>Copy code</Button>
           </div>
-        </div>
-        <div className="app-code-box">
-          <span className="app-code-label">Room code</span>
-          <span className="app-code">{room.code}</span>
-          <Button onClick={copyCode}>Copy code</Button>
-        </div>
+        )}
       </div>
 
-      <Section title="Players" hint={`${room.players.length} of ${room.maxPlayers} joined · ${readyCount(room)} ready`}>
-        <Table
-          caption={'Players in ' + room.name}
-          columns={[{ label: '#', className: 'sq-col-rank' }, { label: 'Player' }, { label: 'Status', className: 'sq-col-status' }]}
-        >
-          {room.players.map((p, i) => {
-            const notes = [p.id === room.hostId && 'host', p.id === ME && 'you'].filter(Boolean);
-            return (
-              <tr key={p.id} className={p.id === ME ? 'is-on' : undefined}>
-                <td className="sq-col-rank">{i + 1}</td>
-                <td>
-                  {p.name}
-                  {notes.length ? <span className="sq-list-note">{` (${notes.join(', ')})`}</span> : null}
-                </td>
-                <td className="sq-col-status">
-                  {p.connected === false ? <Badge icon="clock">Away</Badge>
-                    : p.ready ? <Badge tone="aqua" icon="check">Ready</Badge>
-                    : <Badge>Not ready</Badge>}
-                </td>
-              </tr>
-            );
-          })}
-        </Table>
-      </Section>
+      {survival ? (
+        <Notice>{SURVIVAL_RULES} The run ends when your lives are gone, or with a win after the last playlist. Guesses go in the chat on the right.</Notice>
+      ) : solo ? (
+        <Notice>Just you and the music. Nothing goes to a server, so it works without one. Guesses go in the chat on the right.</Notice>
+      ) : (
+        <Section title="Players" hint={`${room.players.length} of ${room.maxPlayers} joined · ${readyCount(room)} ready`}>
+          <Table
+            caption={'Players in ' + room.name}
+            columns={[{ label: '#', className: 'sq-col-rank' }, { label: 'Player' }, { label: 'Status', className: 'sq-col-status' }]}
+          >
+            {room.players.map((p, i) => {
+              const notes = [p.id === room.hostId && 'host', p.id === ME && 'you'].filter(Boolean);
+              return (
+                <tr key={p.id} className={p.id === ME ? 'is-on' : undefined}>
+                  <td className="sq-col-rank">{i + 1}</td>
+                  <td>
+                    {p.name}
+                    {notes.length ? <span className="sq-list-note">{` (${notes.join(', ')})`}</span> : null}
+                  </td>
+                  <td className="sq-col-status">
+                    {p.connected === false ? <Badge icon="clock">Away</Badge>
+                      : p.ready ? <Badge tone="aqua" icon="check">Ready</Badge>
+                      : <Badge>Not ready</Badge>}
+                  </td>
+                </tr>
+              );
+            })}
+          </Table>
+        </Section>
+      )}
 
       {round ? (
         <Notice>
@@ -116,19 +139,19 @@ function Lobby({ app }: ScreenProps) {
       {online?.status === 'reconnecting' ? <Notice>Lost the connection to the server. Trying again…</Notice> : null}
 
       <div className="app-form-actions">
-        <Button size="lg" onClick={app.leaveRoom}>Leave room</Button>
-        <Button size="lg" icon={me?.ready ? null : 'check'} onClick={app.toggleReady}>{me?.ready ? 'I’m not ready' : 'I’m ready'}</Button>
+        <Button size="lg" onClick={app.leaveRoom}>{solo ? 'Stop playing solo' : 'Leave room'}</Button>
+        {solo ? null : <Button size="lg" icon={me?.ready ? null : 'check'} onClick={app.toggleReady}>{me?.ready ? 'I’m not ready' : 'I’m ready'}</Button>}
         <EndGameButton app={app} />
         {round && isHost && waitsForHost(round)
           ? <NextRoundButton app={app} />
           : round
           ? <Button variant="primary" size="lg" disabled>Game in progress</Button>
           : isHost
-          ? <Button variant="primary" size="lg" onClick={app.startGame}>Start game</Button>
+          ? <Button variant="primary" size="lg" onClick={app.startGame}>{survival ? 'Start run' : 'Start game'}</Button>
           : <Button variant="primary" size="lg" disabled>Waiting for {host?.name ?? 'the host'}</Button>}
       </div>
 
-      {isHost && !round ? <RoomSettings app={app} /> : null}
+      {isHost && !round && !survival ? <RoomSettings app={app} /> : null}
     </div>
   );
 }
@@ -136,7 +159,11 @@ function Lobby({ app }: ScreenProps) {
 export const lobbyScreen: ScreenDef = {
   title: 'Lobby',
   Component: Lobby,
-  lcd: ({ room, online }) => room
+  lcd: ({ room, online }) => room && isSolo(room) && room.mode === 'survival'
+    ? { title: 'Survival', subtitle: `${hearts(LIVES)} · Easy, Medium, Hard` }
+    : room && isSolo(room)
+    ? { title: 'Solo', subtitle: `${room.rounds} rounds of ${playlistById(room.playlistId).title}` }
+    : room
     ? { title: `${room.name} · code ${room.code}`, subtitle: `${readyCount(room)} of ${room.players.length} players ready` }
     : online
     ? { title: `Joining room ${online.code}`, subtitle: 'Connecting to the server' }

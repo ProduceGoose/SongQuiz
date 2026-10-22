@@ -2,7 +2,8 @@
 // per room. `npm run dev` runs all of it locally; `npm run deploy` publishes it.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "songquiz",
+  // The Worker's name on Cloudflare (renamed from "songquiz"; its room storage keeps the old name).
+  "name": "iquiz",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   "assets": {

@@ -7,6 +7,7 @@ import { canHost, votesToSkip } from '../../game/rooms';
 import { roundElapsed } from '../../game/preview';
 import { effectsText, NO_EFFECTS } from '../../game/effects';
 import { fastest } from '../../game/scoring';
+import { hearts, PLAYLISTS_PER_LEVEL } from '../../game/survival';
 import { ME, type AppApi, type LcdText, type Round, type ScreenDef } from '../../types';
 
 /** " · 1 of 3 votes to skip", once someone has voted. */
@@ -35,14 +36,21 @@ export interface AppLcdProps {
 }
 
 function roundLcd(app: AppApi, round: Round): LcdDisplayProps {
+  if (round.phase === 'spin' && round.run) {
+    return { title: `${round.run.level} ${round.run.levelStage} of ${PLAYLISTS_PER_LEVEL} — picking a playlist…`, subtitle: hearts(round.run.lives) };
+  }
   if (round.phase === 'playing') {
     const elapsed = Math.min(round.length, roundElapsed(round));
     return {
-      title: `Round ${round.number} of ${round.total} — ${effectsText(round.effects ?? NO_EFFECTS) || 'Name that tune'}`,
+      title: round.run
+        ? `${round.run.level} ${round.run.levelStage} of ${PLAYLISTS_PER_LEVEL} — ${round.run.playlistTitle}`
+        : `Round ${round.number} of ${round.total} — ${effectsText(round.effects ?? NO_EFFECTS) || 'Name that tune'}`,
       subtitle: round.pausedAt !== undefined
         ? 'Paused by the host'
         : app.snippet.blocked
         ? 'Click anywhere to hear the song'
+        : round.run
+        ? `${hearts(round.run.lives)} · song ${round.number}` + (effectsText(round.effects ?? NO_EFFECTS) ? ` · ${effectsText(round.effects ?? NO_EFFECTS)}` : '')
         : progress(round, app.room?.players.length ?? 0) + skipVotes(app, round),
       progress: elapsed / round.length,
       elapsed: Math.floor(elapsed),
@@ -53,7 +61,8 @@ function roundLcd(app: AppApi, round: Round): LcdDisplayProps {
   const who = first === undefined ? 'Nobody got it'
     : first === ME ? 'You were fastest'
     : `${app.room?.players.find((p) => p.id === first)?.name ?? 'Someone'} was fastest`;
-  const last = round.number >= round.total;
+  // A survival run is over with its last life too.
+  const last = round.number >= round.total || round.run?.lives === 0;
   if (round.nextAt === undefined) {
     const host = app.room && canHost(app.room, ME) ? 'press Next round' : 'waiting for the host';
     return { title: `It was “${round.track.title}” by ${round.track.artist}`, subtitle: `${who} · ${last ? 'that was the last round · ' : ''}${host}` };
@@ -61,7 +70,10 @@ function roundLcd(app: AppApi, round: Round): LcdDisplayProps {
   const wait = Math.max(0, Math.ceil((round.nextAt - Date.now()) / 1000));
   return {
     title: `It was “${round.track.title}” by ${round.track.artist}`,
-    subtitle: last ? `${who} · that was the last round` : `${who} · next round in ${formatTime(wait)}`
+    subtitle: round.run?.lives === 0 ? `${who} · no lives left`
+      : last ? `${who} · that was the last round`
+      : round.run ? `${who} · ${hearts(round.run.lives)} · next song in ${formatTime(wait)}`
+      : `${who} · next round in ${formatTime(wait)}`
   };
 }
 

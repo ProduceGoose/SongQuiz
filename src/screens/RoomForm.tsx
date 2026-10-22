@@ -1,12 +1,12 @@
-// The room's rules and playlist. Create fills it in for a new room (RoomForm); the host changes a
-// room's rules and playlist between games in the lobby and under a game's result (RoomSettings).
-// The name is set once, when the room is created.
+// A room's settings. What can't change once the room is open, its name and the host controls, is
+// all that Create asks for (RoomBasics). The rules, effects and playlist come after: the host sets
+// them in the lobby and under a game's result (RoomSettings), and a new room starts with defaults.
 import { AlbumGrid } from '../components/albums/AlbumGrid';
 import { AlbumTile } from '../components/albums/AlbumTile';
 import { SegmentedControl } from '../components/controls/SegmentedControl';
 import { Field, Setting } from '../components/content/Form';
 import { Section, Sheet } from '../components/content/Layout';
-import { playlistById, playlists } from '../data/demo';
+import { isSolo, playlistById, playlists } from '../data/demo';
 import { ADVANCE_LABELS, HOST_CONTROL_LABELS, SKIP_COMMAND, VOTE_SKIP_LABELS, MAX_PLAYER_OPTIONS, GUESS_LABELS, HOSTING_LABELS, optionsOf, ROUND_OPTIONS, SNIPPET_OPTIONS } from '../game/rooms';
 import { MIN_ROUND_SECONDS, REVEAL_SECONDS } from '../game/preview';
 import { SPEED_LABELS, SPEED_RATES, SWITCH_LABELS, TONE_LABELS } from '../game/effects';
@@ -36,6 +36,12 @@ function EffectsSheet({ effects, onChange }: { effects: RoomEffects; onChange: (
         <Setting label="Distortion" hint="Overdriven and crunchy, like a cheap speaker.">
           <SegmentedControl label="Distortion" value={effects.distort} onChange={set('distort')} options={segments(SWITCH_LABELS)} />
         </Setting>
+        <Setting label="Reverb" hint="A big empty hall around the song.">
+          <SegmentedControl label="Reverb" value={effects.reverb ?? 'off'} onChange={set('reverb')} options={segments(SWITCH_LABELS)} />
+        </Setting>
+        <Setting label="Delay" hint="Every sound echoes a few times.">
+          <SegmentedControl label="Delay" value={effects.delay ?? 'off'} onChange={set('delay')} options={segments(SWITCH_LABELS)} />
+        </Setting>
       </>}
       <p className="app-help">Effects play while you guess. At the reveal the song plays clean.</p>
     </Sheet>
@@ -50,21 +56,49 @@ function snippetHint(snippet: string): string {
 
 export const NAME_MISSING = 'Give the room a name so friends know they’re in the right place.';
 
-interface RoomFormProps {
+interface RoomBasicsProps {
   options: RoomOptions;
   onChange: (options: RoomOptions) => void;
   nameError?: string | null;
-  /** A new room: shows the name and host controls, which can't change once the room is open. Default true. */
-  creating?: boolean;
+}
+
+/** For a new room: what can't change once it's open. */
+export function RoomBasics({ options, onChange, nameError }: RoomBasicsProps) {
+  const set = <K extends keyof RoomOptions>(key: K) => (value: RoomOptions[K]) => onChange({ ...options, [key]: value });
+  return (
+    <Sheet title="Room">
+      <Field id="room-name" label="Room name" icon="broadcast" maxLength={32} value={options.name} error={nameError} onChange={set('name')} />
+      <Setting
+        label="Host controls"
+        hint="Hosts can pause a round for everyone or skip a song, with the buttons at the top left. This can’t be changed once the room is open."
+      >
+        <SegmentedControl
+          label="Host controls" value={options.hostControls} onChange={(v) => set('hostControls')(v as HostControls)}
+          options={Object.entries(HOST_CONTROL_LABELS).map(([value, label]) => ({ value, label }))}
+        />
+      </Setting>
+      <p className="app-help">
+        The playlist ({playlistById(options.playlistId).title}), the rules and the effects can be changed in the room once it’s open, before each game.
+      </p>
+    </Sheet>
+  );
+}
+
+interface RoomFormProps {
+  options: RoomOptions;
+  onChange: (options: RoomOptions) => void;
   /** The playlist under the rules instead of beside them. */
   stacked?: boolean;
   /** Title of the rules sheet. Default "Rules". */
   title?: string;
   /** Players already in the room, shown next to the player limit. */
   players?: number;
+  /** A solo game: leaves out what only matters with others (player limit, hosts, votes). */
+  solo?: boolean;
 }
 
-export function RoomForm({ options, onChange, nameError, creating = true, stacked, title = 'Rules', players }: RoomFormProps) {
+/** The rules, effects and playlist of an open room. */
+export function RoomForm({ options, onChange, stacked, title = 'Rules', players, solo }: RoomFormProps) {
   const playlist = playlistById(options.playlistId);
   const set = <K extends keyof RoomOptions>(key: K) => (value: RoomOptions[K]) => onChange({ ...options, [key]: value });
   const setHosting = (value: string) => {
@@ -75,7 +109,6 @@ export function RoomForm({ options, onChange, nameError, creating = true, stacke
     <div className={stacked ? 'app-columns is-stacked' : 'app-columns'}>
       <div className="app-stack">
         <Sheet title={title}>
-          {creating ? <Field id="room-name" label="Room name" icon="broadcast" maxLength={32} value={options.name} error={nameError} onChange={set('name')} /> : null}
           <Setting label="Rounds">
             <SegmentedControl label="Rounds" options={ROUND_OPTIONS} value={options.rounds} onChange={set('rounds')} />
           </Setting>
@@ -88,9 +121,11 @@ export function RoomForm({ options, onChange, nameError, creating = true, stacke
               options={Object.entries(GUESS_LABELS).map(([value, label]) => ({ value, label }))}
             />
           </Setting>
-          <Setting label="Max players" hint={players ? `${players} in the room now` : undefined}>
-            <SegmentedControl label="Max players" options={MAX_PLAYER_OPTIONS} value={options.maxPlayers} onChange={set('maxPlayers')} />
-          </Setting>
+          {solo ? null : (
+            <Setting label="Max players" hint={players ? `${players} in the room now` : undefined}>
+              <SegmentedControl label="Max players" options={MAX_PLAYER_OPTIONS} value={options.maxPlayers} onChange={set('maxPlayers')} />
+            </Setting>
+          )}
           <Setting
             label="Next round"
             hint={options.advance === 'host' ? 'Starts when a host presses Next round.' : `Starts ${REVEAL_SECONDS} s after the answer is shown.`}
@@ -100,27 +135,18 @@ export function RoomForm({ options, onChange, nameError, creating = true, stacke
               options={Object.entries(ADVANCE_LABELS).map(([value, label]) => ({ value, label }))}
             />
           </Setting>
-          <Setting
-            label="Hosts"
-            hint={options.hosting === 'everyone' ? 'Everyone can start games, change these settings and reset the scores.' : 'Who can start games and change these settings.'}
-          >
-            <SegmentedControl
-              label="Hosts" value={options.hosting} onChange={setHosting}
-              options={Object.entries(HOSTING_LABELS).map(([value, label]) => ({ value, label }))}
-            />
-          </Setting>
-          {creating ? (
+          {solo ? null : (
             <Setting
-              label="Host controls"
-              hint="Hosts can pause a round for everyone or skip a song, with the buttons at the top left. This can’t be changed once the room is open."
+              label="Hosts"
+              hint={options.hosting === 'everyone' ? 'Everyone can start games, change these settings and reset the scores.' : 'Who can start games and change these settings.'}
             >
               <SegmentedControl
-                label="Host controls" value={options.hostControls} onChange={(v) => set('hostControls')(v as HostControls)}
-                options={Object.entries(HOST_CONTROL_LABELS).map(([value, label]) => ({ value, label }))}
+                label="Hosts" value={options.hosting} onChange={setHosting}
+                options={Object.entries(HOSTING_LABELS).map(([value, label]) => ({ value, label }))}
               />
             </Setting>
-          ) : null}
-          {options.hostControls !== 'on' ? (
+          )}
+          {options.hostControls !== 'on' && !solo ? (
             <Setting label="Vote to skip" hint={`Players type ${SKIP_COMMAND} in the chat. The song is skipped once half of them have.`}>
               <SegmentedControl
                 label="Vote to skip" value={options.voteSkip} onChange={(v) => set('voteSkip')(v as VoteSkip)}
@@ -161,8 +187,8 @@ export function RoomSettings({ app }: { app: AppApi }) {
 
   return (
     <RoomForm
-      title="Room settings" options={optionsOf(room)} onChange={change}
-      creating={false} stacked players={room.players.length}
+      title={isSolo(room) ? 'Game settings' : 'Room settings'} options={optionsOf(room)} onChange={change}
+      stacked players={room.players.length} solo={isSolo(room)}
     />
   );
 }

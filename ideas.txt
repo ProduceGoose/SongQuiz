@@ -1,7 +1,50 @@
 - Coop Mode where you have to guess songs together (Maybe like a Rogue Like where you have to go as far as possible together without guessing wrong)
-- Harder Modes with distorted audio
 - Own Playlist creation
 - Bet System (Where you can bet points on other peoples failure)
 - Year Guessing
-- Host can Pause a song or skip (or setting that every player can pause, maybe setting that every player is host)
 - Gugerloman Mode where Gugerloman interupts games and makes wrong written guesses
+
+
+
+
+    Guess the Decade
+    Team Mode
+    Year Guessing
+    Battle Royale Mode (Elimination Mode)
+    Solo Mode (Maybe like coop mode) - Maybe first and then Building a coop mode with that
+    Random Playlist (Maybe with Gamble Animation)
+    Voting for Playlists
+    More Playlists
+    More Songs
+    Splitting up Playlists in Hard, Medium, Easy for Coop Mode and Solo Mode
+
+
+Create Room Sequence:
+Create Room with first Settings -> Select Mode (online)
+Mode Selection under the Room View
+Each Mode has its own setting
+Modes:
+Casual - Normal Song guessing with Points and Hookers
+Year Guessing - Either Decade or Exact Year (kinda like Hitster)
+Coop Mode - Try to go as far as possible as a Team, while the Songs get increasingly harder
+Elemination Mode - Three Lives if you lose all of them you are out
+Room Creation Settings:
+
+    Name
+    Host Controls
+
+Casual Settings:
+
+    Player Skip and Pause Control
+    Vote to skip, Default Option
+    Gugerloman activated
+    Playlist Selection (Host chooses, Voting, Random Selection)
+    Duration of Songs
+    Guessing Time
+    Effects
+    -What has to be guessed
+
+Year Guessing:
+
+    Player Skip and Pause Control
+

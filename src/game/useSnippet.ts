@@ -107,7 +107,7 @@ export function useSnippet(round: Round | null, volume: number): Snippet {
   // The round's effects while guessing; clean at the reveal and between games. Before the effect
   // below that loads a new song, so it starts with the right ones.
   const fx = round?.phase === 'playing' ? round.effects ?? NO_EFFECTS : NO_EFFECTS;
-  const fxKey = `${fx.speed} ${fx.tone} ${fx.distort}`;
+  const fxKey = `${fx.speed} ${fx.tone} ${fx.distort} ${fx.reverb} ${fx.delay}`;
   useEffect(() => chain.current?.apply(fx), [fxKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A new round (or its audio arriving): load it and play from the right moment.
