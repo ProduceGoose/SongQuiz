@@ -120,7 +120,7 @@ export function App() {
     chat: game.chat, round: game.round, scores: game.scores, sendChat: game.sendChat, startGame: game.startGame, nextRound: game.nextRound, endGame: game.endGame,
     pauseRound: game.pauseRound, skipRound: game.skipRound, snippet,
     session: room ? game.session : null, resetSession: game.resetSession,
-    run: online ? net.run : sim.run, continueRun: online ? net.continueRun : sim.continueRun,
+    run: online ? net.run : sim.run, bestRun: online ? net.bestRun : sim.bestRun, continueRun: online ? net.continueRun : sim.continueRun,
     votePlaylist: online ? net.votePlaylist : sim.votePlaylist,
 
     go(name: ScreenName, id?: string) {
@@ -203,6 +203,7 @@ export function App() {
       setDemo(soloRoom(settings.name, mode));
       app.go('lobby');
       if (mode === 'coop') app.flash('Survival', 'Three lives, three levels of playlists');
+      else if (mode === 'years') app.flash('Guess the year', 'Type the year each song came out');
       else app.flash('Solo game', 'Just you and the music, nothing goes to the server');
     },
 

@@ -5,15 +5,33 @@ import { Notice, ScreenHeader, Section } from '../components/content/Layout';
 import { Table } from '../components/tables/Table';
 import { isSolo, playlistById } from '../data/demo';
 import { COOP_RULES, COOP_SNIPPET, hearts, LIVES, PLAYLISTS_PER_LEVEL, SONGS_PER_STAGE, SURVIVAL_RULES } from '../game/survival';
-import { ME, type AppApi, type Room, type ScreenDef, type ScreenProps } from '../types';
+import { ME, type AppApi, type Room, type RunResult, type ScreenDef, type ScreenProps } from '../types';
 import { canHost, canVoteSkip, GUESS_LABELS, SKIP_COMMAND, waitsForHost } from '../game/rooms';
 import { roomEffectsText } from '../game/effects';
-import { GUESS_RULES } from '../game/scoring';
+import { GUESS_RULES, pointsText } from '../game/scoring';
+import { YEAR_RULES } from '../game/years';
 import { RoomSettings } from './RoomForm';
 import { EndGameButton, NextRoundButton } from './Scores';
 import './Lobby.css';
 
 const readyCount = (room: Room) => room.players.filter((p) => p.ready).length;
+
+/** The room's best Coop run, or your best solo Survival run; nothing until a run has finished. */
+function BestRun({ run, solo }: { run: RunResult; solo: boolean }) {
+  return (
+    <Section
+      title={solo ? 'Your best run' : 'Best Coop run'}
+      hint={solo ? 'Your best survival run on this device: the most songs, then the most points.' : 'The best run in this room since it opened: the most songs, then the most points.'}
+    >
+      <div className="app-meta">
+        <Badge tone="gold" icon="trophy">{run.outcome === 'cleared' ? 'All three levels' : `Up to ${run.level ?? `stage ${run.stage}`}`}</Badge>
+        <Badge>{run.songs} songs</Badge>
+        {run.outcome === 'cleared' ? null : <Badge icon="playlist">{run.playlistTitle}</Badge>}
+        <Badge>{pointsText(run.points)}</Badge>
+      </div>
+    </Section>
+  );
+}
 
 function NoRoom({ app }: { app: AppApi }) {
   return (
@@ -76,10 +94,11 @@ function Lobby({ app }: ScreenProps) {
             </div>
           ) : (
             <div className="app-meta">
+              {room.mode === 'years' && !solo ? <Badge icon="clock">Years</Badge> : null}
               <Badge icon="playlist">{room.pick === 'vote' ? 'Playlist by vote' : room.pick === 'random' ? 'Random playlist' : playlist.title}</Badge>
               <Badge>{room.rounds} rounds</Badge>
               <Badge>{room.snippet} s snippets</Badge>
-              <Badge>{GUESS_LABELS[room.guess ?? 'separate']}</Badge>
+              <Badge>{room.mode === 'years' ? 'Guess the year' : GUESS_LABELS[room.guess ?? 'separate']}</Badge>
               {room.hosting === 'everyone' ? <Badge icon="users">Everyone hosts</Badge> : null}
               {room.hostControls === 'on' ? <Badge icon="pause">Pause & skip</Badge> : null}
               {canVoteSkip(room) ? <Badge>{SKIP_COMMAND} votes</Badge> : null}
@@ -97,6 +116,7 @@ function Lobby({ app }: ScreenProps) {
       </div>
 
       {coop && !solo ? <Notice>{COOP_RULES}</Notice> : null}
+      {app.bestRun ? <BestRun run={app.bestRun} solo={solo} /> : null}
       {survival ? (
         <Notice>{SURVIVAL_RULES} The run ends when your lives are gone, or with a win after the last playlist. Guesses go in the chat on the right.</Notice>
       ) : solo ? (
@@ -128,7 +148,9 @@ function Lobby({ app }: ScreenProps) {
         </Section>
       )}
 
-      {round ? (
+      {round?.years ? (
+        <Notice>Round {round.number} of {round.total} is on. Guess in the chat. {YEAR_RULES}</Notice>
+      ) : round ? (
         <Notice>
           Round {round.number} of {round.total} is on. Guess in the chat. {GUESS_RULES[round.guess]} Wrong guesses
           show up for everyone, right ones stay hidden.
@@ -166,7 +188,7 @@ export const lobbyScreen: ScreenDef = {
   lcd: ({ room, online }) => room && isSolo(room) && room.mode === 'coop'
     ? { title: 'Survival', subtitle: `${hearts(LIVES)} · Easy, Medium, Hard` }
     : room && isSolo(room)
-    ? { title: 'Solo', subtitle: `${room.rounds} rounds of ${playlistById(room.playlistId).title}` }
+    ? { title: room.mode === 'years' ? 'Guess the year' : 'Solo', subtitle: `${room.rounds} rounds of ${playlistById(room.playlistId).title}` }
     : room
     ? { title: `${room.name} · code ${room.code}`, subtitle: `${readyCount(room)} of ${room.players.length} players ready` }
     : online

@@ -2,7 +2,7 @@ import { Badge, type BadgeTone } from '../controls/Badge';
 import { cx } from '../utils';
 import './List.css';
 
-export type PlayerStatus = 'guessing' | 'locked' | 'title' | 'artist' | 'correct' | 'wrong' | 'away';
+export type PlayerStatus = 'guessing' | 'locked' | 'title' | 'artist' | 'correct' | 'close' | 'spotOn' | 'wrong' | 'away';
 
 const PLAYER_STATUS: Record<PlayerStatus, [BadgeTone, string]> = {
   guessing: ['neutral', 'Guessing'],
@@ -10,6 +10,9 @@ const PLAYER_STATUS: Record<PlayerStatus, [BadgeTone, string]> = {
   title: ['aqua', 'Title'],
   artist: ['aqua', 'Artist'],
   correct: ['correct', 'Correct'],
+  // Year guessing: close enough for points, or the exact year.
+  close: ['aqua', 'Close'],
+  spotOn: ['correct', 'Spot on'],
   wrong: ['wrong', 'Wrong'],
   away: ['neutral', 'Away']
 };

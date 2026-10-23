@@ -190,6 +190,10 @@ export const missedRound = (r: Pick<Round, 'solvedTitle' | 'solvedArtist'>) => !
 
 export const lifeLostText = (lives: number) => (lives ? `A life lost · ${hearts(lives)}` : `No lives left · ${hearts(0)}`);
 
+/** The run beats the best one so far: more songs, or as many with more points. */
+export const beatsRun = (run: Omit<RunResult, 'best'>, best: RunResult | null) =>
+  !best || run.songs > best.songs || (run.songs === best.songs && run.points > best.points);
+
 /** The run's end after round r: out of lives, or through the last playlist. `points` are the team's. */
 export function runResult(run: Run, r: Round, points: number): Omit<RunResult, 'best'> {
   const info = r.run!;
@@ -207,9 +211,10 @@ export function runOverText(result: Omit<RunResult, 'best'>, team: boolean): str
     : `Out of lives after ${result.songs} songs, at ${result.level} (${result.playlistTitle}) with ${pointsText(result.points)}.`;
 }
 
-/** The slot machine's reel for a stage: random covers, ending on the picked playlist. */
-export function spinReel(picked: Playlist, length = 24): string[] {
-  const others = survivalPlaylists().filter((p) => p.id !== picked.id).map((p) => p.id);
+/** The slot machine's reel for a stage: random covers from `pool`, ending on the picked playlist. */
+export function spinReel(picked: Playlist, length = 24, pool = survivalPlaylists()): string[] {
+  const others = pool.filter((p) => p.id !== picked.id).map((p) => p.id);
+  if (!others.length) others.push(picked.id);
   const reel: string[] = [];
   while (reel.length < length - 1) reel.push(...shuffled(others));
   return [...reel.slice(0, length - 1), picked.id];

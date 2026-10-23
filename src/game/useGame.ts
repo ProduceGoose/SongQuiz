@@ -13,8 +13,9 @@ import { NO_EFFECTS, roundEffects, SPEED_RATES } from './effects';
 import { gameOrder, lookupPreview, REVEAL_SECONDS, roundSeconds, snippetOffset } from './preview';
 import { canHost, canVoteSkip, controlsRound, isSkipVote, votesToSkip, waitsForHost } from './rooms';
 import { addGame, allSolved, award, emptySession, gameResult, type Scores } from './scoring';
-import { recordRun } from './bestRun';
+import { bestRun, recordRun } from './bestRun';
 import { newVote, randomSpin, VOTE_MS, VOTE_REVEAL_MS, voteResultText, voteWinner } from './playlistPick';
+import { guessYear, parseYear, yearResults, yearResultText, yearRevealText } from './years';
 import {
   COOP_SNIPPET, hearts, levelUpText, SPIN_MS, lifeLostText, missedRound, newRun, runEffects, runInfo, runOverText, runPlaylist, runResult, spinFor, stageAt,
   stageStartText, type Run
@@ -57,6 +58,8 @@ export interface Game {
   scores: Scores | null;
   session: Session;
   run: RunResult | null;
+  /** Solo Survival: your best run on this device (game/bestRun.ts); null otherwise or before your first. */
+  bestRun: RunResult | null;
   sendChat(text: string): void;
   startGame(): void;
   nextRound(): void;
@@ -152,7 +155,7 @@ export function useGame(room: Room | null, myName: string, onStart: () => void, 
   /** Playlist voting; simulated players vote at random moments, and the clock ends it (finishVote). */
   function startVote() {
     const room = latest.current.room!;
-    const vote = newVote();
+    const vote = newVote(room.mode);
     g.round = { ...pickingRound('vote'), vote };
     g.queue = room.players.filter((p) => p.id !== ME).map((p) => ({
       at: Date.now() + between(1500, VOTE_MS - 1500),
@@ -183,7 +186,7 @@ export function useGame(room: Room | null, myName: string, onStart: () => void, 
 
   /** A random playlist: the slot machine shows it, and you start round 1 (continueRun). */
   function spinRandom() {
-    const { playlistId, spin } = randomSpin(Date.now(), SPIN_MS);
+    const { playlistId, spin } = randomSpin(Date.now(), SPIN_MS, latest.current.room!.mode);
     choosePlaylist(playlistId);
     g.round = { ...pickingRound('spin'), spin };
     void preview(1);
@@ -206,7 +209,8 @@ export function useGame(room: Room | null, myName: string, onStart: () => void, 
       guess: run ? 'separate' : room.guess,
       effects: run ? runEffects(run, n) : roundEffects(room.effects ?? NO_EFFECTS),
       solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: [],
-      run: run ? runInfo(run, n) : undefined
+      run: run ? runInfo(run, n) : undefined,
+      years: room.mode === 'years' ? {} : undefined
     };
   }
 
@@ -247,11 +251,44 @@ export function useGame(room: Room | null, myName: string, onStart: () => void, 
       if (stageAt(g.coop, n).first) event(stageStartText(g.coop, n), 'reveal');
       event(`Song ${n} — name that tune · ${hearts(g.coop.lives)}`);
     } else {
-      event(`Round ${n} of ${room.rounds} — name that tune`);
+      event(`Round ${n} of ${room.rounds} — ${round.years ? 'what year is it from?' : 'name that tune'}`);
+    }
+    const others = room.players.filter((p) => p.id !== ME);
+    if (round.years) {
+      g.queue = others.flatMap((p) => simulatedYear(p.id, n));
+      return;
     }
     const wrong = (text: string) => { const c = checkGuess(text, track); return !c.title && !c.artist; };
     const decoys = playlist.tracks.filter((t) => wrong(t.title) && wrong(t.artist));
-    g.queue = room.players.filter((p) => p.id !== ME).flatMap((p) => simulatedGuesses(p.id, n, decoys));
+    g.queue = others.flatMap((p) => simulatedGuesses(p.id, n, decoys));
+  }
+
+  /** A simulated player's year (85% chance): mostly within a few years of the right one. */
+  function simulatedYear(id: string, n: number): Scheduled[] {
+    const r = g.round!;
+    if (Math.random() >= 0.85) return [];
+    // Roughly a bell curve around the right year: the sum of three throws of -2…2.
+    const off = Array.from({ length: 3 }, () => Math.floor(Math.random() * 5) - 2).reduce((a, b) => a + b, 0);
+    const year = Math.min(new Date().getFullYear(), r.track.year + off);
+    return [{
+      at: r.startedAt + between(3, r.length - 1.5) * 1000,
+      run: () => {
+        if (g.round?.number === n && g.round.phase === 'playing') yearGuess(id, year);
+      }
+    }];
+  }
+
+  /** A year round's guess: the player's one year, kept from the others until the reveal. */
+  function yearGuess(id: string, year: number) {
+    const next = guessYear(g.round!, id, year);
+    if (!next) {
+      if (id === ME) event(`You already guessed ${g.round!.years![ME]}. One guess per song.`);
+      return;
+    }
+    g.round = next;
+    if (id === ME) event(`Your guess: ${year}`);
+    event(`${id === ME ? 'You' : nameOf(id)} locked in a year`);
+    if (allSolved(next, latest.current.room?.players.map((p) => p.id) ?? [])) reveal();
   }
 
   /**
@@ -304,7 +341,18 @@ export function useGame(room: Room | null, myName: string, onStart: () => void, 
     const auto = (latest.current.room?.advance ?? 'auto') === 'auto';
     g.round = { ...r, phase: 'reveal', revealedAt, nextAt: auto ? revealedAt + REVEAL_MS : undefined };
     g.queue = [];
-    event(`It was “${r.track.title}” by ${r.track.artist}`, 'reveal');
+    if (r.years) {
+      // Year guesses score now: points during the round would tell how close a guess is.
+      event(yearRevealText(r), 'reveal');
+      const results = yearResults(r);
+      for (const result of results) {
+        g.scores = { ...g.scores, [result.id]: (g.scores?.[result.id] ?? 0) + result.points };
+        event(yearResultText(result).replace('{who}', result.id === ME ? 'You' : nameOf(result.id)), result.points ? 'correct' : undefined);
+      }
+      if (!results.length) event('Nobody guessed a year');
+    } else {
+      event(`It was “${r.track.title}” by ${r.track.artist}`, 'reveal');
+    }
     if (r.number < r.total) {
       void preview(r.number + 1).then((src) => {
         if (src && g.round?.number === r.number && g.round.phase === 'reveal') {
@@ -313,7 +361,7 @@ export function useGame(room: Room | null, myName: string, onStart: () => void, 
         }
       });
     }
-    if (!r.solvedTitle.length && !r.solvedArtist.length) event('Nobody got this one');
+    if (!r.years && !r.solvedTitle.length && !r.solvedArtist.length) event('Nobody got this one');
     if (g.coop && missedRound(r)) {
       g.coop.lives -= 1;
       g.round = { ...g.round, run: { ...r.run!, lives: g.coop.lives } };
@@ -412,12 +460,19 @@ export function useGame(room: Room | null, myName: string, onStart: () => void, 
       }
       return;
     }
-    const named = r?.phase === 'playing' ? checkGuess(text, r.track) : null;
-    if (named && (named.title || named.artist)) {
-      if (!score(ME, named)) event('Hidden, so you don’t give the answer away');
+    const year = r?.phase === 'playing' && r.years ? parseYear(text) : null;
+    if (year !== null) {
+      yearGuess(ME, year);
       return;
     }
-    const guessing = r?.phase === 'playing' && !allSolved(r, [ME]);
+    const named = r?.phase === 'playing' ? checkGuess(text, r.track) : null;
+    if (named && (named.title || named.artist)) {
+      // In a year round the title and the artist score nothing, but they'd still give the year away.
+      if (r!.years || !score(ME, named)) event('Hidden, so you don’t give the answer away');
+      return;
+    }
+    // In a year round only a year is a guess; anything else is talk.
+    const guessing = r?.phase === 'playing' && !r.years && !allSolved(r, [ME]);
     post({ kind: guessing ? 'guess' : 'message', author: myName, text, mine: true });
   }
 
@@ -480,5 +535,6 @@ export function useGame(room: Room | null, myName: string, onStart: () => void, 
     return () => window.clearTimeout(timer);
   }, [hostIsSimulated, ready, room?.code]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, run: g.result, sendChat, startGame, nextRound, endGame, pauseRound, skipRound, resetSession, continueRun, votePlaylist };
+  const best = room && isSolo(room) && room.mode === 'coop' ? bestRun() : null;
+  return { chat: g.chat, round: g.round, scores: g.scores, session: g.session, run: g.result, bestRun: best, sendChat, startGame, nextRound, endGame, pauseRound, skipRound, resetSession, continueRun, votePlaylist };
 }

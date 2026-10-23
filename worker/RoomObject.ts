@@ -27,10 +27,11 @@ import { CODE_PATTERN, type ClientMessage, type ServerMessage, type WireChat, ty
 import { addGame, allSolved, award, emptySession, gameResult, type Scores } from '../src/game/scoring';
 import type { Room, Round, RunResult, Session, Track } from '../src/types';
 import {
-  COOP_SNIPPET, hearts, levelUpText, lifeLostText, missedRound, newRun, runEffects, runInfo, runOverText, runPlaylist, runResult, spinFor, stageAt,
+  beatsRun, COOP_SNIPPET, hearts, levelUpText, lifeLostText, missedRound, newRun, runEffects, runInfo, runOverText, runPlaylist, runResult, spinFor, stageAt,
   SPIN_MS, stageStartText, type Run
 } from '../src/game/survival';
 import { newVote, randomSpin, VOTE_MS, VOTE_REVEAL_MS, voteResultText, voteWinner } from '../src/game/playlistPick';
+import { guessYear, hiddenYears, parseYear, yearResults, yearResultText, yearRevealText } from '../src/game/years';
 import type { Env } from './index';
 
 /** A room nobody is connected to is deleted after this long. */
@@ -66,6 +67,8 @@ interface State {
   coop: Run | null;
   /** The last finished Coop run. */
   result: RunResult | null;
+  /** The room's best Coop run: the most songs, then the most points. */
+  best: RunResult | null;
   lastActive: number;
 }
 
@@ -73,7 +76,7 @@ interface Attachment {
   playerId: string;
 }
 
-const emptyState = (code = ''): State => ({ code, room: null, players: [], chat: [], round: null, scores: null, session: emptySession(), game: '', order: [], previews: {}, coop: null, result: null, lastActive: Date.now() });
+const emptyState = (code = ''): State => ({ code, room: null, players: [], chat: [], round: null, scores: null, session: emptySession(), game: '', order: [], previews: {}, coop: null, result: null, best: null, lastActive: Date.now() });
 const newId = () => crypto.randomUUID().slice(0, 8);
 const cleanName = (name: unknown, fallback: string) => (typeof name === 'string' ? name.trim().slice(0, 20) : '') || fallback;
 
@@ -220,7 +223,7 @@ export class RoomObject extends DurableObject<Env> {
     }
 
     ws.serializeAttachment({ playerId: player.id } satisfies Attachment);
-    this.send(ws, { type: 'welcome', you: player.id, room: this.wireRoom(), round: this.wireRound(), scores: this.s.scores, run: this.s.result, session: this.wireSession(), chat: this.s.chat, now: Date.now() });
+    this.send(ws, { type: 'welcome', you: player.id, room: this.wireRoom(), round: this.wireRound(), scores: this.s.scores, run: this.s.result, best: this.s.best, session: this.wireSession(), chat: this.s.chat, now: Date.now() });
     this.broadcastRoom();
     await this.save();
   }
@@ -294,16 +297,31 @@ export class RoomObject extends DurableObject<Env> {
   private async chat(ws: WebSocket, player: Player, text: string) {
     if (isSkipVote(text)) return this.voteSkip(ws, player);
     const r = this.s.round;
+    // Only the sender sees these notes; the message itself goes nowhere.
+    const note = (text: string) => this.send(ws, { type: 'chat', entry: { id: newId(), kind: 'event', text, time: Date.now() } });
+    const year = r?.phase === 'playing' && r.years ? parseYear(text) : null;
+    if (year !== null) return this.guessYear(player, year, note);
     const named = r?.phase === 'playing' ? checkGuess(text, r.track) : null;
     if (named && (named.title || named.artist)) {
-      if (!(await this.score(player, named))) {
-        // Only the sender sees this; the message itself goes nowhere.
-        this.send(ws, { type: 'chat', entry: { id: newId(), kind: 'event', text: 'Hidden, so you don’t give the answer away', time: Date.now() } });
-      }
+      // In a year round the title and the artist score nothing, but they'd still give the year away.
+      if (r!.years || !(await this.score(player, named))) note('Hidden, so you don’t give the answer away');
       return;
     }
-    const guessing = r?.phase === 'playing' && !allSolved(r, [player.id]);
+    // In a year round only a year is a guess; anything else is talk.
+    const guessing = r?.phase === 'playing' && !r.years && !allSolved(r, [player.id]);
     this.post({ kind: guessing ? 'guess' : 'message', playerId: player.id, name: player.name, text });
+  }
+
+  /** A year round's guess: the player's one year, kept from the others until the reveal. */
+  private async guessYear(player: Player, year: number, note: (text: string) => void) {
+    const r = this.s.round!;
+    const next = guessYear(r, player.id, year);
+    if (!next) return note(`You already guessed ${r.years![player.id]}. One guess per song.`);
+    this.s.round = next;
+    note(`Your guess: ${year}`);
+    this.event('{who} locked in a year', player);
+    this.broadcastRound();
+    if (allSolved(next, this.connectedIds())) await this.reveal();
   }
 
   /** A /skip from a player: once half the players have voted, the song ends and the answer shows. */
@@ -397,7 +415,7 @@ export class RoomObject extends DurableObject<Env> {
 
   /** Playlist voting: everyone votes among three playlists until the vote ends (finishVote, by alarm). */
   private startVote() {
-    this.s.round = { ...this.pickingRound('vote'), vote: newVote() };
+    this.s.round = { ...this.pickingRound('vote'), vote: newVote(this.s.room!.mode) };
     this.event(`Vote for the playlist · ${VOTE_MS / 1000} seconds`, undefined, 'reveal');
     this.broadcastRound();
   }
@@ -421,7 +439,7 @@ export class RoomObject extends DurableObject<Env> {
   /** A random playlist: the slot machine shows it, and a host starts round 1 (continue). */
   private async spinRandom() {
     const room = this.s.room!;
-    const { playlistId, spin } = randomSpin(Date.now(), SPIN_MS);
+    const { playlistId, spin } = randomSpin(Date.now(), SPIN_MS, room.mode);
     room.playlistId = playlistId;
     this.s.order = gameOrder(playlistById(playlistId).tracks);
     this.broadcastRoom();
@@ -465,13 +483,14 @@ export class RoomObject extends DurableObject<Env> {
       startedAt: Date.now(), phase: 'playing', length: roundSeconds(snippet), snippet,
       guess: run ? 'separate' : room.guess ?? 'separate', effects, solvedTitle: [], solvedArtist: [], solvedBoth: [], solvedAllArtists: [], skipVotes: [],
       audio: hasAudio ? { src: this.audioPath(n), offset: snippetOffset(snippet * SPEED_RATES[effects.speed]) } : undefined,
-      run: run ? runInfo(run, n) : undefined
+      run: run ? runInfo(run, n) : undefined,
+      years: room.mode === 'years' ? {} : undefined
     };
     if (run) {
       if (stageAt(run, n).first) this.event(stageStartText(run, n), undefined, 'reveal');
       this.event(`Song ${n} — name that tune · ${hearts(run.lives)}`);
     } else {
-      this.event(`Round ${n} of ${room.rounds} — name that tune`);
+      this.event(`Round ${n} of ${room.rounds} — ${room.mode === 'years' ? 'what year is it from?' : 'name that tune'}`);
     }
     this.broadcastRound();
   }
@@ -494,8 +513,20 @@ export class RoomObject extends DurableObject<Env> {
     r.phase = 'reveal';
     r.revealedAt = Date.now();
     if ((this.s.room?.advance ?? 'auto') === 'auto') r.nextAt = r.revealedAt + REVEAL_SECONDS * 1000;
-    this.event(`It was “${r.track.title}” by ${r.track.artist}`, undefined, 'reveal');
-    if (!r.solvedTitle.length && !r.solvedArtist.length) this.event('Nobody got this one');
+    if (r.years) {
+      // Year guesses score now: points during the round would tell how close a guess is.
+      this.event(yearRevealText(r), undefined, 'reveal');
+      const results = yearResults(r);
+      for (const result of results) {
+        const player = this.s.players.find((p) => p.id === result.id);
+        this.s.scores = { ...this.s.scores, [result.id]: (this.s.scores?.[result.id] ?? 0) + result.points };
+        if (player) this.event(yearResultText(result), player, result.points ? 'correct' : undefined);
+      }
+      if (!results.length) this.event('Nobody guessed a year');
+    } else {
+      this.event(`It was “${r.track.title}” by ${r.track.artist}`, undefined, 'reveal');
+      if (!r.solvedTitle.length && !r.solvedArtist.length) this.event('Nobody got this one');
+    }
     if (this.s.coop && missedRound(r)) {
       this.s.coop.lives -= 1;
       r.run = { ...r.run!, lives: this.s.coop.lives };
@@ -529,11 +560,14 @@ export class RoomObject extends DurableObject<Env> {
   private finishRun(r: Round) {
     const ids = this.s.players.map((p) => p.id);
     const result = runResult(this.s.coop!, r, ids.reduce((sum, id) => sum + (this.s.scores?.[id] ?? 0), 0));
-    this.s.result = { ...result, best: false };
+    // The room's first run is its best too, but only a later one that beats it is "a new best".
+    const best = beatsRun(result, this.s.best);
+    this.s.result = { ...result, best: best && !!this.s.best };
+    if (best) this.s.best = { ...result, best: true };
     this.s.round = null;
     this.s.session = addGame(this.s.session, this.s.scores ?? {}, ids);
     this.broadcastSession();
-    this.event(runOverText(result, ids.length > 1), undefined, 'reveal');
+    this.event(runOverText(result, ids.length > 1) + (this.s.result.best ? ' A new best run for this room!' : ''), undefined, 'reveal');
     this.broadcastRound();
   }
 
@@ -628,7 +662,7 @@ export class RoomObject extends DurableObject<Env> {
     const r = this.s.round;
     if (!r) return null;
     const { track, art, ...rest } = r;
-    return r.phase === 'reveal' ? { ...rest, track, art } : rest;
+    return r.phase === 'reveal' ? { ...rest, track, art } : { ...rest, years: r.years && hiddenYears(r.years) };
   }
 
   // ---- Sending -----------------------------------------------------------------
@@ -662,7 +696,7 @@ export class RoomObject extends DurableObject<Env> {
   }
 
   private broadcastRound() {
-    this.broadcast({ type: 'round', round: this.wireRound(), scores: this.s.scores, run: this.s.result });
+    this.broadcast({ type: 'round', round: this.wireRound(), scores: this.s.scores, run: this.s.result, best: this.s.best });
   }
 
   private reject(ws: WebSocket, code: Extract<ServerMessage, { type: 'error' }>['code'], message: string) {

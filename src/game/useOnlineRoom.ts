@@ -25,6 +25,8 @@ export interface OnlineRoom {
   session: Session | null;
   /** The room's last finished Coop run. */
   run: RunResult | null;
+  /** The room's best Coop run; null until one has finished. */
+  bestRun: RunResult | null;
   sendChat(text: string): void;
   startGame(): void;
   nextRound(): void;
@@ -77,6 +79,7 @@ interface Snapshot {
   round: WireRound | null;
   scores: Scores | null;
   run: RunResult | null;
+  best: RunResult | null;
   session: Session;
   chat: WireChat[];
   /** Server clock minus this browser's clock, in ms. */
@@ -121,7 +124,7 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
           case 'welcome':
             retries = 0;
             setStatus('open');
-            setSnap({ you: msg.you, room: msg.room, round: msg.round, scores: msg.scores, run: msg.run ?? null, session: msg.session, chat: msg.chat, offset: msg.now - Date.now() });
+            setSnap({ you: msg.you, room: msg.room, round: msg.round, scores: msg.scores, run: msg.run ?? null, best: msg.best ?? null, session: msg.session, chat: msg.chat, offset: msg.now - Date.now() });
             if (!joined) {
               joined = true;
               latest.current.callbacks.onJoined(localRoom(msg.room, msg.you));
@@ -131,7 +134,7 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
             setSnap((s) => s && { ...s, room: msg.room });
             break;
           case 'round':
-            setSnap((s) => s && { ...s, round: msg.round, scores: msg.scores, run: msg.run ?? null });
+            setSnap((s) => s && { ...s, round: msg.round, scores: msg.scores, run: msg.run ?? null, best: msg.best ?? null });
             break;
           case 'session':
             setSnap((s) => s && { ...s, session: msg.session });
@@ -188,7 +191,7 @@ export function useOnlineRoom(target: OnlineTarget | null, myName: string, callb
   const chat = useMemo(() => (snap ? snap.chat.map((w) => localChat(w, snap.you, snap.room)) : []), [snap?.chat, snap?.room]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
-    status, room, chat, round, scores, session, run: snap?.run ?? null,
+    status, room, chat, round, scores, session, run: snap?.run ?? null, bestRun: snap?.best ?? null,
     sendChat: (text) => send({ type: 'chat', text }),
     startGame: () => send({ type: 'start' }),
     nextRound: () => send({ type: 'next' }),
@@ -224,6 +227,7 @@ function localRound(round: WireRound, you: string, offset: number): Round {
     solvedAllArtists: (round.solvedAllArtists ?? []).map(id),
     effects: round.effects ?? NO_EFFECTS,
     skipVotes: (round.skipVotes ?? []).map(id),
+    years: round.years && localIds(round.years, you),
     // Server times to this browser's clock.
     startedAt: round.startedAt - offset,
     pausedAt: round.pausedAt === undefined ? undefined : round.pausedAt - offset,

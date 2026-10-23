@@ -9,6 +9,7 @@ import { roundElapsed } from '../../game/preview';
 import { effectsText, NO_EFFECTS } from '../../game/effects';
 import { fastest } from '../../game/scoring';
 import { hearts, PLAYLISTS_PER_LEVEL } from '../../game/survival';
+import { closestText } from '../../game/years';
 import { ME, type AppApi, type LcdText, type Round, type ScreenDef } from '../../types';
 
 /** " · 1 of 3 votes to skip", once someone has voted. */
@@ -21,6 +22,7 @@ function skipVotes(app: AppApi, round: Round): string {
 
 /** How many have named what the round asks for. */
 function progress(round: Round, players: number): string {
+  if (round.years) return `${Object.keys(round.years).length} of ${players} locked in a year`;
   switch (round.guess) {
     case 'title': return `${round.solvedTitle.length} of ${players} named the title`;
     case 'artist': return `${round.solvedArtist.length} of ${players} named the artist`;
@@ -54,7 +56,7 @@ function roundLcd(app: AppApi, round: Round): LcdDisplayProps {
     return {
       title: round.run
         ? `${round.run.level} ${round.run.levelStage} of ${PLAYLISTS_PER_LEVEL} — ${round.run.playlistTitle}`
-        : `Round ${round.number} of ${round.total} — ${effectsText(round.effects ?? NO_EFFECTS) || 'Name that tune'}`,
+        : `Round ${round.number} of ${round.total} — ${effectsText(round.effects ?? NO_EFFECTS) || (round.years ? 'What year is it from?' : 'Name that tune')}`,
       subtitle: round.pausedAt !== undefined
         ? 'Paused by the host'
         : app.snippet.blocked
@@ -67,19 +69,21 @@ function roundLcd(app: AppApi, round: Round): LcdDisplayProps {
       remaining: Math.ceil(round.length - elapsed)
     };
   }
+  const nameOf = (id: string) => (id === ME ? 'You' : app.room?.players.find((p) => p.id === id)?.name ?? 'Someone');
   const first = fastest(round);
-  const who = first === undefined ? 'Nobody got it'
-    : first === ME ? 'You were fastest'
-    : `${app.room?.players.find((p) => p.id === first)?.name ?? 'Someone'} was fastest`;
+  const who = round.years ? closestText(round, nameOf)
+    : first === undefined ? 'Nobody got it'
+    : `${nameOf(first)} ${first === ME ? 'were' : 'was'} fastest`;
+  const answer = round.years ? `${round.track.year}: “${round.track.title}” by ${round.track.artist}` : `It was “${round.track.title}” by ${round.track.artist}`;
   // A survival run is over with its last life too.
   const last = round.number >= round.total || round.run?.lives === 0;
   if (round.nextAt === undefined) {
     const host = app.room && canHost(app.room, ME) ? 'press Next round' : 'waiting for the host';
-    return { title: `It was “${round.track.title}” by ${round.track.artist}`, subtitle: `${who} · ${last ? 'that was the last round · ' : ''}${host}` };
+    return { title: answer, subtitle: `${who} · ${last ? 'that was the last round · ' : ''}${host}` };
   }
   const wait = Math.max(0, Math.ceil((round.nextAt - Date.now()) / 1000));
   return {
-    title: `It was “${round.track.title}” by ${round.track.artist}`,
+    title: answer,
     subtitle: round.run?.lives === 0 ? `${who} · no lives left`
       : last ? `${who} · that was the last round`
       : round.run ? `${who} · ${hearts(round.run.lives)} · next song in ${formatTime(wait)}`

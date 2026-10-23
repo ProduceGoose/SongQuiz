@@ -6,13 +6,14 @@ import { AlbumTile } from '../components/albums/AlbumTile';
 import { SegmentedControl } from '../components/controls/SegmentedControl';
 import { Field, Setting } from '../components/content/Form';
 import { Section, Sheet } from '../components/content/Layout';
-import { isSolo, modeArt, playlistById, playlists } from '../data/demo';
+import { isSolo, modeArt, playlistById } from '../data/demo';
 import { ADVANCE_LABELS, HOST_CONTROL_LABELS, MODE_LABELS, SKIP_COMMAND, VOTE_SKIP_LABELS, MAX_PLAYER_OPTIONS, GUESS_LABELS, HOSTING_LABELS, optionsOf, ROUND_OPTIONS, SNIPPET_OPTIONS } from '../game/rooms';
 import { MIN_ROUND_SECONDS, REVEAL_SECONDS } from '../game/preview';
 import { SPEED_LABELS, SPEED_RATES, SWITCH_LABELS, TONE_LABELS } from '../game/effects';
 import { GUESS_RULES } from '../game/scoring';
 import { COOP_RULES, LIVES } from '../game/survival';
-import { PICK_HINTS, PICK_LABELS } from '../game/playlistPick';
+import { modePlaylists, PICK_HINTS, PICK_LABELS } from '../game/playlistPick';
+import { isYearPlaylist, YEAR_RULES } from '../game/years';
 import type { Advance, AppApi, GameMode, GuessMode, PlaylistPick, HostControls, Hosting, RoomEffects, RoomOptions, VoteSkip } from '../types';
 
 const HOSTING_WARNING = 'Are you trusting your friends this much?';
@@ -101,22 +102,28 @@ interface RoomFormProps {
 }
 
 /** Under each mode's cover. */
-const MODE_SUBTITLES: Record<GameMode, string> = { casual: 'Everyone for themselves', coop: `Together, ${LIVES} lives` };
+const MODE_SUBTITLES: Record<GameMode, string> = { casual: 'The Usual', coop: `Together, ${LIVES} lives`, years: 'Guess the year' };
 /** The chosen mode's rules, over the covers. */
 const MODE_HINTS: Record<GameMode, string> = {
   casual: 'Your playlist, your rules, and the most points win.',
-  coop: COOP_RULES
+  coop: COOP_RULES,
+  years: YEAR_RULES + ' The decade playlists sit this one out.'
 };
 
 /**
  * The mode, rules, effects and playlist of an open room. The mode has its own section of covers
  * above the rest. Coop picks its own playlists and effects (game/survival.ts), so the settings
- * below leave those out, with the rounds and the guess mode.
+ * below leave those out, with the rounds and the guess mode. Year guessing has no guess mode
+ * either, and only offers the playlists that don't give the year away (game/years.ts).
  */
 export function RoomForm({ options, onChange, stacked, title = 'Rules', solo }: RoomFormProps) {
   const playlist = playlistById(options.playlistId);
   const coop = options.mode === 'coop';
+  const years = options.mode === 'years';
   const set = <K extends keyof RoomOptions>(key: K) => (value: RoomOptions[K]) => onChange({ ...options, [key]: value });
+  // A decade playlist doesn't carry over to year guessing.
+  const setMode = (mode: GameMode) =>
+    onChange({ ...options, mode, playlistId: mode === 'years' && !isYearPlaylist(options.playlistId) ? 'random' : options.playlistId });
   const setHosting = (value: string) => {
     if (value === 'everyone' && !window.confirm(HOSTING_WARNING)) return;
     set('hosting')(value as Hosting);
@@ -130,7 +137,7 @@ export function RoomForm({ options, onChange, stacked, title = 'Rules', solo }: 
               <AlbumTile
                 key={mode} art={modeArt(mode)} title={MODE_LABELS[mode]} subtitle={MODE_SUBTITLES[mode]}
                 state={mode === options.mode ? 'selected' : 'idle'}
-                onClick={() => set('mode')(mode)}
+                onClick={() => setMode(mode)}
               />
             ))}
           </AlbumGrid>
@@ -157,7 +164,7 @@ export function RoomForm({ options, onChange, stacked, title = 'Rules', solo }: 
                 <SegmentedControl label="Snippet length in seconds" value={options.snippet} onChange={set('snippet')} options={SNIPPET_OPTIONS} />
               </Setting>
             )}
-            {coop ? null : (
+            {coop || years ? null : (
               <Setting label="Guesses" hint={GUESS_RULES[options.guess]}>
                 <SegmentedControl
                   label="Guesses" value={options.guess} onChange={(v) => set('guess')(v as GuessMode)}
@@ -199,9 +206,12 @@ export function RoomForm({ options, onChange, stacked, title = 'Rules', solo }: 
 
         {/* Coop and casual with a vote or the slot machine pick their own. */}
         {coop || options.pick !== 'host' ? null : (
-          <Section title="Playlist" hint={`${playlist.title} · ${playlist.subtitle} · ${playlist.level}`}>
+          <Section
+            title="Playlist"
+            hint={`${playlist.title} · ${playlist.subtitle} · ${playlist.level}` + (years ? ' · No decade playlists when you guess the year.' : '')}
+          >
             <AlbumGrid label="Choose a playlist">
-              {playlists.map((p) => (
+              {modePlaylists(options.mode).map((p) => (
                 <AlbumTile
                   key={p.id} art={p.art} title={p.title} subtitle={p.subtitle}
                   state={p.id === options.playlistId ? 'selected' : 'idle'}

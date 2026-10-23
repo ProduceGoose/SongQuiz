@@ -28,6 +28,9 @@ Casual - Normal Song guessing with Points and Hookers
 Year Guessing - Either Decade or Exact Year (kinda like Hitster)
 Coop Mode - Try to go as far as possible as a Team, while the Songs get increasingly harder
 Elemination Mode - Three Lives if you lose all of them you are out
+Memory Mode - You get 5 Songs and you have to guess them after the time runs out
+
+
 Room Creation Settings:
 
     Name

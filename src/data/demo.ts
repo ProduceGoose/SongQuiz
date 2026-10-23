@@ -16,7 +16,7 @@ function playlistArt(id: string, i: number): string {
 
 /** A game mode's cover: public/assets/covers/mode-<mode>.webp once `npm run covers` has made it, else a generated one. */
 export function modeArt(mode: GameMode): string {
-  return playlistArt(`mode-${mode}`, mode === 'casual' ? 6 : 2);
+  return playlistArt(`mode-${mode}`, { casual: 6, coop: 2, years: 3 }[mode]);
 }
 const PALETTES = [
   ['#d9472b', '#f6d36b'], ['#1b3a5c', '#e9e2cf'], ['#2f7d5b', '#f1efe6'], ['#f2c14e', '#1c1c1c'],
@@ -90,13 +90,13 @@ export const SOLO_CODE = 'S0LO';
 export const isSolo = (room: Pick<Room, 'code'> | null | undefined) => room?.code === SOLO_CODE;
 
 /**
- * Free play starts on Random with the usual rules, which you can change. A survival run has fixed
- * rules (game/survival.ts) and no pause or skip, since both would save a life.
+ * Free play and year guessing start on Random with the usual rules, which you can change. A
+ * survival run has fixed rules (game/survival.ts) and no pause or skip, since both would save a life.
  */
 export function soloRoom(myName: string, mode: GameMode = 'casual'): Room {
   const survival = mode === 'coop';
   return {
-    name: survival ? 'Survival' : 'Solo', code: SOLO_CODE, hostId: ME, mode,
+    name: { casual: 'Solo', coop: 'Survival', years: 'Guess the year' }[mode], code: SOLO_CODE, hostId: ME, mode,
     playlistId: 'random', rounds: 10, snippet: 20, guess: 'separate', hosting: 'host', advance: 'auto', hostControls: survival ? 'off' : 'on', voteSkip: 'off',
     // The limit is hidden in solo; it only has to be one the room form offers (see settingsFromOptions).
     effects: { speed: 'normal', tone: 'clean', distort: 'off', reverb: 'off', delay: 'off', random: 'off' }, maxPlayers: 4,

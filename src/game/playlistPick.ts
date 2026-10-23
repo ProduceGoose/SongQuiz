@@ -2,8 +2,9 @@
 // three random playlists when the game starts, or a random one shown by the slot machine. Used by
 // the browser (game/useGame.ts) and the server (worker/RoomObject.ts).
 import { playlists } from '../data/demo';
-import type { Playlist, PlaylistPick, Round } from '../types';
+import type { GameMode, Playlist, PlaylistPick, Round } from '../types';
 import { spinReel } from './survival';
+import { isYearPlaylist } from './years';
 
 export const PICK_LABELS: Record<PlaylistPick, string> = { host: 'Host', vote: 'Voting', random: 'Random' };
 
@@ -21,14 +22,18 @@ export const VOTE_REVEAL_MS = 2500;
 
 const pickOne = <T,>(list: T[]): T => list[Math.floor(Math.random() * list.length)]!;
 
-/** Playlists a vote or the slot machine can pick: those with songs to play (not the empty template). */
-export function pickablePlaylists(): Playlist[] {
-  return playlists.filter((p) => p.tracks.filter((t) => t.apple).length >= 5);
+/** The playlists a game in this mode can play: year guessing leaves out the decade playlists. */
+export const modePlaylists = (mode: GameMode = 'casual'): Playlist[] =>
+  mode === 'years' ? playlists.filter((p) => isYearPlaylist(p.id)) : playlists;
+
+/** Playlists a vote or the slot machine can pick: those of the mode with songs to play (not the empty template). */
+export function pickablePlaylists(mode?: GameMode): Playlist[] {
+  return modePlaylists(mode).filter((p) => p.tracks.filter((t) => t.apple).length >= 5);
 }
 
-/** A new vote for round 1: VOTE_OPTIONS different random playlists, nobody voted yet. */
-export function newVote(now = Date.now()): NonNullable<Round['vote']> {
-  const pool = pickablePlaylists().map((p) => p.id);
+/** A new vote for round 1: VOTE_OPTIONS different random playlists of the mode, nobody voted yet. */
+export function newVote(mode?: GameMode, now = Date.now()): NonNullable<Round['vote']> {
+  const pool = pickablePlaylists(mode).map((p) => p.id);
   const options: string[] = [];
   while (options.length < Math.min(VOTE_OPTIONS, pool.length)) {
     const id = pickOne(pool);
@@ -53,8 +58,9 @@ export function voteResultText(title: string, votes: number, voters: number): st
   return votes ? `${title} won the vote with ${votes} of ${voters} ${voters === 1 ? 'vote' : 'votes'}` : `Nobody voted, so it’s ${title}`;
 }
 
-/** A random playlist for the slot machine, and its reel. */
-export function randomSpin(now: number, spinMs: number): { playlistId: string; spin: NonNullable<Round['spin']> } {
-  const picked = pickOne(pickablePlaylists());
-  return { playlistId: picked.id, spin: { reel: spinReel(picked), until: now + spinMs } };
+/** A random playlist of the mode for the slot machine, and its reel of that mode's playlists. */
+export function randomSpin(now: number, spinMs: number, mode?: GameMode): { playlistId: string; spin: NonNullable<Round['spin']> } {
+  const pool = pickablePlaylists(mode);
+  const picked = pickOne(pool);
+  return { playlistId: picked.id, spin: { reel: spinReel(picked, undefined, pool), until: now + spinMs } };
 }

@@ -1,6 +1,7 @@
 // The best solo Survival run on this device (game/survival.ts), kept in the browser's storage.
-// Browser only; Coop rooms on the server don't keep one.
+// Browser only; a Coop room's best run is kept by its server (worker/RoomObject.ts).
 import type { RunResult } from '../types';
+import { beatsRun } from './survival';
 
 const BEST_KEY = 'iquiz.survival.best';
 
@@ -15,8 +16,7 @@ export function bestRun(): RunResult | null {
 
 /** Saves the run if it beats the best one; true if it did. */
 export function recordRun(run: Omit<RunResult, 'best'>): boolean {
-  const best = bestRun();
-  const better = !best || run.songs > best.songs || (run.songs === best.songs && run.points > best.points);
+  const better = beatsRun(run, bestRun());
   if (better) {
     try {
       localStorage.setItem(BEST_KEY, JSON.stringify({ ...run, best: true }));

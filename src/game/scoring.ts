@@ -1,10 +1,11 @@
 // Points. Each round, the first three players to name a part of the song get 3, 2 and 1 points.
 // Which parts count is the room's guess mode: the title and the artist on their own (so up to
 // 6 points a round), only one of them, or both together. Naming every artist of a song with
-// several is worth a bonus point wherever the artist counts. Used by the demo room (useGame.ts)
-// and the server (worker/RoomObject.ts).
+// several is worth a bonus point wherever the artist counts. Year rounds score the guessed year
+// instead (game/years.ts). Used by the demo room (useGame.ts) and the server (worker/RoomObject.ts).
 import type { GuessMode, Round, Session } from '../types';
 import type { Named } from './guess';
+import { yearRoundPoints } from './years';
 
 export const POINTS = [3, 2, 1];
 
@@ -28,7 +29,7 @@ export const GUESS_RULES: Record<GuessMode, string> = {
   both: `Points only once you’ve named the title and the artist: ${points} for the first three.` + bonus
 };
 
-type Solved = Pick<Round, 'guess' | 'solvedTitle' | 'solvedArtist' | 'solvedBoth' | 'solvedAllArtists'>;
+type Solved = Pick<Round, 'guess' | 'solvedTitle' | 'solvedArtist' | 'solvedBoth' | 'solvedAllArtists' | 'years'>;
 
 const needsTitle = (round: Pick<Round, 'guess'>) => round.guess !== 'artist';
 const needsArtist = (round: Pick<Round, 'guess'>) => round.guess !== 'title';
@@ -43,7 +44,8 @@ function bonusPoints(round: Solved, id: string): number {
 }
 
 /** The player's points from this round so far. */
-export function roundPoints(round: Solved, id: string): number {
+export function roundPoints(round: Solved & Pick<Round, 'phase' | 'track'>, id: string): number {
+  if (round.years) return yearRoundPoints(round, id);
   const extra = bonusPoints(round, id);
   switch (round.guess) {
     case 'title': return placePoints(round.solvedTitle, id);
@@ -53,8 +55,9 @@ export function roundPoints(round: Solved, id: string): number {
   }
 }
 
-/** The player has named everything the round asks for. */
+/** The player has named everything the round asks for; in a year round, guessed a year. */
 export function hasSolved(round: Solved, id: string): boolean {
+  if (round.years) return id in round.years;
   return (!needsTitle(round) || round.solvedTitle.includes(id)) && (!needsArtist(round) || round.solvedArtist.includes(id));
 }
 

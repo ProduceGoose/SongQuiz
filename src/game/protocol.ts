@@ -9,7 +9,7 @@ export type WireRoom = Omit<Room, 'players'> & {
   players: Array<{ id: string; name: string; ready: boolean; connected: boolean }>;
 };
 
-/** A round as the server sends it: the track and its art only once the round is revealed. */
+/** A round as the server sends it: the track, its art and the guessed years only once the round is revealed. */
 export type WireRound = Omit<Round, 'track' | 'art'> & { track?: Track; art?: string };
 
 /**
@@ -53,10 +53,13 @@ export type ClientMessage =
 
 export type ServerMessage =
   /** Sent after hello. `now` is the server's clock, to line up round timers. */
-  | { type: 'welcome'; you: string; room: WireRoom; round: WireRound | null; scores: Scores | null; run: RunResult | null; session: Session; chat: WireChat[]; now: number }
+  | { type: 'welcome'; you: string; room: WireRoom; round: WireRound | null; scores: Scores | null; run: RunResult | null; best: RunResult | null; session: Session; chat: WireChat[]; now: number }
   | { type: 'room'; room: WireRoom }
-  /** The round and the game's points, which change together, and in Coop the last finished run. */
-  | { type: 'round'; round: WireRound | null; scores: Scores | null; run: RunResult | null }
+  /**
+   * The round and the game's points, which change together, and the room's Coop runs: the last
+   * finished one and the best one, null until a run has finished.
+   */
+  | { type: 'round'; round: WireRound | null; scores: Scores | null; run: RunResult | null; best: RunResult | null }
   | { type: 'session'; session: Session }
   | { type: 'chat'; entry: WireChat }
   | { type: 'error'; code: 'not_found' | 'taken' | 'full' | 'bad_request'; message: string };

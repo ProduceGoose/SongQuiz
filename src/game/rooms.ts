@@ -3,6 +3,7 @@
 import { playlists } from '../data/demo';
 import { NO_EFFECTS, validEffects } from './effects';
 import { PICK_LABELS } from './playlistPick';
+import { isYearPlaylist } from './years';
 import type { Advance, GameMode, GuessMode, HostControls, Hosting, Room, RoomOptions, Round, VoteSkip } from '../types';
 
 export const ROUND_OPTIONS = ['5', '10', '15', '20'];
@@ -12,7 +13,7 @@ export const GUESS_LABELS: Record<GuessMode, string> = { separate: 'Title & arti
 export const HOSTING_LABELS: Record<Hosting, string> = { host: 'One Host', everyone: 'Everyone' };
 export const ADVANCE_LABELS: Record<Advance, string> = { auto: 'Automatically', host: 'Host starts it' };
 
-export const MODE_LABELS: Record<GameMode, string> = { casual: 'Casual', coop: 'Coop' };
+export const MODE_LABELS: Record<GameMode, string> = { casual: 'Casual', coop: 'Coop', years: 'Years' };
 
 export const HOST_CONTROL_LABELS: Record<HostControls, string> = { on: 'Pause & skip', off: 'Off' };
 export const VOTE_SKIP_LABELS: Record<VoteSkip, string> = { on: 'On', off: 'Off' };
@@ -62,8 +63,10 @@ export function settingsFromOptions(o: RoomOptions): RoomSettings | null {
     && Object.hasOwn(GUESS_LABELS, o.guess) && Object.hasOwn(HOSTING_LABELS, o.hosting) && Object.hasOwn(ADVANCE_LABELS, o.advance)
     && Object.hasOwn(HOST_CONTROL_LABELS, o.hostControls) && Object.hasOwn(VOTE_SKIP_LABELS, o.voteSkip) && playlists.some((p) => p.id === o.playlistId) && Object.hasOwn(MODE_LABELS, mode) && Object.hasOwn(PICK_LABELS, pick);
   if (!ok) return null;
+  // Year guessing can't play a decade playlist (game/years.ts); the room form switches to Random too.
+  const playlistId = mode === 'years' && !isYearPlaylist(o.playlistId) ? 'random' : o.playlistId;
   return {
-    name, playlistId: o.playlistId, rounds: Number(o.rounds), snippet: Number(o.snippet),
+    name, playlistId, rounds: Number(o.rounds), snippet: Number(o.snippet),
     guess: o.guess, hosting: o.hosting, advance: o.advance, hostControls: o.hostControls,
     voteSkip: o.hostControls === 'on' ? 'off' : o.voteSkip, effects: effects!, maxPlayers: Number(o.maxPlayers), mode, pick
   };

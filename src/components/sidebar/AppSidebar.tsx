@@ -53,7 +53,10 @@ export function AppSidebar({ app, selected }: { app: AppApi; selected: string })
         ? <NowPlaying hidden title={`Round ${round.number} of ${round.total}`} subtitle="Mystery track" overlay={<Countdown round={round} />} />
         : round?.phase === 'reveal'
         ? (
-          <NowPlaying label="Last song" art={artworkUrl(round.track, 360) ?? round.art} title={round.track.title} subtitle={round.track.artist}>
+          <NowPlaying
+            label="Last song" art={artworkUrl(round.track, 360) ?? round.art} title={round.track.title}
+            subtitle={round.years ? `${round.track.artist} · ${round.track.year}` : round.track.artist}
+          >
             {round.track.apple ? <a href={round.track.apple.url} target="_blank" rel="noopener noreferrer">Listen on Apple Music</a> : null}
           </NowPlaying>
         )

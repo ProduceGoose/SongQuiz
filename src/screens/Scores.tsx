@@ -9,12 +9,21 @@ import { Icon } from '../components/controls/Icon';
 import { isSolo } from '../data/demo';
 import { canHost, waitsForHost } from '../game/rooms';
 import { gameResult, GUESS_RULES, hasSolved, pointsText, roundPoints } from '../game/scoring';
-import { bestRun } from '../game/bestRun';
 import { hearts, PLAYLISTS_PER_LEVEL, runText } from '../game/survival';
+import { YEAR_RULES, yearPoints } from '../game/years';
 import { ME, type AppApi, type Round, type RunResult, type ScreenDef, type ScreenProps } from '../types';
 import { RoomSettings } from './RoomForm';
 
+/** A year round: who has guessed while the song plays, and how close they were at the reveal. */
+function yearStatus(round: Round, id: string): PlayerStatus {
+  const guess = round.years?.[id];
+  if (round.phase !== 'reveal') return guess === undefined ? 'guessing' : 'locked';
+  if (guess === undefined || !yearPoints(guess, round.track.year)) return 'wrong';
+  return guess === round.track.year ? 'spotOn' : 'close';
+}
+
 function roundStatus(round: Round, id: string): PlayerStatus {
+  if (round.years) return yearStatus(round, id);
   if (hasSolved(round, id)) return 'correct';
   const title = round.solvedTitle.includes(id), artist = round.solvedArtist.includes(id);
   if (title) return 'title';
@@ -61,7 +70,7 @@ function GameStandings({ app }: { app: AppApi }) {
     : round ? `Round ${round.number} of ${round.total}` : 'Final scores';
   const actions = round ? <div className="app-actions"><EndGameButton app={app} /><NextRoundButton app={app} /></div> : null;
   return (
-    <Section action={actions} title={title} hint={round ? `${room!.name} · ${GUESS_RULES[round.guess]}` : `${room!.name} · ${room!.rounds} rounds`}>
+    <Section action={actions} title={title} hint={round ? `${room!.name} · ${round.years ? YEAR_RULES : GUESS_RULES[round.guess]}` : `${room!.name} · ${room!.rounds} rounds`}>
       <div className="app-table">
         <Leaderboard players={standings(app)} highlight={ME} caption={'Scores in ' + room!.name} />
       </div>
@@ -73,13 +82,13 @@ function GameStandings({ app }: { app: AppApi }) {
 function RunOver({ app, run }: { app: AppApi; run: RunResult }) {
   const room = app.room!;
   const solo = isSolo(room);
-  const best = solo ? bestRun() : null;
+  const best = app.bestRun;
   const title = run.outcome === 'cleared' ? (solo ? 'You made it!' : 'Your team made it!') : 'Out of lives';
   const how = run.outcome === 'cleared'
     ? `Through all three levels with ${pointsText(run.points)}${solo ? '' : ' together'}.`
     : `${runText(run)}, ${pointsText(run.points)}${solo ? '' : ' together'}.`;
   const record = run.best ? 'A new best run!'
-    : best ? `Your best: ${runText(best)}, ${pointsText(best.points)}.` : '';
+    : best ? `${solo ? 'Your' : 'The room’s'} best: ${runText(best)}, ${pointsText(best.points)}.` : '';
   return (
     <ScreenHeader title={<><Icon name="trophy" size={24} /> {title}</>} hint={`${how} ${record}`.trim()}>
       {canHost(room, ME) ? <Button variant="primary" size="lg" icon="play" onClick={app.startGame}>Try again</Button> : null}

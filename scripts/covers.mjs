@@ -36,7 +36,8 @@ const COVERS = {
   // The game modes' covers (modeArt in src/data/demo.ts), named "mode-" and the mode. They sit
   // in public/assets itself, two folders up from the playlists'.
   'mode-casual': '../../CasualCover.png',
-  'mode-coop': '../../CoopCover.png'
+  'mode-coop': '../../CoopCover.png',
+  'mode-years': '../../YearsCover.png'
 };
 
 const LIST = new URL('../src/data/covers.json', import.meta.url);

@@ -105,8 +105,9 @@ export interface RunResult {
 /**
  * casual: your own playlist and rules, everyone for themselves. coop: a survival run with three
  * shared lives through three levels of playlists (game/survival.ts); alone it's solo "Survival".
+ * years: like casual, but players guess the year each song came out (game/years.ts).
  */
-export type GameMode = 'casual' | 'coop';
+export type GameMode = 'casual' | 'coop' | 'years';
 
 /**
  * How a casual game gets its playlist (game/playlistPick.ts). host: the one in the settings.
@@ -193,6 +194,11 @@ export interface Round {
   solvedAllArtists: string[];
   /** Ids of the players who typed /skip this round. */
   skipVotes: string[];
+  /**
+   * Year guessing (game/years.ts): each player's guessed year by player id. Only in year rounds;
+   * online every year is 0 until the reveal, so nobody can copy one.
+   */
+  years?: Record<string, number>;
   /** Survival runs: lives left and where in the run this round is. */
   run?: {
     lives: number;
@@ -312,8 +318,10 @@ export interface AppApi {
   scores: Record<string, number> | null;
   /** The room's wins and points since it was opened; null when you're not in a room. */
   session: Session | null;
-  /** The last finished survival run in your solo game; null otherwise. */
+  /** The last finished survival run in your solo game or Coop room; null otherwise. */
   run: RunResult | null;
+  /** The best Coop run in your room, or your best solo Survival run on this device; null until one has finished. */
+  bestRun: RunResult | null;
   /** Host only: sets the session's wins and points back to 0. */
   resetSession(): void;
   /** Survival: starts the playlist the slot machine stopped on. */
